@@ -1,4 +1,3 @@
-import React from 'react';
 import { Handle, Position } from 'reactflow';
 
 const NoiseNode = () => {
@@ -10,10 +9,10 @@ const NoiseNode = () => {
       </div>
       <p className="text-[10px] text-slate-500 italic">Soroll blanc pur</p>
 
-      <Handle 
-        type="source" 
-        position={Position.Right} 
-        className="!bg-slate-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform" 
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="!bg-slate-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
       />
     </div>
   );

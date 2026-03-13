@@ -1,16 +1,22 @@
-import React, { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Handle, Position } from 'reactflow';
 import { getAnalyser } from '../AudioEngine';
+import type { SoundNodeProps } from '../types';
 
-const SpectrogramNode = ({ id }: any) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const requestRef = useRef<number>();
+const SpectrogramNode = ({ id }: SoundNodeProps) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const requestRef = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
+
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
 
     const draw = () => {
       const analyser = getAnalyser(id);
@@ -27,18 +33,13 @@ const SpectrogramNode = ({ id }: any) => {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const barWidth = (canvas.width / bufferLength) * 2.5;
-      let barHeight;
       let x = 0;
 
-      for (let i = 0; i < bufferLength; i++) {
-        barHeight = dataArray[i] / 2;
-
-        // Gradient color based on frequency
+      for (let i = 0; i < bufferLength; i += 1) {
+        const barHeight = dataArray[i] / 2;
         const hue = (i / bufferLength) * 360;
         ctx.fillStyle = `hsla(${hue}, 100%, 50%, 0.8)`;
-        
         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-
         x += barWidth + 1;
       }
 
@@ -46,8 +47,11 @@ const SpectrogramNode = ({ id }: any) => {
     };
 
     draw();
+
     return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      if (requestRef.current !== null) {
+        cancelAnimationFrame(requestRef.current);
+      }
     };
   }, [id]);
 
@@ -57,25 +61,20 @@ const SpectrogramNode = ({ id }: any) => {
         <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse" />
         Spectrum Analyzer
       </div>
-      
+
       <div className="bg-black rounded-xl border border-white/5 overflow-hidden">
-        <canvas 
-          ref={canvasRef} 
-          width={200} 
-          height={100} 
-          className="w-full h-[100px] block"
-        />
+        <canvas ref={canvasRef} width={200} height={100} className="w-full h-[100px] block" />
       </div>
 
-      <Handle 
-        type="target" 
-        position={Position.Left} 
-        className="!bg-purple-400 !w-3 !h-3 !border-2 !border-black" 
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="!bg-purple-400 !w-3 !h-3 !border-2 !border-black"
       />
-      <Handle 
-        type="source" 
-        position={Position.Right} 
-        className="!bg-purple-400 !w-3 !h-3 !border-2 !border-black" 
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="!bg-purple-400 !w-3 !h-3 !border-2 !border-black"
       />
     </div>
   );

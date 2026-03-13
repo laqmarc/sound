@@ -1,14 +1,9 @@
-import React, { useState, useEffect } from 'react';
 import { Handle, Position } from 'reactflow';
-import { updateNodeParam } from '../AudioEngine';
 import Knob from '../components/Knob';
+import type { ControllableSoundNodeProps } from '../types';
 
-const PannerNode = ({ id, data }: any) => {
-  const [pan, setPan] = useState(data.pan || 0);
-
-  useEffect(() => {
-    updateNodeParam(id, 'pan', pan);
-  }, [id, pan]);
+const PannerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
+  const pan = data.pan ?? 0;
 
   return (
     <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl min-w-[150px]">
@@ -18,13 +13,13 @@ const PannerNode = ({ id, data }: any) => {
       </div>
 
       <div className="flex flex-col items-center">
-        <Knob 
+        <Knob
           label={pan < 0 ? 'Esquerra' : pan > 0 ? 'Dreta' : 'Centre'}
           min={-1}
           max={1}
           step={0.01}
           value={pan}
-          onChange={setPan}
+          onChange={(value) => onDataChange(id, { pan: value })}
           color="#f472b6"
           size={60}
         />
@@ -34,15 +29,15 @@ const PannerNode = ({ id, data }: any) => {
         </div>
       </div>
 
-      <Handle 
-        type="target" 
-        position={Position.Left} 
-        className="!bg-pink-400 !w-3 !h-3 !border-2 !border-black" 
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="!bg-pink-400 !w-3 !h-3 !border-2 !border-black"
       />
-      <Handle 
-        type="source" 
-        position={Position.Right} 
-        className="!bg-pink-400 !w-3 !h-3 !border-2 !border-black" 
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="!bg-pink-400 !w-3 !h-3 !border-2 !border-black"
       />
     </div>
   );

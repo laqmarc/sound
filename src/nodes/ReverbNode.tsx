@@ -1,14 +1,9 @@
-import React, { useState, useEffect } from 'react';
 import { Handle, Position } from 'reactflow';
-import { updateNodeParam } from '../AudioEngine';
 import Knob from '../components/Knob';
+import type { ControllableSoundNodeProps } from '../types';
 
-const ReverbNode = ({ id, data }: any) => {
-  const [decay, setDecay] = useState(data.decay || 3);
-
-  useEffect(() => {
-    updateNodeParam(id, 'decay', decay);
-  }, [id, decay]);
+const ReverbNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
+  const decay = data.decay ?? 3;
 
   return (
     <div className="bg-slate-800 p-4 border border-slate-700 rounded-lg shadow-xl min-w-[150px]">
@@ -18,28 +13,28 @@ const ReverbNode = ({ id, data }: any) => {
       </div>
 
       <div className="flex justify-center">
-        <Knob 
-          label="Decaïment"
+        <Knob
+          label="Decay"
           min={0.1}
           max={10}
           step={0.1}
           value={decay}
-          onChange={setDecay}
+          onChange={(value) => onDataChange(id, { decay: value })}
           color="#818cf8"
           unit=""
           size={60}
         />
       </div>
 
-      <Handle 
-        type="target" 
-        position={Position.Left} 
-        className="!bg-indigo-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform" 
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="!bg-indigo-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
       />
-      <Handle 
-        type="source" 
-        position={Position.Right} 
-        className="!bg-indigo-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform" 
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="!bg-indigo-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
       />
     </div>
   );

@@ -1,16 +1,22 @@
-import React, { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Handle, Position } from 'reactflow';
 import { getAnalyser } from '../AudioEngine';
+import type { SoundNodeProps } from '../types';
 
-const ScopeNode = ({ id }: any) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const requestRef = useRef<number>();
+const ScopeNode = ({ id }: SoundNodeProps) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const requestRef = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
+
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
 
     const draw = () => {
       const analyser = getAnalyser(id);
@@ -33,7 +39,7 @@ const ScopeNode = ({ id }: any) => {
       const sliceWidth = canvas.width / bufferLength;
       let x = 0;
 
-      for (let i = 0; i < bufferLength; i++) {
+      for (let i = 0; i < bufferLength; i += 1) {
         const v = dataArray[i] / 128.0;
         const y = (v * canvas.height) / 2;
 
@@ -53,8 +59,11 @@ const ScopeNode = ({ id }: any) => {
     };
 
     draw();
+
     return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      if (requestRef.current !== null) {
+        cancelAnimationFrame(requestRef.current);
+      }
     };
   }, [id]);
 
@@ -64,25 +73,20 @@ const ScopeNode = ({ id }: any) => {
         <div className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse" />
         Oscilloscope
       </div>
-      
+
       <div className="bg-black rounded-xl border border-white/5 overflow-hidden">
-        <canvas 
-          ref={canvasRef} 
-          width={200} 
-          height={100} 
-          className="w-full h-[100px] block"
-        />
+        <canvas ref={canvasRef} width={200} height={100} className="w-full h-[100px] block" />
       </div>
 
-      <Handle 
-        type="target" 
-        position={Position.Left} 
-        className="!bg-sky-400 !w-3 !h-3 !border-2 !border-black" 
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="!bg-sky-400 !w-3 !h-3 !border-2 !border-black"
       />
-      <Handle 
-        type="source" 
-        position={Position.Right} 
-        className="!bg-sky-400 !w-3 !h-3 !border-2 !border-black" 
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="!bg-sky-400 !w-3 !h-3 !border-2 !border-black"
       />
     </div>
   );
