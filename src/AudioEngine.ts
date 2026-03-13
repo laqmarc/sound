@@ -1,10 +1,20 @@
-import type { DrumPattern, EditableAudioNodeType, SoundNodeData } from './types';
+import type {
+  ArpStep,
+  DrumPattern,
+  EditableAudioNodeType,
+  NoteName,
+  SoundNodeData,
+  SyncDivision,
+} from './types';
 
 let audioContext: AudioContext | null = null;
 
 const nodes = new Map<string, AudioNode>();
 const analysers = new Map<string, AnalyserNode>();
 const drumMachines = new Map<string, DrumMachineState>();
+const arpeggiators = new Map<string, ArpeggiatorState>();
+const arpeggiatorTargets = new Map<string, Set<string>>();
+const nodeConfigs = new Map<string, NodeConfig>();
 let noiseBufferCache: AudioBuffer | null = null;
 
 type AudioParamName =
@@ -22,17 +32,57 @@ type AudioParamValue = number | OscillatorType | BiquadFilterType;
 interface DrumMachineState {
   id: string;
   output: GainNode;
-  step: number;
-  bpm: number;
   pattern: DrumPattern;
+}
+
+interface NodeConfig {
+  type: EditableAudioNodeType;
+  data: SoundNodeData;
+}
+
+interface ArpeggiatorState {
+  id: string;
+  stepIndex: number;
+  syncDivision: SyncDivision;
+  steps: ArpStep[];
+}
+
+interface TransportState {
+  bpm: number;
+  swing: number;
+  isPlaying: boolean;
+  step: number;
   timerId: number | null;
 }
+
+const transportState: TransportState = {
+  bpm: 120,
+  swing: 0,
+  isPlaying: false,
+  step: 0,
+  timerId: null,
+};
 
 const defaultDrumPattern = (): DrumPattern => ({
   kick: [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false],
   snare: [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false],
   hihat: [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true],
 });
+
+const NOTE_OFFSETS: Record<NoteName, number> = {
+  C: 0,
+  'C#': 1,
+  D: 2,
+  'D#': 3,
+  E: 4,
+  F: 5,
+  'F#': 6,
+  G: 7,
+  'G#': 8,
+  A: 9,
+  'A#': 10,
+  B: 11,
+};
 
 const cloneDrumPattern = (pattern?: DrumPattern): DrumPattern => {
   const base = pattern ?? defaultDrumPattern();
@@ -42,6 +92,47 @@ const cloneDrumPattern = (pattern?: DrumPattern): DrumPattern => {
     snare: Array.from({ length: 16 }, (_, index) => base.snare[index] ?? false),
     hihat: Array.from({ length: 16 }, (_, index) => base.hihat[index] ?? false),
   };
+};
+
+const defaultArpSteps = (): ArpStep[] => [
+  { note: 'C', octave: 4 },
+  { note: 'E', octave: 4 },
+  { note: 'G', octave: 4 },
+  { note: 'B', octave: 4 },
+  { note: 'C', octave: 5 },
+  { note: 'B', octave: 4 },
+  { note: 'G', octave: 4 },
+  { note: 'E', octave: 4 },
+];
+
+const cloneArpSteps = (steps?: ArpStep[]) => {
+  const base = steps && steps.length > 0 ? steps : defaultArpSteps();
+
+  return Array.from({ length: 8 }, (_, index) => ({
+    note: base[index]?.note ?? 'C',
+    octave: base[index]?.octave ?? 4,
+  }));
+};
+
+const divisionToBeats: Record<SyncDivision, number> = {
+  '1/1': 4,
+  '1/2': 2,
+  '1/4': 1,
+  '1/8': 0.5,
+  '1/16': 0.25,
+};
+
+const dispatchTransportEvent = (name: string, detail: Record<string, unknown>) => {
+  window.dispatchEvent(new CustomEvent(name, { detail }));
+};
+
+const emitTransportState = () => {
+  dispatchTransportEvent('transport-state', {
+    bpm: transportState.bpm,
+    swing: transportState.swing,
+    isPlaying: transportState.isPlaying,
+    step: transportState.step % 16,
+  });
 };
 
 const getNoiseBuffer = (ctx: AudioContext) => {
@@ -59,6 +150,78 @@ const getNoiseBuffer = (ctx: AudioContext) => {
 
   noiseBufferCache = noiseBuffer;
   return noiseBuffer;
+};
+
+const getBeatDurationSeconds = (bpm: number) => 60 / bpm;
+
+const getSyncedDurationSeconds = (division: SyncDivision, bpm: number) => {
+  return getBeatDurationSeconds(bpm) * divisionToBeats[division];
+};
+
+const getSyncedLfoFrequency = (division: SyncDivision, bpm: number) => {
+  return 1 / getSyncedDurationSeconds(division, bpm);
+};
+
+const getTransportStepInterval = (division: SyncDivision) => {
+  switch (division) {
+    case '1/16':
+      return 1;
+    case '1/8':
+      return 2;
+    case '1/4':
+      return 4;
+    case '1/2':
+      return 8;
+    case '1/1':
+      return 16;
+  }
+};
+
+const shouldTriggerOnTransportStep = (step: number, division: SyncDivision) => {
+  return step % getTransportStepInterval(division) === 0;
+};
+
+const noteToFrequency = (note: NoteName, octave: number) => {
+  return 440 * Math.pow(2, (NOTE_OFFSETS[note] - 9 + (octave - 4) * 12) / 12);
+};
+
+const stopSourceNode = (node: AudioNode) => {
+  if (node instanceof OscillatorNode || node instanceof AudioBufferSourceNode) {
+    try {
+      node.stop();
+    } catch {
+      // Ignore nodes that have already been stopped.
+    }
+  }
+};
+
+const buildDistortionCurve = (amount: number) => {
+  const sampleCount = 44100;
+  const curve = new Float32Array(sampleCount);
+  const deg = Math.PI / 180;
+
+  for (let i = 0; i < sampleCount; i += 1) {
+    const x = (i * 2) / sampleCount - 1;
+    curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+  }
+
+  return curve;
+};
+
+const buildImpulseResponse = (ctx: AudioContext, duration: number, decay: number) => {
+  const length = ctx.sampleRate * duration;
+  const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+  const left = impulse.getChannelData(0);
+  const right = impulse.getChannelData(1);
+
+  for (let i = 0; i < length; i += 1) {
+    const progress = i / length;
+    const falloff = Math.pow(1 - progress, decay);
+    left[i] = (Math.random() * 2 - 1) * falloff;
+    right[i] = (Math.random() * 2 - 1) * falloff;
+  }
+
+  return impulse;
 };
 
 const triggerKick = (ctx: AudioContext, destination: AudioNode) => {
@@ -137,116 +300,100 @@ const triggerHiHat = (ctx: AudioContext, destination: AudioNode) => {
   noise.stop(ctx.currentTime + 0.06);
 };
 
-const clearDrumMachineTimer = (state: DrumMachineState) => {
-  if (state.timerId !== null) {
-    window.clearInterval(state.timerId);
-    state.timerId = null;
+const updateSyncedNodesForTransport = () => {
+  nodeConfigs.forEach((config, id) => {
+    if (
+      config.type === 'delay' ||
+      config.type === 'lfo' ||
+      config.type === 'drumMachine'
+    ) {
+      applyAudioNodeData(config.type, id, config.data);
+    }
+  });
+};
+
+const clearTransportTimer = () => {
+  if (transportState.timerId !== null) {
+    window.clearTimeout(transportState.timerId);
+    transportState.timerId = null;
   }
 };
 
-const tickDrumMachine = (state: DrumMachineState) => {
+const getNextTransportIntervalMs = () => {
+  const baseMs = getSyncedDurationSeconds('1/16', transportState.bpm) * 1000;
+  const swingAmount = transportState.swing;
+  const isEvenStep = transportState.step % 2 === 0;
+
+  return baseMs * (isEvenStep ? 1 + swingAmount : 1 - swingAmount);
+};
+
+const tickTransport = () => {
   const ctx = audioContext;
   if (!ctx || ctx.state !== 'running') {
     return;
   }
 
-  const step = state.step % 16;
-  window.dispatchEvent(
-    new CustomEvent('drum-machine-step', {
-      detail: {
-        id: state.id,
-        step,
-      },
-    }),
-  );
+  const step = transportState.step % 16;
 
-  if (state.pattern.kick[step]) {
-    triggerKick(ctx, state.output);
-  }
-
-  if (state.pattern.snare[step]) {
-    triggerSnare(ctx, state.output);
-  }
-
-  if (state.pattern.hihat[step]) {
-    triggerHiHat(ctx, state.output);
-  }
-
-  state.step = (step + 1) % 16;
-};
-
-const startDrumMachineLoop = (state: DrumMachineState) => {
-  clearDrumMachineTimer(state);
-  const intervalMs = ((60 / state.bpm) / 4) * 1000;
-  state.timerId = window.setInterval(() => tickDrumMachine(state), intervalMs);
-};
-
-const stopSourceNode = (node: AudioNode) => {
-  if (node instanceof OscillatorNode || node instanceof AudioBufferSourceNode) {
-    try {
-      node.stop();
-    } catch {
-      // Ignore nodes that have already been stopped.
+  arpeggiators.forEach((arpeggiator) => {
+    if (!shouldTriggerOnTransportStep(step, arpeggiator.syncDivision)) {
+      return;
     }
+
+    const targets = arpeggiatorTargets.get(arpeggiator.id);
+    const arpStep = arpeggiator.steps[arpeggiator.stepIndex % arpeggiator.steps.length];
+
+    if (targets && arpStep) {
+      const frequency = noteToFrequency(arpStep.note, arpStep.octave);
+      targets.forEach((targetId) => {
+        updateNodeParam(targetId, 'frequency', frequency);
+      });
+    }
+
+    dispatchTransportEvent('arpeggiator-step', {
+      id: arpeggiator.id,
+      stepIndex: arpeggiator.stepIndex % arpeggiator.steps.length,
+      note: arpStep?.note,
+      octave: arpStep?.octave,
+    });
+
+    arpeggiator.stepIndex = (arpeggiator.stepIndex + 1) % arpeggiator.steps.length;
+  });
+
+  drumMachines.forEach((drumMachine) => {
+    if (drumMachine.pattern.kick[step]) {
+      triggerKick(ctx, drumMachine.output);
+    }
+
+    if (drumMachine.pattern.snare[step]) {
+      triggerSnare(ctx, drumMachine.output);
+    }
+
+    if (drumMachine.pattern.hihat[step]) {
+      triggerHiHat(ctx, drumMachine.output);
+    }
+  });
+
+  dispatchTransportEvent('transport-step', {
+    step,
+    bpm: transportState.bpm,
+  });
+  emitTransportState();
+
+  transportState.step = (step + 1) % 16;
+  if (transportState.isPlaying) {
+    transportState.timerId = window.setTimeout(tickTransport, getNextTransportIntervalMs());
   }
 };
 
-const destroyNodeById = (id: string) => {
-  const drumMachine = drumMachines.get(id);
-  if (drumMachine) {
-    clearDrumMachineTimer(drumMachine);
-    drumMachines.delete(id);
-  }
+const restartTransportTimer = () => {
+  clearTransportTimer();
 
-  const node = nodes.get(id);
-  if (!node) {
+  if (!transportState.isPlaying) {
     return;
   }
 
-  stopSourceNode(node);
-
-  try {
-    node.disconnect();
-  } catch {
-    // Ignore disconnect errors for nodes that are already detached.
-  }
-
-  nodes.delete(id);
-  analysers.delete(id);
-};
-
-const buildDistortionCurve = (amount: number) => {
-  const k = amount;
-  const sampleCount = 44100;
-  const curve = new Float32Array(sampleCount);
-  const deg = Math.PI / 180;
-
-  for (let i = 0; i < sampleCount; i += 1) {
-    const x = (i * 2) / sampleCount - 1;
-    curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
-  }
-
-  return curve;
-};
-
-const buildImpulseResponse = (
-  ctx: AudioContext,
-  duration: number,
-  decay: number,
-) => {
-  const length = ctx.sampleRate * duration;
-  const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
-  const left = impulse.getChannelData(0);
-  const right = impulse.getChannelData(1);
-
-  for (let i = 0; i < length; i += 1) {
-    const progress = i / length;
-    const falloff = Math.pow(1 - progress, decay);
-    left[i] = (Math.random() * 2 - 1) * falloff;
-    right[i] = (Math.random() * 2 - 1) * falloff;
-  }
-
-  return impulse;
+  transportState.timerId = window.setTimeout(tickTransport, getNextTransportIntervalMs());
 };
 
 const resolveTarget = (
@@ -300,6 +447,30 @@ const updateIfDefined = (
   updateNodeParam(id, param, value);
 };
 
+const destroyNodeById = (id: string) => {
+  drumMachines.delete(id);
+  arpeggiators.delete(id);
+  arpeggiatorTargets.delete(id);
+  arpeggiatorTargets.forEach((targets) => targets.delete(id));
+  nodeConfigs.delete(id);
+
+  const node = nodes.get(id);
+  if (!node) {
+    return;
+  }
+
+  stopSourceNode(node);
+
+  try {
+    node.disconnect();
+  } catch {
+    // Ignore disconnect errors for nodes that are already detached.
+  }
+
+  nodes.delete(id);
+  analysers.delete(id);
+};
+
 export const getAudioContext = () => {
   if (!audioContext) {
     audioContext = new AudioContext();
@@ -314,6 +485,61 @@ export const getAudioContext = () => {
 
 export const getAudioContextState = () => {
   return audioContext?.state ?? 'closed';
+};
+
+export const getTransportState = () => ({
+  bpm: transportState.bpm,
+  swing: transportState.swing,
+  isPlaying: transportState.isPlaying,
+  step: transportState.step,
+});
+
+export const startTransport = () => {
+  transportState.isPlaying = true;
+  transportState.step = 0;
+  emitTransportState();
+  restartTransportTimer();
+  dispatchTransportEvent('transport-start', {
+    bpm: transportState.bpm,
+    step: 0,
+  });
+};
+
+export const setTransportBpm = (bpm: number) => {
+  if (!Number.isFinite(bpm)) {
+    return;
+  }
+
+  if (transportState.bpm === bpm) {
+    return;
+  }
+
+  transportState.bpm = bpm;
+  restartTransportTimer();
+  updateSyncedNodesForTransport();
+  emitTransportState();
+  dispatchTransportEvent('transport-bpm', {
+    bpm: transportState.bpm,
+  });
+};
+
+export const setTransportSwing = (swing: number) => {
+  if (!Number.isFinite(swing)) {
+    return;
+  }
+
+  const normalizedSwing = Math.max(0, Math.min(0.45, swing));
+
+  if (transportState.swing === normalizedSwing) {
+    return;
+  }
+
+  transportState.swing = normalizedSwing;
+  restartTransportTimer();
+  emitTransportState();
+  dispatchTransportEvent('transport-swing', {
+    swing: transportState.swing,
+  });
 };
 
 export const createOscillator = (id: string) => {
@@ -435,18 +661,23 @@ export const createDrumMachine = (id: string) => {
   output.gain.setValueAtTime(0.9, ctx.currentTime);
   nodes.set(id, output);
 
-  const state: DrumMachineState = {
+  drumMachines.set(id, {
     id,
     output,
-    step: 0,
-    bpm: 120,
     pattern: defaultDrumPattern(),
-    timerId: null,
-  };
+  });
 
-  drumMachines.set(id, state);
-  startDrumMachineLoop(state);
   return output;
+};
+
+export const createArpeggiator = (id: string) => {
+  arpeggiators.set(id, {
+    id,
+    stepIndex: 0,
+    syncDivision: '1/8',
+    steps: defaultArpSteps(),
+  });
+  arpeggiatorTargets.set(id, new Set());
 };
 
 export const createAudioNode = (
@@ -492,6 +723,9 @@ export const createAudioNode = (
     case 'drumMachine':
       createDrumMachine(id);
       break;
+    case 'arpeggiator':
+      createArpeggiator(id);
+      break;
   }
 
   applyAudioNodeData(type, id, data);
@@ -502,6 +736,11 @@ export const applyAudioNodeData = (
   id: string,
   data: SoundNodeData,
 ) => {
+  nodeConfigs.set(id, {
+    type,
+    data: { ...data },
+  });
+
   switch (type) {
     case 'oscillator':
       updateIfDefined(id, 'frequency', data.frequency);
@@ -515,9 +754,13 @@ export const applyAudioNodeData = (
       updateIfDefined(id, 'type', data.type);
       updateIfDefined(id, 'Q', data.Q);
       break;
-    case 'delay':
-      updateIfDefined(id, 'delayTime', data.delayTime);
+    case 'delay': {
+      const syncedDelayTime = data.sync
+        ? getSyncedDurationSeconds(data.syncDivision ?? '1/8', transportState.bpm)
+        : data.delayTime;
+      updateIfDefined(id, 'delayTime', syncedDelayTime);
       break;
+    }
     case 'distortion':
       updateIfDefined(id, 'distortion', data.distortion);
       break;
@@ -527,11 +770,15 @@ export const applyAudioNodeData = (
     case 'panner':
       updateIfDefined(id, 'pan', data.pan);
       break;
-    case 'lfo':
-      updateIfDefined(id, 'frequency', data.frequency);
+    case 'lfo': {
+      const syncedFrequency = data.sync
+        ? getSyncedLfoFrequency(data.syncDivision ?? '1/4', transportState.bpm)
+        : data.frequency;
+      updateIfDefined(id, 'frequency', syncedFrequency);
       updateIfDefined(id, 'type', data.type);
       updateIfDefined(`${id}_gain`, 'gain', data.gain);
       break;
+    }
     case 'mixer':
       updateIfDefined(`${id}_ch1`, 'gain', data.ch1);
       updateIfDefined(`${id}_ch2`, 'gain', data.ch2);
@@ -544,10 +791,21 @@ export const applyAudioNodeData = (
         break;
       }
 
-      drumMachine.bpm = data.bpm ?? 120;
       drumMachine.pattern = cloneDrumPattern(data.drumPattern);
-      drumMachine.step = drumMachine.step % 16;
-      startDrumMachineLoop(drumMachine);
+      if (data.bpm !== undefined) {
+        setTransportBpm(data.bpm);
+      }
+      break;
+    }
+    case 'arpeggiator': {
+      const arpeggiator = arpeggiators.get(id);
+      if (!arpeggiator) {
+        break;
+      }
+
+      arpeggiator.syncDivision = data.syncDivision ?? '1/8';
+      arpeggiator.steps = cloneArpSteps(data.arpSteps);
+      arpeggiator.stepIndex = 0;
       break;
     }
     case 'noise':
@@ -570,6 +828,23 @@ export const connectNodes = (
   targetId: string,
   targetHandleId?: string | null,
 ) => {
+  const sourceConfig = nodeConfigs.get(sourceId);
+  const targetConfig = nodeConfigs.get(targetId);
+
+  if (
+    sourceConfig?.type === 'arpeggiator' &&
+    targetHandleId === 'pitch' &&
+    targetConfig?.type === 'oscillator'
+  ) {
+    let targets = arpeggiatorTargets.get(sourceId);
+    if (!targets) {
+      targets = new Set<string>();
+      arpeggiatorTargets.set(sourceId, targets);
+    }
+    targets.add(targetId);
+    return;
+  }
+
   const source = resolveSource(sourceId);
   const target = resolveTarget(targetId, targetHandleId);
 
@@ -593,6 +868,18 @@ export const disconnectNodes = (
   targetId: string,
   targetHandleId?: string | null,
 ) => {
+  const sourceConfig = nodeConfigs.get(sourceId);
+  const targetConfig = nodeConfigs.get(targetId);
+
+  if (
+    sourceConfig?.type === 'arpeggiator' &&
+    targetHandleId === 'pitch' &&
+    targetConfig?.type === 'oscillator'
+  ) {
+    arpeggiatorTargets.get(sourceId)?.delete(targetId);
+    return;
+  }
+
   const source = resolveSource(sourceId);
   const target = resolveTarget(targetId, targetHandleId);
 
@@ -679,11 +966,22 @@ export const updateNodeParam = (
 };
 
 export const stopAudio = async () => {
-  drumMachines.forEach((state) => clearDrumMachineTimer(state));
+  clearTransportTimer();
+  transportState.isPlaying = false;
+  transportState.step = 0;
+  emitTransportState();
+  dispatchTransportEvent('transport-stop', {
+    bpm: transportState.bpm,
+    step: 0,
+  });
+
   const ids = Array.from(nodes.keys());
   ids.forEach(destroyNodeById);
   analysers.clear();
   drumMachines.clear();
+  arpeggiators.clear();
+  arpeggiatorTargets.clear();
+  nodeConfigs.clear();
   noiseBufferCache = null;
 
   const ctx = audioContext;

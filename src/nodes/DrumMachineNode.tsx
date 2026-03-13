@@ -26,28 +26,40 @@ const channels: Array<{ key: keyof DrumPattern; label: string; color: string; gl
 ];
 
 interface DrumMachineStepEventDetail {
-  id?: string;
   step?: number;
+  bpm?: number;
 }
 
 const DrumMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
-  const bpm = data.bpm ?? 120;
+  const [transportBpm, setTransportBpm] = useState(data.bpm ?? 120);
   const pattern = normalizePattern(data.drumPattern);
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
     const handleStep = (event: Event) => {
       const customEvent = event as CustomEvent<DrumMachineStepEventDetail>;
-      if (customEvent.detail.id !== id || typeof customEvent.detail.step !== 'number') {
+      if (typeof customEvent.detail.step !== 'number') {
         return;
       }
 
       setCurrentStep(customEvent.detail.step);
     };
 
-    window.addEventListener('drum-machine-step', handleStep);
-    return () => window.removeEventListener('drum-machine-step', handleStep);
-  }, [id]);
+    window.addEventListener('transport-step', handleStep);
+    return () => window.removeEventListener('transport-step', handleStep);
+  }, []);
+
+  useEffect(() => {
+    const handleTransportState = (event: Event) => {
+      const customEvent = event as CustomEvent<DrumMachineStepEventDetail>;
+      if (typeof customEvent.detail.bpm === 'number') {
+        setTransportBpm(customEvent.detail.bpm);
+      }
+    };
+
+    window.addEventListener('transport-state', handleTransportState);
+    return () => window.removeEventListener('transport-state', handleTransportState);
+  }, []);
 
   const toggleStep = (channel: keyof DrumPattern, step: number) => {
     const nextPattern = normalizePattern(pattern);
@@ -83,7 +95,7 @@ const DrumMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
             min={60}
             max={180}
             step={1}
-            value={bpm}
+            value={transportBpm}
             onChange={(value) => onDataChange(id, { bpm: value })}
             color="#fb7185"
             size={56}

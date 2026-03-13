@@ -30,16 +30,22 @@ import ReverbNode from './nodes/ReverbNode';
 import ScopeNode from './nodes/ScopeNode';
 import SpectrogramNode from './nodes/SpectrogramNode';
 import DrumMachineNode from './nodes/DrumMachineNode';
+import ArpeggiatorNode from './nodes/ArpeggiatorNode';
+import Knob from './components/Knob';
 import {
   applyAudioNodeData,
   connectNodes,
   createAudioNode,
   disconnectNodes,
   getAudioContext,
+  getTransportState,
   removeNode,
+  setTransportBpm,
+  setTransportSwing,
+  startTransport,
   stopAudio,
 } from './AudioEngine';
-import type { DrumPattern, EditableAudioNodeType, SoundFlowNode, SoundNodeData, SoundNodeProps } from './types';
+import type { ArpStep, DrumPattern, EditableAudioNodeType, SoundFlowNode, SoundNodeData, SoundNodeProps } from './types';
 
 const baseInitialNodes: SoundFlowNode[] = [
   {
@@ -66,6 +72,17 @@ const defaultDrumPattern = (): DrumPattern => ({
   hihat: [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true],
 });
 
+const defaultArpSteps = (): ArpStep[] => [
+  { note: 'C', octave: 4 },
+  { note: 'E', octave: 4 },
+  { note: 'G', octave: 4 },
+  { note: 'B', octave: 4 },
+  { note: 'C', octave: 5 },
+  { note: 'B', octave: 4 },
+  { note: 'G', octave: 4 },
+  { note: 'E', octave: 4 },
+];
+
 const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
   oscillator: {
     label: 'Oscillator',
@@ -85,6 +102,8 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
   delay: {
     label: 'Delay',
     delayTime: 0.3,
+    sync: false,
+    syncDivision: '1/8',
   },
   noise: {
     label: 'Noise',
@@ -119,11 +138,18 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     frequency: 1,
     gain: 100,
     type: 'sine',
+    sync: false,
+    syncDivision: '1/4',
   },
   drumMachine: {
     label: 'Drum Machine',
     bpm: 120,
     drumPattern: defaultDrumPattern(),
+  },
+  arpeggiator: {
+    label: 'Arpeggiator',
+    syncDivision: '1/8',
+    arpSteps: defaultArpSteps(),
   },
 };
 
@@ -145,6 +171,7 @@ const addNodeButtons: Array<{
   { type: 'scope', label: 'Scope', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
   { type: 'spectrogram', label: 'Spectrum', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
   { type: 'drumMachine', label: 'Drums', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
+  { type: 'arpeggiator', label: 'Arp', color: 'bg-lime-500/10 text-lime-400 border-lime-500/20' },
 ];
 
 let nodeSequence = 1;
@@ -188,6 +215,7 @@ function App() {
   const [nodes, setNodes] = useState<SoundFlowNode[]>(baseInitialNodes);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [audioStarted, setAudioStarted] = useState(false);
+  const [transport, setTransport] = useState(() => getTransportState());
   const nodesRef = useRef<SoundFlowNode[]>(baseInitialNodes);
   const audioStartedRef = useRef(false);
 
@@ -198,6 +226,28 @@ function App() {
   useEffect(() => {
     audioStartedRef.current = audioStarted;
   }, [audioStarted]);
+
+  useEffect(() => {
+    const syncTransport = () => {
+      setTransport(getTransportState());
+    };
+
+    syncTransport();
+
+    window.addEventListener('transport-state', syncTransport);
+    window.addEventListener('transport-start', syncTransport);
+    window.addEventListener('transport-stop', syncTransport);
+    window.addEventListener('transport-bpm', syncTransport);
+    window.addEventListener('transport-swing', syncTransport);
+
+    return () => {
+      window.removeEventListener('transport-state', syncTransport);
+      window.removeEventListener('transport-start', syncTransport);
+      window.removeEventListener('transport-stop', syncTransport);
+      window.removeEventListener('transport-bpm', syncTransport);
+      window.removeEventListener('transport-swing', syncTransport);
+    };
+  }, []);
 
   const handleNodeDataChange = useCallback(
     (id: string, patch: Partial<SoundNodeData>) => {
@@ -262,6 +312,9 @@ function App() {
       drumMachine: (props: SoundNodeProps) => (
         <DrumMachineNode {...props} onDataChange={handleNodeDataChange} />
       ),
+      arpeggiator: (props: SoundNodeProps) => (
+        <ArpeggiatorNode {...props} onDataChange={handleNodeDataChange} />
+      ),
     }),
     [handleNodeDataChange],
   );
@@ -307,6 +360,7 @@ function App() {
       }
     });
 
+    startTransport();
     setAudioStarted(true);
   };
 
@@ -459,6 +513,47 @@ function App() {
         </nav>
 
         <div className="flex items-center gap-4 flex-shrink-0">
+          <div className="hidden xl:flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-4 py-2">
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: 16 }, (_, step) => (
+                <div
+                  key={`transport-step-${step}`}
+                  className={`w-2 h-6 rounded-full transition-all ${
+                    transport.step % 16 === step && transport.isPlaying
+                      ? 'bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.85)]'
+                      : 'bg-white/10'
+                  } ${step % 4 === 0 ? 'ring-1 ring-white/10' : ''}`}
+                />
+              ))}
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.25em] text-white/45 whitespace-nowrap">
+              {transport.isPlaying ? 'Running' : 'Stopped'}
+            </div>
+            <Knob
+              label="BPM"
+              min={60}
+              max={180}
+              step={1}
+              value={transport.bpm}
+              onChange={setTransportBpm}
+              color="#38bdf8"
+              size={46}
+            />
+            <div className="min-w-[96px]">
+              <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-2">Swing</label>
+              <input
+                type="range"
+                min={0}
+                max={0.45}
+                step={0.01}
+                value={transport.swing}
+                onChange={(event) => setTransportSwing(Number(event.target.value))}
+                className="w-full accent-rose-400"
+              />
+              <div className="text-[10px] text-white/55 mt-1 font-mono">{Math.round(transport.swing * 100)}%</div>
+            </div>
+          </div>
+
           {!audioStarted ? (
             <button
               onClick={startAudio}

@@ -148,6 +148,17 @@ const OscillatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
       </div>
 
       <Handle
+        type="target"
+        position={Position.Left}
+        id="pitch"
+        className="!bg-lime-400 !w-3 !h-3 !border-2 !border-white hover:!scale-125 transition-transform"
+        style={{ top: '28%' }}
+      />
+      <div className="absolute left-[-38px] top-[23%] text-[8px] text-lime-400 font-bold uppercase pointer-events-none">
+        Pitch
+      </div>
+
+      <Handle
         type="source"
         position={Position.Right}
         className="!bg-sky-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"

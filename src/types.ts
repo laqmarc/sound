@@ -14,6 +14,7 @@ export const editableNodeTypes = [
   'panner',
   'lfo',
   'drumMachine',
+  'arpeggiator',
 ] as const;
 
 export type EditableAudioNodeType = (typeof editableNodeTypes)[number];
@@ -40,12 +41,23 @@ export interface SoundNodeData {
   bpm?: number;
   drumPattern?: DrumPattern;
   currentStep?: number;
+  sync?: boolean;
+  syncDivision?: SyncDivision;
+  arpSteps?: ArpStep[];
 }
 
 export interface DrumPattern {
   kick: boolean[];
   snare: boolean[];
   hihat: boolean[];
+}
+
+export type SyncDivision = '1/1' | '1/2' | '1/4' | '1/8' | '1/16';
+export type NoteName = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B';
+
+export interface ArpStep {
+  note: NoteName;
+  octave: number;
 }
 
 export type SoundFlowNode = Node<SoundNodeData, FlowNodeType>;
