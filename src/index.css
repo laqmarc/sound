@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-bg: #050505;
+  --color-node-bg: rgba(15, 15, 20, 0.85);
+  --color-node-border: rgba(255, 255, 255, 0.1);
+  --color-accent-blue: #00d2ff;
+  --color-accent-purple: #9d50bb;
+  --color-accent-green: #38ef7d;
+  --color-accent-rose: #f43f5e;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-brand-bg);
+  color: #e2e8f0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+.react-flow__background {
+  background-color: #050505;
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+.react-flow__node {
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.react-flow__node.selected {
+  box-shadow: 0 0 0 2px var(--color-accent-blue), 0 0 20px rgba(0, 210, 255, 0.3);
+}
+
+.react-flow__handle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #050505;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.react-flow__handle:hover {
+  transform: scale(1.4);
+  box-shadow: 0 0 15px white;
+}
+
+.react-flow__connection-path {
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 2;
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+.react-flow__edge-path {
+  stroke: url(#edge-gradient);
+  stroke-width: 3;
+  transition: all 0.3s;
+  filter: drop-shadow(0 0 5px rgba(0, 210, 255, 0.2));
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 5;
+  filter: drop-shadow(0 0 12px rgba(0, 210, 255, 0.5));
+}
+
+@keyframes dashdraw {
+  from { stroke-dashoffset: 10; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(15, 15, 20, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
