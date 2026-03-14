@@ -40,6 +40,7 @@ import {
   nodes,
   noiseLayers,
   weirdMachines,
+  chaosShrines,
   phasers,
   quantizers,
   randomCvs,
@@ -258,6 +259,45 @@ export const destroyNodeById = (id: string) => {
       // Ignore cleanup errors while tearing down the weird machine.
     }
     weirdMachines.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const chaosShrine = chaosShrines.get(id);
+  if (chaosShrine) {
+    try {
+      chaosShrine.carrier.disconnect();
+      chaosShrine.sub.disconnect();
+      chaosShrine.shimmer.disconnect();
+      chaosShrine.modulator.disconnect();
+      chaosShrine.fmGain.disconnect();
+      chaosShrine.motionLfo.disconnect();
+      chaosShrine.motionDepth.disconnect();
+      chaosShrine.motionBias.disconnect();
+      chaosShrine.motionVca.disconnect();
+      chaosShrine.noiseSource.disconnect();
+      chaosShrine.noiseGain.disconnect();
+      chaosShrine.carrierGain.disconnect();
+      chaosShrine.subGain.disconnect();
+      chaosShrine.shimmerGain.disconnect();
+      chaosShrine.filter.disconnect();
+      chaosShrine.colorFilter.disconnect();
+      chaosShrine.shaper.disconnect();
+      chaosShrine.leftDelay.disconnect();
+      chaosShrine.rightDelay.disconnect();
+      chaosShrine.leftPan.disconnect();
+      chaosShrine.rightPan.disconnect();
+      chaosShrine.output.disconnect();
+      chaosShrine.carrier.stop();
+      chaosShrine.sub.stop();
+      chaosShrine.shimmer.stop();
+      chaosShrine.modulator.stop();
+      chaosShrine.motionLfo.stop();
+      chaosShrine.motionBias.stop();
+      chaosShrine.noiseSource.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the chaos shrine.
+    }
+    chaosShrines.delete(id);
     nodes.delete(`${id}_out`);
   }
 
@@ -840,6 +880,7 @@ export const clearAudioEngineStores = () => {
   subOscs.clear();
   noiseLayers.clear();
   weirdMachines.clear();
+  chaosShrines.clear();
   tremolos.clear();
   ringMods.clear();
   vibratos.clear();

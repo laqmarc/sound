@@ -8,6 +8,7 @@ const PITCH_TARGET_TYPES = [
   'fmSynth',
   'subOsc',
   'weirdMachine',
+  'chaosShrine',
 ] as const;
 
 const resolveTarget = (

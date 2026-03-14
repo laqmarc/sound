@@ -9,6 +9,7 @@ import {
   subOscs,
   noiseLayers,
   weirdMachines,
+  chaosShrines,
   dualOscs,
   dronePads,
   basslines,
@@ -215,6 +216,129 @@ const createWeirdMachine = (id: string) => {
     output,
     steps: [true, false, true, false, true, true, false, true],
     syncDivision: '1/8',
+    stepIndex: 0,
+  });
+};
+
+const createChaosShrine = (id: string) => {
+  const ctx = getAudioContext();
+  const carrier = ctx.createOscillator();
+  const sub = ctx.createOscillator();
+  const shimmer = ctx.createOscillator();
+  const modulator = ctx.createOscillator();
+  const fmGain = ctx.createGain();
+  const motionLfo = ctx.createOscillator();
+  const motionDepth = ctx.createGain();
+  const motionBias = ctx.createConstantSource();
+  const motionVca = ctx.createGain();
+  const noiseSource = ctx.createBufferSource();
+  const noiseGain = ctx.createGain();
+  const carrierGain = ctx.createGain();
+  const subGain = ctx.createGain();
+  const shimmerGain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  const colorFilter = ctx.createBiquadFilter();
+  const shaper = ctx.createWaveShaper();
+  const leftDelay = ctx.createDelay(0.03);
+  const rightDelay = ctx.createDelay(0.03);
+  const leftPan = ctx.createStereoPanner();
+  const rightPan = ctx.createStereoPanner();
+  const output = ctx.createGain();
+
+  carrier.type = 'sawtooth';
+  sub.type = 'square';
+  shimmer.type = 'triangle';
+  modulator.type = 'triangle';
+  motionLfo.type = 'sine';
+  carrier.frequency.setValueAtTime(110, ctx.currentTime);
+  sub.frequency.setValueAtTime(55, ctx.currentTime);
+  shimmer.frequency.setValueAtTime(164, ctx.currentTime);
+  modulator.frequency.setValueAtTime(72, ctx.currentTime);
+  motionLfo.frequency.setValueAtTime(2.5, ctx.currentTime);
+  fmGain.gain.setValueAtTime(140, ctx.currentTime);
+  motionDepth.gain.setValueAtTime(0.22, ctx.currentTime);
+  motionBias.offset.setValueAtTime(0.65, ctx.currentTime);
+  motionVca.gain.setValueAtTime(0, ctx.currentTime);
+  noiseSource.buffer = getNoiseBuffer(ctx);
+  noiseSource.loop = true;
+  noiseGain.gain.setValueAtTime(0.07, ctx.currentTime);
+  carrierGain.gain.setValueAtTime(0.34, ctx.currentTime);
+  subGain.gain.setValueAtTime(0.22, ctx.currentTime);
+  shimmerGain.gain.setValueAtTime(0.18, ctx.currentTime);
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(900, ctx.currentTime);
+  filter.Q.setValueAtTime(4.5, ctx.currentTime);
+  colorFilter.type = 'lowpass';
+  colorFilter.frequency.setValueAtTime(2600, ctx.currentTime);
+  colorFilter.Q.setValueAtTime(0.9, ctx.currentTime);
+  shaper.curve = buildSaturatorCurve(2.8);
+  shaper.oversample = '4x';
+  leftDelay.delayTime.setValueAtTime(0.0015, ctx.currentTime);
+  rightDelay.delayTime.setValueAtTime(0.009, ctx.currentTime);
+  leftPan.pan.setValueAtTime(-0.45, ctx.currentTime);
+  rightPan.pan.setValueAtTime(0.45, ctx.currentTime);
+  output.gain.setValueAtTime(0.24, ctx.currentTime);
+
+  modulator.connect(fmGain);
+  fmGain.connect(carrier.frequency);
+  fmGain.connect(shimmer.frequency);
+  motionLfo.connect(motionDepth);
+  motionDepth.connect(motionVca.gain);
+  motionBias.connect(motionVca.gain);
+
+  carrier.connect(carrierGain);
+  sub.connect(subGain);
+  shimmer.connect(shimmerGain);
+  carrierGain.connect(filter);
+  subGain.connect(filter);
+  shimmerGain.connect(filter);
+  noiseSource.connect(noiseGain);
+  noiseGain.connect(filter);
+  filter.connect(colorFilter);
+  colorFilter.connect(shaper);
+  shaper.connect(motionVca);
+  motionVca.connect(leftDelay);
+  motionVca.connect(rightDelay);
+  leftDelay.connect(leftPan);
+  rightDelay.connect(rightPan);
+  leftPan.connect(output);
+  rightPan.connect(output);
+
+  carrier.start();
+  sub.start();
+  shimmer.start();
+  modulator.start();
+  motionLfo.start();
+  motionBias.start();
+  noiseSource.start();
+
+  nodes.set(id, carrier);
+  nodes.set(`${id}_out`, output);
+  chaosShrines.set(id, {
+    carrier,
+    sub,
+    shimmer,
+    modulator,
+    fmGain,
+    motionLfo,
+    motionDepth,
+    motionBias,
+    motionVca,
+    noiseSource,
+    noiseGain,
+    carrierGain,
+    subGain,
+    shimmerGain,
+    filter,
+    colorFilter,
+    shaper,
+    leftDelay,
+    rightDelay,
+    leftPan,
+    rightPan,
+    output,
+    steps: [true, false, true, true, false, true, false, true, true, false, false, true, false, true, true, false],
+    syncDivision: '1/16',
     stepIndex: 0,
   });
 };
@@ -872,6 +996,9 @@ export const createMusicalAudioNode = (type: EditableAudioNodeType, id: string) 
       return true;
     case 'weirdMachine':
       createWeirdMachine(id);
+      return true;
+    case 'chaosShrine':
+      createChaosShrine(id);
       return true;
     default:
       return false;

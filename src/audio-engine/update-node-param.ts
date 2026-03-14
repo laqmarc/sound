@@ -8,6 +8,7 @@ import {
   subOscs,
   monoSynths,
   weirdMachines,
+  chaosShrines,
   nodeConfigs,
   buildDistortionCurve,
   buildImpulseResponse,
@@ -104,6 +105,31 @@ export const updateAudioNodeParam = (
       weirdMachine.carrier.type = value as OscillatorType;
     } else if (param === 'gain' && typeof value === 'number' && Number.isFinite(value)) {
       weirdMachine.output.gain.setTargetAtTime(value, ctx.currentTime, 0.03);
+    }
+    return;
+  }
+
+  const chaosShrine = chaosShrines.get(id);
+  if (chaosShrine) {
+    const shrineData = nodeConfigs.get(id)?.data;
+    const texture = Math.max(0, Math.min(1, shrineData?.texture ?? 0.55));
+    const chaos = Math.max(0, Math.min(1, shrineData?.chaos ?? 0.72));
+    const spread = shrineData?.spread ?? 8;
+    const detune = shrineData?.detune ?? 18;
+
+    if (param === 'frequency' && typeof value === 'number' && Number.isFinite(value)) {
+      chaosShrine.carrier.frequency.setTargetAtTime(value, ctx.currentTime, 0.03);
+      chaosShrine.sub.frequency.setTargetAtTime(Math.max(18, value / 2), ctx.currentTime, 0.03);
+      chaosShrine.shimmer.frequency.setTargetAtTime(
+        value * (1.48 + spread / 24 + texture * 0.55),
+        ctx.currentTime,
+        0.03,
+      );
+      chaosShrine.shimmer.detune.setTargetAtTime(detune * (0.8 + chaos * 0.8), ctx.currentTime, 0.03);
+    } else if (param === 'type') {
+      chaosShrine.carrier.type = value as OscillatorType;
+    } else if (param === 'gain' && typeof value === 'number' && Number.isFinite(value)) {
+      chaosShrine.output.gain.setTargetAtTime(value, ctx.currentTime, 0.03);
     }
     return;
   }

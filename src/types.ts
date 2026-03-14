@@ -69,6 +69,7 @@ export const editableNodeTypes = [
   'subOsc',
   'noiseLayer',
   'weirdMachine',
+  'chaosShrine',
 ] as const;
 
 export type EditableAudioNodeType = (typeof editableNodeTypes)[number];
@@ -132,6 +133,9 @@ export interface SoundNodeData {
   detune?: number;
   blend?: number;
   tilt?: number;
+  morph?: number;
+  sceneA?: ShrineScene;
+  sceneB?: ShrineScene;
   minValue?: number;
   maxValue?: number;
   divider?: number;
@@ -153,6 +157,7 @@ export type NoteName = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' |
 export type ArpMode = 'up' | 'down' | 'random';
 export type ArpScale = 'chromatic' | 'major' | 'minor' | 'pentatonic';
 export type ChordType = 'major' | 'minor' | 'sus2' | 'sus4' | 'dim';
+export type ShrineScene = 'nebula' | 'razor' | 'swarm' | 'ritual';
 
 export interface ArpStep {
   note: NoteName;

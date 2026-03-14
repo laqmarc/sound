@@ -15,6 +15,7 @@ import {
   snareSynths,
   hiHatSynths,
   weirdMachines,
+  chaosShrines,
   nodeConfigs,
   transportState,
   BASSLINE_OFFSETS,
@@ -73,7 +74,8 @@ const updateSyncedNodesForTransport = (applyAudioNodeData: ApplyAudioNodeData) =
       config.type === 'granular' ||
       config.type === 'stutter' ||
       config.type === 'triggerDelay' ||
-      config.type === 'weirdMachine'
+      config.type === 'weirdMachine' ||
+      config.type === 'chaosShrine'
     ) {
       applyAudioNodeData(config.type, id, config.data);
     }
@@ -273,6 +275,67 @@ const tickTransport = (callbacks: TransportCallbacks) => {
     });
 
     weirdMachine.stepIndex = (weirdMachine.stepIndex + 1) % weirdMachine.steps.length;
+  });
+
+  chaosShrines.forEach((chaosShrine, id) => {
+    if (!shouldTriggerOnTransportStep(step, chaosShrine.syncDivision)) {
+      return;
+    }
+
+    const stepIndex = chaosShrine.stepIndex % chaosShrine.steps.length;
+    const isHot = chaosShrine.steps[stepIndex] ?? false;
+    const config = nodeConfigs.get(id)?.data;
+    const isFrozen = config?.freeze ?? false;
+
+    if (isFrozen) {
+      dispatchTransportEvent('chaos-shrine-step', {
+        id,
+        stepIndex,
+        active: isHot,
+      });
+      return;
+    }
+
+    const texture = Math.max(0, Math.min(1, config?.texture ?? 0.55));
+    const chaos = Math.max(0, Math.min(1, config?.chaos ?? 0.72));
+    const blend = Math.max(0, Math.min(1, config?.blend ?? 0.58));
+    const baseTone = config?.tone ?? 900;
+    const baseGain = config?.gain ?? 0.24;
+    const baseMod = config?.modAmount ?? 140;
+
+    chaosShrine.filter.frequency.setTargetAtTime(
+      isHot ? baseTone * (1.3 + texture * 0.45) : baseTone * (0.78 + chaos * 0.12),
+      ctx.currentTime,
+      0.016,
+    );
+    chaosShrine.colorFilter.frequency.setTargetAtTime(
+      isHot ? baseTone * (2.2 + texture * 1.1) : baseTone * (1.35 + blend * 0.35),
+      ctx.currentTime,
+      0.016,
+    );
+    chaosShrine.output.gain.setTargetAtTime(
+      isHot ? Math.min(1, baseGain * 1.24) : baseGain * 0.72,
+      ctx.currentTime,
+      0.02,
+    );
+    chaosShrine.fmGain.gain.setTargetAtTime(
+      isHot ? baseMod * (1.18 + chaos * 0.45) : baseMod * (0.72 + texture * 0.18),
+      ctx.currentTime,
+      0.02,
+    );
+    chaosShrine.shimmerGain.gain.setTargetAtTime(
+      isHot ? 0.18 + blend * 0.52 + texture * 0.18 : 0.08 + blend * 0.28,
+      ctx.currentTime,
+      0.02,
+    );
+
+    dispatchTransportEvent('chaos-shrine-step', {
+      id,
+      stepIndex,
+      active: isHot,
+    });
+
+    chaosShrine.stepIndex = (chaosShrine.stepIndex + 1) % chaosShrine.steps.length;
   });
 
   dispatchTransportEvent('transport-step', {

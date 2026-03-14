@@ -28,6 +28,7 @@ import {
   monoSynths,
   noiseLayers,
   weirdMachines,
+  chaosShrines,
   noteToFrequency,
   randomCvs,
   snareSynths,
@@ -379,6 +380,70 @@ export const applyMusicalNodeData = (
       weirdMachine.harmonic.type = data.modType ?? 'square';
       weirdMachine.syncDivision = syncDivision;
       weirdMachine.steps = Array.from({ length: 8 }, (_, index) => data.steps?.[index] ?? weirdMachine.steps[index] ?? (index % 2 === 0));
+      return true;
+    }
+    case 'chaosShrine': {
+      const chaosShrine = chaosShrines.get(id);
+      if (!chaosShrine) {
+        return true;
+      }
+
+      const currentTime = getAudioContext().currentTime;
+      const frequency = data.frequency ?? 110;
+      const texture = Math.max(0, Math.min(1, data.texture ?? 0.55));
+      const chaos = Math.max(0, Math.min(1, data.chaos ?? 0.72));
+      const blend = Math.max(0, Math.min(1, data.blend ?? 0.58));
+      const spread = data.spread ?? 8;
+      const detune = data.detune ?? 18;
+      const syncDivision = data.syncDivision ?? '1/16';
+      const pan = Math.max(-1, Math.min(1, data.pan ?? 0));
+      const stereoWidth = Math.max(0, Math.min(1, spread / 24));
+      const pulseRate = data.sync
+        ? getSyncedLfoFrequency(syncDivision, transportState.bpm)
+        : data.rate ?? 2.5;
+
+      chaosShrine.carrier.frequency.setTargetAtTime(frequency, currentTime, 0.03);
+      chaosShrine.sub.frequency.setTargetAtTime(Math.max(18, frequency / 2), currentTime, 0.03);
+      chaosShrine.shimmer.frequency.setTargetAtTime(
+        frequency * (1.48 + spread / 24 + texture * 0.55),
+        currentTime,
+        0.03,
+      );
+      chaosShrine.shimmer.detune.setTargetAtTime(detune * (0.8 + chaos * 0.8), currentTime, 0.03);
+      chaosShrine.modulator.frequency.setTargetAtTime(data.modFrequency ?? 72, currentTime, 0.03);
+      chaosShrine.fmGain.gain.setTargetAtTime((data.modAmount ?? 140) * (0.65 + chaos * 0.6), currentTime, 0.03);
+      chaosShrine.motionLfo.frequency.setTargetAtTime(pulseRate, currentTime, 0.03);
+      chaosShrine.motionDepth.gain.setTargetAtTime(
+        data.freeze
+          ? 0
+          : Math.max(0, Math.min(0.46, 0.08 + (data.depth ?? 1100) / 3600)),
+        currentTime,
+        0.03,
+      );
+      chaosShrine.motionBias.offset.setTargetAtTime(0.7 - chaos * 0.18, currentTime, 0.03);
+      chaosShrine.noiseGain.gain.setTargetAtTime(0.03 + texture * 0.22 + chaos * 0.08, currentTime, 0.03);
+      chaosShrine.carrierGain.gain.setTargetAtTime(0.28 + (1 - blend) * 0.36, currentTime, 0.03);
+      chaosShrine.subGain.gain.setTargetAtTime(0.16 + (1 - blend) * 0.22, currentTime, 0.03);
+      chaosShrine.shimmerGain.gain.setTargetAtTime(0.08 + blend * 0.42 + texture * 0.1, currentTime, 0.03);
+      chaosShrine.filter.type = 'bandpass';
+      chaosShrine.filter.frequency.setTargetAtTime(data.tone ?? 900, currentTime, 0.03);
+      chaosShrine.filter.Q.setTargetAtTime(data.Q ?? 4.5, currentTime, 0.03);
+      chaosShrine.colorFilter.type = 'lowpass';
+      chaosShrine.colorFilter.frequency.setTargetAtTime((data.tone ?? 900) * (1.8 + texture), currentTime, 0.03);
+      chaosShrine.colorFilter.Q.setTargetAtTime(0.8 + chaos * 2.4, currentTime, 0.03);
+      chaosShrine.shaper.curve = buildSaturatorCurve(Math.max(1, data.drive ?? 2.8));
+      chaosShrine.leftDelay.delayTime.setTargetAtTime(0.0008 + stereoWidth * 0.003, currentTime, 0.03);
+      chaosShrine.rightDelay.delayTime.setTargetAtTime(0.004 + stereoWidth * 0.011, currentTime, 0.03);
+      chaosShrine.leftPan.pan.setTargetAtTime(Math.max(-1, pan - stereoWidth * 0.8), currentTime, 0.03);
+      chaosShrine.rightPan.pan.setTargetAtTime(Math.min(1, pan + stereoWidth * 0.8), currentTime, 0.03);
+      chaosShrine.output.gain.setTargetAtTime(data.gain ?? 0.24, currentTime, 0.03);
+      chaosShrine.carrier.type = (data.type as OscillatorType | undefined) ?? 'sawtooth';
+      chaosShrine.shimmer.type = data.modType ?? 'triangle';
+      chaosShrine.syncDivision = syncDivision;
+      chaosShrine.steps = Array.from(
+        { length: 16 },
+        (_, index) => data.steps?.[index] ?? chaosShrine.steps[index] ?? index % 3 !== 1,
+      );
       return true;
     }
     default:

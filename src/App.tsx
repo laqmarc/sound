@@ -47,6 +47,7 @@ import FMSynthNode from './nodes/FMSynthNode';
 import SubOscNode from './nodes/SubOscNode';
 import NoiseLayerNode from './nodes/NoiseLayerNode';
 import WeirdMachineNode from './nodes/WeirdMachineNode';
+import ChaosShrineNode from './nodes/ChaosShrineNode';
 import TremoloNode from './nodes/TremoloNode';
 import RingModNode from './nodes/RingModNode';
 import VibratoNode from './nodes/VibratoNode';
@@ -594,6 +595,33 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     type: 'sawtooth',
     modType: 'square',
   },
+  chaosShrine: {
+    label: 'Chaos Shrine',
+    frequency: 110,
+    modFrequency: 72,
+    modAmount: 140,
+    texture: 0.55,
+    chaos: 0.72,
+    tone: 900,
+    Q: 4.5,
+    rate: 2.5,
+    depth: 1100,
+    drive: 2.8,
+    gain: 0.24,
+    detune: 18,
+    blend: 0.58,
+    spread: 8,
+    pan: 0,
+    morph: 0,
+    sceneA: 'nebula',
+    sceneB: 'ritual',
+    sync: true,
+    syncDivision: '1/16',
+    freeze: false,
+    steps: [true, false, true, true, false, true, false, true, true, false, false, true, false, true, true, false],
+    type: 'sawtooth',
+    modType: 'triangle',
+  },
 };
 
 const addNodeButtons: Array<{
@@ -613,6 +641,7 @@ const addNodeButtons: Array<{
   { type: 'subOsc', label: 'Sub', color: 'bg-blue-500/10 text-blue-300 border-blue-500/20', tab: 'voices' },
   { type: 'noiseLayer', label: 'Layer', color: 'bg-stone-500/10 text-stone-300 border-stone-500/20', tab: 'voices' },
   { type: 'weirdMachine', label: 'Mutant', color: 'bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20', tab: 'voices' },
+  { type: 'chaosShrine', label: 'Shrine', color: 'bg-rose-500/10 text-rose-200 border-rose-500/20', tab: 'voices' },
   { type: 'chordGenerator', label: 'Chord', color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20', tab: 'voices' },
   { type: 'drumMachine', label: 'Drums', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20', tab: 'groove' },
   { type: 'kickSynth', label: 'Kick', color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20', tab: 'groove' },
@@ -2208,6 +2237,9 @@ function App() {
       ),
       weirdMachine: (props: SoundNodeProps) => (
         <WeirdMachineNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      chaosShrine: (props: SoundNodeProps) => (
+        <ChaosShrineNode {...props} onDataChange={handleNodeDataChange} />
       ),
     }),
     [handleNodeDataChange],

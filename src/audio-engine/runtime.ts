@@ -29,6 +29,7 @@ export const fmSynths = new Map<string, FMSynthState>();
 export const subOscs = new Map<string, SubOscState>();
 export const noiseLayers = new Map<string, NoiseLayerState>();
 export const weirdMachines = new Map<string, WeirdMachineState>();
+export const chaosShrines = new Map<string, ChaosShrineState>();
 export const tremolos = new Map<string, TremoloState>();
 export const ringMods = new Map<string, RingModState>();
 export const vibratos = new Map<string, VibratoState>();
@@ -198,6 +199,34 @@ export interface WeirdMachineState {
   wobbleGain: GainNode;
   filter: BiquadFilterNode;
   shaper: WaveShaperNode;
+  output: GainNode;
+  steps: boolean[];
+  syncDivision: SyncDivision;
+  stepIndex: number;
+}
+
+export interface ChaosShrineState {
+  carrier: OscillatorNode;
+  sub: OscillatorNode;
+  shimmer: OscillatorNode;
+  modulator: OscillatorNode;
+  fmGain: GainNode;
+  motionLfo: OscillatorNode;
+  motionDepth: GainNode;
+  motionBias: ConstantSourceNode;
+  motionVca: GainNode;
+  noiseSource: AudioBufferSourceNode;
+  noiseGain: GainNode;
+  carrierGain: GainNode;
+  subGain: GainNode;
+  shimmerGain: GainNode;
+  filter: BiquadFilterNode;
+  colorFilter: BiquadFilterNode;
+  shaper: WaveShaperNode;
+  leftDelay: DelayNode;
+  rightDelay: DelayNode;
+  leftPan: StereoPannerNode;
+  rightPan: StereoPannerNode;
   output: GainNode;
   steps: boolean[];
   syncDivision: SyncDivision;
