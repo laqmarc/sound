@@ -86,6 +86,7 @@ import StutterNode from './nodes/StutterNode';
 import HumanizerNode from './nodes/HumanizerNode';
 import TriggerDelayNode from './nodes/TriggerDelayNode';
 import { SoundLabHeader } from './components/header/SoundLabHeader';
+import { TransportAside } from './components/layout/TransportAside';
 import {
   applyAudioNodeData,
   connectNodes,
@@ -859,17 +860,11 @@ function App() {
         onSelectComponentTab={setActiveComponentTab}
         visibleMachineSets={visibleMachineSets}
         onAddMachineSet={addMachineSet}
-        transport={transport}
-        audioStarted={audioStarted}
-        onSetTransportBpm={setTransportBpm}
-        onSetTransportSwing={setTransportSwing}
-        onStartAudio={startAudio}
-        onStopAudio={handleStopAudio}
         onTestSound={testSound}
       />
 
       <div className="flex-1 min-h-0 flex">
-        <aside className="w-64 sm:w-72 lg:w-80 shrink-0 border-r border-white/10 bg-black/35 backdrop-blur-xl p-4 flex flex-col gap-4 overflow-y-auto">
+        <aside className="w-52 sm:w-56 lg:w-60 shrink-0 border-r border-white/10 bg-black/35 backdrop-blur-xl p-4 flex flex-col gap-4 overflow-y-auto">
           <section className="bg-white/5 rounded-2xl border border-white/10 p-3 flex flex-col gap-3 min-h-[inherit]">
             <div className="flex items-center justify-between gap-3">
               <div className="text-[10px] uppercase tracking-[0.24em] text-white/40">Components</div>
@@ -925,6 +920,15 @@ function App() {
 
           
         </main>
+
+        <TransportAside
+          transport={transport}
+          audioStarted={audioStarted}
+          onSetTransportBpm={setTransportBpm}
+          onSetTransportSwing={setTransportSwing}
+          onStartAudio={startAudio}
+          onStopAudio={handleStopAudio}
+        />
       </div>
     </div>
   );
