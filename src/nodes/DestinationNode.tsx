@@ -45,9 +45,10 @@ const DestinationNode = () => {
     };
   }, []);
 
-  const meter = clamp(level * 220, 0, 1);
-  const peakMeter = clamp(peak * 220, 0, 1);
   const db = level > 0.00001 ? 20 * Math.log10(level) : -60;
+  const peakDb = peak > 0.00001 ? 20 * Math.log10(peak) : -60;
+  const meter = clamp(Math.pow((db + 54) / 48, 0.72), 0, 1);
+  const peakMeter = clamp(Math.pow((peakDb + 54) / 48, 0.72), 0, 1);
   const bars = Array.from({ length: 18 }, (_, index) => {
     const threshold = (index + 1) / 18;
     const isLit = meter >= threshold;
