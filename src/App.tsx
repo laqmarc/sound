@@ -26,6 +26,9 @@ import MixerNode from './nodes/MixerNode';
 import NoiseNode from './nodes/NoiseNode';
 import OscillatorNode from './nodes/OscillatorNode';
 import DualOscNode from './nodes/DualOscNode';
+import DronePadNode from './nodes/DronePadNode';
+import BasslineNode from './nodes/BasslineNode';
+import LeadVoiceNode from './nodes/LeadVoiceNode';
 import PannerNode from './nodes/PannerNode';
 import ReverbNode from './nodes/ReverbNode';
 import ScopeNode from './nodes/ScopeNode';
@@ -62,6 +65,12 @@ import ClockDividerNode from './nodes/ClockDividerNode';
 import RandomCVNode from './nodes/RandomCVNode';
 import SampleHoldNode from './nodes/SampleHoldNode';
 import GateSeqNode from './nodes/GateSeqNode';
+import CVOffsetNode from './nodes/CVOffsetNode';
+import EnvelopeFollowerNode from './nodes/EnvelopeFollowerNode';
+import QuantizerNode from './nodes/QuantizerNode';
+import ComparatorNode from './nodes/ComparatorNode';
+import LagNode from './nodes/LagNode';
+import ChordSeqNode from './nodes/ChordSeqNode';
 import ResonatorNode from './nodes/ResonatorNode';
 import WahNode from './nodes/WahNode';
 import StereoWidenerNode from './nodes/StereoWidenerNode';
@@ -72,6 +81,9 @@ import CabSimNode from './nodes/CabSimNode';
 import TransientShaperNode from './nodes/TransientShaperNode';
 import FreezeFxNode from './nodes/FreezeFxNode';
 import GranularNode from './nodes/GranularNode';
+import StutterNode from './nodes/StutterNode';
+import HumanizerNode from './nodes/HumanizerNode';
+import TriggerDelayNode from './nodes/TriggerDelayNode';
 import Knob from './components/Knob';
 import {
   applyAudioNodeData,
@@ -140,6 +152,33 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     modType: 'square',
     detune: 12,
     blend: 0.5,
+  },
+  dronePad: {
+    label: 'Drone Pad',
+    note: 'C',
+    octave: 3,
+    chordType: 'minor',
+    spread: 14,
+    gain: 0.25,
+    type: 'sawtooth',
+  },
+  bassline: {
+    label: 'Bassline',
+    note: 'C',
+    octave: 2,
+    tone: 900,
+    gain: 0.45,
+    syncDivision: '1/16',
+    steps: Array.from({ length: 16 }, (_, index) => index % 4 === 0),
+  },
+  leadVoice: {
+    label: 'Lead Voice',
+    frequency: 330,
+    tone: 2200,
+    Q: 0.8,
+    gain: 0.3,
+    glide: 0.04,
+    type: 'sawtooth',
   },
   gain: {
     label: 'Gain',
@@ -287,6 +326,42 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     syncDivision: '1/16',
     steps: Array.from({ length: 16 }, (_, index) => index % 2 === 0),
   },
+  cvOffset: {
+    label: 'CV Offset',
+    offset: 0,
+    gain: 1,
+  },
+  envelopeFollower: {
+    label: 'Envelope Follower',
+    attack: 0.03,
+    release: 0.18,
+    gain: 200,
+  },
+  quantizer: {
+    label: 'Quantizer',
+    divider: 12,
+    mix: 1,
+  },
+  comparator: {
+    label: 'Comparator',
+    threshold: 0,
+  },
+  lag: {
+    label: 'Lag',
+    attack: 0.02,
+    release: 0.08,
+    mix: 1,
+  },
+  chordSeq: {
+    label: 'Chord Seq',
+    note: 'C',
+    octave: 3,
+    chordType: 'major',
+    spread: 10,
+    gain: 0.22,
+    syncDivision: '1/4',
+    steps: Array.from({ length: 16 }, (_, index) => index % 4 === 0),
+  },
   resonator: {
     label: 'Resonator',
     tone: 440,
@@ -355,6 +430,26 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     mix: 0.8,
     sync: false,
     syncDivision: '1/8',
+  },
+  stutter: {
+    label: 'Stutter',
+    loopLength: 0.12,
+    mix: 0.8,
+    sync: false,
+    syncDivision: '1/8',
+  },
+  humanizer: {
+    label: 'Humanizer',
+    rate: 2,
+    depth: 0.35,
+    mix: 0.7,
+  },
+  triggerDelay: {
+    label: 'Trigger Delay',
+    delayTime: 0.08,
+    mix: 1,
+    sync: false,
+    syncDivision: '1/16',
   },
   monoSynth: {
     label: 'Mono Synth',
@@ -489,6 +584,9 @@ const addNodeButtons: Array<{
 }> = [
   { type: 'oscillator', label: 'Osc', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20', tab: 'voices' },
   { type: 'dualOsc', label: 'Dual', color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20', tab: 'voices' },
+  { type: 'dronePad', label: 'Drone', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'voices' },
+  { type: 'bassline', label: 'Bass', color: 'bg-green-500/10 text-green-300 border-green-500/20', tab: 'voices' },
+  { type: 'leadVoice', label: 'Lead', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'voices' },
   { type: 'noise', label: 'Noise', color: 'bg-slate-500/10 text-slate-400 border-slate-500/20', tab: 'voices' },
   { type: 'monoSynth', label: 'Mono', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'voices' },
   { type: 'fmSynth', label: 'FM', color: 'bg-teal-500/10 text-teal-300 border-teal-500/20', tab: 'voices' },
@@ -532,10 +630,19 @@ const addNodeButtons: Array<{
   { type: 'randomCv', label: 'RandCV', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'wiring' },
   { type: 'sampleHold', label: 'S&H', color: 'bg-slate-500/10 text-slate-300 border-slate-500/20', tab: 'wiring' },
   { type: 'gateSeq', label: 'Gate', color: 'bg-amber-500/10 text-amber-300 border-amber-500/20', tab: 'wiring' },
+  { type: 'cvOffset', label: 'Offset', color: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/20', tab: 'wiring' },
+  { type: 'envelopeFollower', label: 'Env', color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20', tab: 'wiring' },
+  { type: 'quantizer', label: 'Quant', color: 'bg-slate-500/10 text-slate-300 border-slate-500/20', tab: 'wiring' },
+  { type: 'comparator', label: 'Comp>', color: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/20', tab: 'wiring' },
+  { type: 'lag', label: 'Lag', color: 'bg-teal-500/10 text-teal-300 border-teal-500/20', tab: 'wiring' },
+  { type: 'chordSeq', label: 'ChordSeq', color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20', tab: 'wiring' },
   { type: 'cabSim', label: 'Cab', color: 'bg-stone-500/10 text-stone-300 border-stone-500/20', tab: 'fx' },
   { type: 'transientShaper', label: 'Punch', color: 'bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20', tab: 'fx' },
   { type: 'freezeFx', label: 'Freeze', color: 'bg-sky-500/10 text-sky-300 border-sky-500/20', tab: 'fx' },
   { type: 'granular', label: 'Granular', color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20', tab: 'fx' },
+  { type: 'stutter', label: 'Stutter', color: 'bg-violet-500/10 text-violet-300 border-violet-500/20', tab: 'fx' },
+  { type: 'humanizer', label: 'Human', color: 'bg-orange-500/10 text-orange-300 border-orange-500/20', tab: 'fx' },
+  { type: 'triggerDelay', label: 'TrigDly', color: 'bg-yellow-500/10 text-yellow-300 border-yellow-500/20', tab: 'fx' },
   { type: 'scope', label: 'Scope', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', tab: 'sight' },
   { type: 'vuMeter', label: 'Agulla', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'sight' },
   { type: 'phaseCorrelator', label: 'Fase', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'sight' },
@@ -557,6 +664,415 @@ const componentTabs: Array<{
   { id: 'fx', label: 'Spa Radioactiu', hint: 'Efectes i destrosses' },
   { id: 'wiring', label: 'Cablejat Fino', hint: 'Control i routing' },
   { id: 'sight', label: 'Ulls Mutants', hint: 'Analisi i visuals' },
+];
+
+interface PatchPreset {
+  id: string;
+  name: string;
+  hint: string;
+  nodes: SoundFlowNode[];
+  edges: Edge[];
+}
+
+const USER_PATCH_STORAGE_KEY = 'soundlab-user-patches';
+
+const cloneSerializable = <T,>(value: T): T => {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+
+  return JSON.parse(JSON.stringify(value)) as T;
+};
+
+const clonePatchNodes = (nodes: SoundFlowNode[]) => cloneSerializable(nodes);
+
+const clonePatchEdges = (edges: Edge[]) => cloneSerializable(edges);
+
+const buildUserPatchHint = (nodes: SoundFlowNode[], edges: Edge[]) => {
+  const moduleCount = nodes.filter((node) => node.type !== 'destination').length;
+  const moduleLabel = `${moduleCount} modul${moduleCount === 1 ? '' : 's'}`;
+  const cableLabel = `${edges.length} cable${edges.length === 1 ? '' : 's'}`;
+  return `${moduleLabel} | ${cableLabel}`;
+};
+
+const readUserPatchPresets = (): PatchPreset[] => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(USER_PATCH_STORAGE_KEY);
+    if (!rawValue) {
+      return [];
+    }
+
+    const parsedValue = JSON.parse(rawValue);
+    if (!Array.isArray(parsedValue)) {
+      return [];
+    }
+
+    return parsedValue
+      .filter(
+        (entry): entry is PatchPreset =>
+          entry !== null &&
+          typeof entry === 'object' &&
+          typeof entry.id === 'string' &&
+          typeof entry.name === 'string' &&
+          typeof entry.hint === 'string' &&
+          Array.isArray(entry.nodes) &&
+          Array.isArray(entry.edges),
+      )
+      .map((entry) => ({
+        ...entry,
+        nodes: clonePatchNodes(entry.nodes),
+        edges: clonePatchEdges(entry.edges),
+      }));
+  } catch {
+    return [];
+  }
+};
+
+const writeUserPatchPresets = (presets: PatchPreset[]) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(USER_PATCH_STORAGE_KEY, JSON.stringify(presets));
+};
+
+const patchPresets: PatchPreset[] = [
+  {
+    id: 'acid-rat',
+    name: 'Acid Rat',
+    hint: 'Bassline + auto filter + foldback + delay',
+    nodes: [
+      {
+        id: 'destination',
+        type: 'destination',
+        position: { x: 1040, y: 280 },
+        data: { label: 'Sortida' },
+      },
+      {
+        id: 'preset_bassline',
+        type: 'bassline',
+        position: { x: 120, y: 210 },
+        data: {
+          ...defaultNodeData.bassline,
+          note: 'F',
+          octave: 2,
+          tone: 1300,
+          gain: 0.52,
+          steps: [true, false, false, true, true, false, true, false, true, false, false, true, true, false, true, false],
+        },
+      },
+      {
+        id: 'preset_filter',
+        type: 'autoFilter',
+        position: { x: 360, y: 210 },
+        data: {
+          ...defaultNodeData.autoFilter,
+          type: 'lowpass',
+          tone: 900,
+          depth: 2800,
+          rate: 1.6,
+          mix: 1,
+          sync: true,
+          syncDivision: '1/8',
+        },
+      },
+      {
+        id: 'preset_fold',
+        type: 'foldback',
+        position: { x: 600, y: 210 },
+        data: {
+          ...defaultNodeData.foldback,
+          drive: 3.1,
+          threshold: 0.48,
+          mix: 0.6,
+        },
+      },
+      {
+        id: 'preset_delay',
+        type: 'delay',
+        position: { x: 820, y: 210 },
+        data: {
+          ...defaultNodeData.delay,
+          sync: true,
+          syncDivision: '1/8',
+          delayTime: 0.2,
+        },
+      },
+      {
+        id: 'preset_scope',
+        type: 'scope',
+        position: { x: 820, y: 420 },
+        data: { label: 'Scope' },
+      },
+    ],
+    edges: [
+      { id: 'acid-1', source: 'preset_bassline', target: 'preset_filter' },
+      { id: 'acid-2', source: 'preset_filter', target: 'preset_fold' },
+      { id: 'acid-3', source: 'preset_fold', target: 'preset_delay' },
+      { id: 'acid-4', source: 'preset_delay', target: 'destination' },
+      { id: 'acid-5', source: 'preset_delay', target: 'preset_scope' },
+    ],
+  },
+  {
+    id: 'glass-drone',
+    name: 'Glass Drone',
+    hint: 'Drone pad + phaser + wide + reverb',
+    nodes: [
+      {
+        id: 'destination',
+        type: 'destination',
+        position: { x: 1040, y: 280 },
+        data: { label: 'Sortida' },
+      },
+      {
+        id: 'preset_drone',
+        type: 'dronePad',
+        position: { x: 120, y: 210 },
+        data: {
+          ...defaultNodeData.dronePad,
+          note: 'D',
+          octave: 3,
+          chordType: 'sus2',
+          spread: 20,
+          gain: 0.22,
+          type: 'triangle',
+        },
+      },
+      {
+        id: 'preset_phaser',
+        type: 'phaser',
+        position: { x: 340, y: 210 },
+        data: {
+          ...defaultNodeData.phaser,
+          sync: true,
+          syncDivision: '1/4',
+          depth: 1300,
+          mix: 0.65,
+        },
+      },
+      {
+        id: 'preset_wide',
+        type: 'stereoWidener',
+        position: { x: 580, y: 210 },
+        data: {
+          ...defaultNodeData.stereoWidener,
+          delay: 0.016,
+          spread: 1.3,
+          mix: 0.8,
+        },
+      },
+      {
+        id: 'preset_reverb',
+        type: 'reverb',
+        position: { x: 820, y: 210 },
+        data: {
+          ...defaultNodeData.reverb,
+          decay: 4.2,
+        },
+      },
+      {
+        id: 'preset_spectrum',
+        type: 'spectrogram',
+        position: { x: 820, y: 430 },
+        data: { label: 'Spectrogram' },
+      },
+    ],
+    edges: [
+      { id: 'drone-1', source: 'preset_drone', target: 'preset_phaser' },
+      { id: 'drone-2', source: 'preset_phaser', target: 'preset_wide' },
+      { id: 'drone-3', source: 'preset_wide', target: 'preset_reverb' },
+      { id: 'drone-4', source: 'preset_reverb', target: 'destination' },
+      { id: 'drone-5', source: 'preset_reverb', target: 'preset_spectrum' },
+    ],
+  },
+  {
+    id: 'toxic-club',
+    name: 'Toxic Club',
+    hint: 'Drums + kick/snare + compressor + cab',
+    nodes: [
+      {
+        id: 'destination',
+        type: 'destination',
+        position: { x: 1130, y: 300 },
+        data: { label: 'Sortida' },
+      },
+      {
+        id: 'preset_mixer',
+        type: 'mixer',
+        position: { x: 620, y: 260 },
+        data: { ...defaultNodeData.mixer },
+      },
+      {
+        id: 'preset_drums',
+        type: 'drumMachine',
+        position: { x: 120, y: 130 },
+        data: {
+          ...defaultNodeData.drumMachine,
+          bpm: 126,
+          drumPattern: {
+            kick: [true, false, false, false, false, false, true, false, true, false, false, false, false, false, true, false],
+            snare: [false, false, true, false, false, false, false, false, false, false, true, false, false, false, false, false],
+            hihat: [true, false, true, false, true, false, true, true, true, false, true, false, true, false, true, true],
+          },
+        },
+      },
+      {
+        id: 'preset_kick',
+        type: 'kickSynth',
+        position: { x: 120, y: 360 },
+        data: {
+          ...defaultNodeData.kickSynth,
+          tone: 52,
+          gain: 1,
+          steps: [true, false, false, false, true, false, false, false, true, false, false, false, true, false, true, false],
+        },
+      },
+      {
+        id: 'preset_snare',
+        type: 'snareSynth',
+        position: { x: 120, y: 560 },
+        data: {
+          ...defaultNodeData.snareSynth,
+          gain: 0.75,
+          steps: [false, false, false, false, true, false, false, false, false, false, false, false, true, false, true, false],
+        },
+      },
+      {
+        id: 'preset_comp',
+        type: 'compressor',
+        position: { x: 840, y: 260 },
+        data: {
+          ...defaultNodeData.compressor,
+          threshold: -18,
+          ratio: 8,
+          makeup: 1.4,
+        },
+      },
+      {
+        id: 'preset_cab',
+        type: 'cabSim',
+        position: { x: 980, y: 260 },
+        data: {
+          ...defaultNodeData.cabSim,
+          tone: 3000,
+          mix: 0.75,
+        },
+      },
+      {
+        id: 'preset_vu',
+        type: 'vuMeter',
+        position: { x: 980, y: 500 },
+        data: { label: 'VU Meter' },
+      },
+    ],
+    edges: [
+      { id: 'club-1', source: 'preset_drums', target: 'preset_mixer', targetHandle: 'ch1' },
+      { id: 'club-2', source: 'preset_kick', target: 'preset_mixer', targetHandle: 'ch2' },
+      { id: 'club-3', source: 'preset_snare', target: 'preset_mixer', targetHandle: 'ch3' },
+      { id: 'club-4', source: 'preset_mixer', target: 'preset_comp' },
+      { id: 'club-5', source: 'preset_comp', target: 'preset_cab' },
+      { id: 'club-6', source: 'preset_cab', target: 'destination' },
+      { id: 'club-7', source: 'preset_cab', target: 'preset_vu' },
+    ],
+  },
+  {
+    id: 'laser-lead',
+    name: 'Laser Lead',
+    hint: 'Arp + lead voice + phaser + delay',
+    nodes: [
+      {
+        id: 'destination',
+        type: 'destination',
+        position: { x: 1100, y: 280 },
+        data: { label: 'Sortida' },
+      },
+      {
+        id: 'preset_arp',
+        type: 'arpeggiator',
+        position: { x: 100, y: 220 },
+        data: {
+          ...defaultNodeData.arpeggiator,
+          syncDivision: '1/16',
+          arpMode: 'up',
+          arpScale: 'minor',
+          arpSteps: [
+            { note: 'A', octave: 4, enabled: true },
+            { note: 'C', octave: 5, enabled: true },
+            { note: 'E', octave: 5, enabled: true },
+            { note: 'G', octave: 5, enabled: true },
+            { note: 'A', octave: 5, enabled: true },
+            { note: 'G', octave: 5, enabled: false },
+            { note: 'E', octave: 5, enabled: true },
+            { note: 'C', octave: 5, enabled: true },
+          ],
+        },
+      },
+      {
+        id: 'preset_lead',
+        type: 'leadVoice',
+        position: { x: 340, y: 220 },
+        data: {
+          ...defaultNodeData.leadVoice,
+          tone: 2800,
+          Q: 1.4,
+          gain: 0.24,
+          glide: 0.03,
+          type: 'sawtooth',
+        },
+      },
+      {
+        id: 'preset_human',
+        type: 'humanizer',
+        position: { x: 560, y: 220 },
+        data: {
+          ...defaultNodeData.humanizer,
+          rate: 2.4,
+          depth: 0.28,
+          mix: 0.55,
+        },
+      },
+      {
+        id: 'preset_phaser',
+        type: 'phaser',
+        position: { x: 770, y: 220 },
+        data: {
+          ...defaultNodeData.phaser,
+          sync: true,
+          syncDivision: '1/8',
+          mix: 0.45,
+          depth: 900,
+        },
+      },
+      {
+        id: 'preset_delay',
+        type: 'delay',
+        position: { x: 950, y: 220 },
+        data: {
+          ...defaultNodeData.delay,
+          sync: true,
+          syncDivision: '1/8',
+        },
+      },
+      {
+        id: 'preset_lissa',
+        type: 'lissajous',
+        position: { x: 950, y: 460 },
+        data: { label: 'Lissajous' },
+      },
+    ],
+    edges: [
+      { id: 'lead-1', source: 'preset_arp', target: 'preset_lead', targetHandle: 'pitch' },
+      { id: 'lead-2', source: 'preset_lead', target: 'preset_human' },
+      { id: 'lead-3', source: 'preset_human', target: 'preset_phaser' },
+      { id: 'lead-4', source: 'preset_phaser', target: 'preset_delay' },
+      { id: 'lead-5', source: 'preset_delay', target: 'destination' },
+      { id: 'lead-6', source: 'preset_delay', target: 'preset_lissa' },
+    ],
+  },
 ];
 
 let nodeSequence = 1;
@@ -602,12 +1118,21 @@ function App() {
   const [audioStarted, setAudioStarted] = useState(false);
   const [transport, setTransport] = useState(() => getTransportState());
   const [activeComponentTab, setActiveComponentTab] = useState<ComponentTabId>('all');
+  const [activePresetId, setActivePresetId] = useState(patchPresets[0]?.id ?? '');
+  const [userPatchPresets, setUserPatchPresets] = useState<PatchPreset[]>(() => readUserPatchPresets());
+  const [activeUserPresetId, setActiveUserPresetId] = useState('');
+  const [userPresetName, setUserPresetName] = useState('');
   const nodesRef = useRef<SoundFlowNode[]>(baseInitialNodes);
+  const edgesRef = useRef<Edge[]>([]);
   const audioStartedRef = useRef(false);
 
   useEffect(() => {
     nodesRef.current = nodes;
   }, [nodes]);
+
+  useEffect(() => {
+    edgesRef.current = edges;
+  }, [edges]);
 
   useEffect(() => {
     audioStartedRef.current = audioStarted;
@@ -669,6 +1194,15 @@ function App() {
       ),
       dualOsc: (props: SoundNodeProps) => (
         <DualOscNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      dronePad: (props: SoundNodeProps) => (
+        <DronePadNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      bassline: (props: SoundNodeProps) => (
+        <BasslineNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      leadVoice: (props: SoundNodeProps) => (
+        <LeadVoiceNode {...props} onDataChange={handleNodeDataChange} />
       ),
       gain: (props: SoundNodeProps) => (
         <GainNode {...props} onDataChange={handleNodeDataChange} />
@@ -735,6 +1269,24 @@ function App() {
       gateSeq: (props: SoundNodeProps) => (
         <GateSeqNode {...props} onDataChange={handleNodeDataChange} />
       ),
+      cvOffset: (props: SoundNodeProps) => (
+        <CVOffsetNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      envelopeFollower: (props: SoundNodeProps) => (
+        <EnvelopeFollowerNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      quantizer: (props: SoundNodeProps) => (
+        <QuantizerNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      comparator: (props: SoundNodeProps) => (
+        <ComparatorNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      lag: (props: SoundNodeProps) => (
+        <LagNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      chordSeq: (props: SoundNodeProps) => (
+        <ChordSeqNode {...props} onDataChange={handleNodeDataChange} />
+      ),
       resonator: (props: SoundNodeProps) => (
         <ResonatorNode {...props} onDataChange={handleNodeDataChange} />
       ),
@@ -764,6 +1316,15 @@ function App() {
       ),
       granular: (props: SoundNodeProps) => (
         <GranularNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      stutter: (props: SoundNodeProps) => (
+        <StutterNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      humanizer: (props: SoundNodeProps) => (
+        <HumanizerNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      triggerDelay: (props: SoundNodeProps) => (
+        <TriggerDelayNode {...props} onDataChange={handleNodeDataChange} />
       ),
       monoSynth: (props: SoundNodeProps) => (
         <MonoSynthNode {...props} onDataChange={handleNodeDataChange} />
@@ -855,15 +1416,15 @@ function App() {
     );
   }, []);
 
-  const startAudio = () => {
+  const buildAudioGraph = useCallback((graphNodes: SoundFlowNode[], graphEdges: Edge[]) => {
     getAudioContext();
-    nodes.forEach((node) => {
+    graphNodes.forEach((node) => {
       if (isEditableNode(node)) {
         createAudioNode(node.type, node.id, node.data);
       }
     });
 
-    edges.forEach((edge) => {
+    graphEdges.forEach((edge) => {
       if (edge.source && edge.target) {
         connectNodes(edge.source, edge.target, edge.targetHandle);
       }
@@ -871,12 +1432,108 @@ function App() {
 
     startTransport();
     setAudioStarted(true);
+    audioStartedRef.current = true;
+  }, []);
+
+  const startAudio = () => {
+    buildAudioGraph(nodesRef.current, edgesRef.current);
   };
 
   const handleStopAudio = () => {
     void stopAudio();
     setAudioStarted(false);
+    audioStartedRef.current = false;
   };
+
+  const applyPresetGraph = useCallback(
+    async (preset: PatchPreset) => {
+      const shouldRestartAudio = audioStartedRef.current;
+
+      if (shouldRestartAudio) {
+        await stopAudio();
+        setAudioStarted(false);
+        audioStartedRef.current = false;
+      }
+
+      const nextNodes = clonePatchNodes(preset.nodes);
+      const nextEdges = clonePatchEdges(preset.edges);
+
+      nodesRef.current = nextNodes;
+      edgesRef.current = nextEdges;
+      setNodes(nextNodes);
+      setEdges(nextEdges);
+
+      if (shouldRestartAudio) {
+        buildAudioGraph(nextNodes, nextEdges);
+      }
+    },
+    [buildAudioGraph],
+  );
+
+  const loadPreset = useCallback(
+    async (presetId: string) => {
+      const preset = patchPresets.find((entry) => entry.id === presetId);
+      if (!preset) {
+        return;
+      }
+
+      setActivePresetId(presetId);
+      setActiveUserPresetId('');
+      await applyPresetGraph(preset);
+    },
+    [applyPresetGraph],
+  );
+
+  const loadUserPreset = useCallback(
+    async (presetId: string) => {
+      const preset = userPatchPresets.find((entry) => entry.id === presetId);
+      if (!preset) {
+        return;
+      }
+
+      setActiveUserPresetId(presetId);
+      await applyPresetGraph(preset);
+    },
+    [applyPresetGraph, userPatchPresets],
+  );
+
+  const saveCurrentPatchAsPreset = useCallback(() => {
+    const trimmedName = userPresetName.trim();
+    const fallbackIndex = userPatchPresets.length + 1;
+    const nextName = trimmedName || `Patch ${fallbackIndex}`;
+    const presetHint = buildUserPatchHint(nodesRef.current, edgesRef.current);
+    const existingPreset = userPatchPresets.find(
+      (preset) => preset.name.toLowerCase() === nextName.toLowerCase(),
+    );
+
+    const nextPreset: PatchPreset = {
+      id: existingPreset?.id ?? `user-${Date.now()}`,
+      name: nextName,
+      hint: presetHint,
+      nodes: clonePatchNodes(nodesRef.current),
+      edges: clonePatchEdges(edgesRef.current),
+    };
+
+    const nextUserPresets = existingPreset
+      ? userPatchPresets.map((preset) => (preset.id === existingPreset.id ? nextPreset : preset))
+      : [...userPatchPresets, nextPreset];
+
+    writeUserPatchPresets(nextUserPresets);
+    setUserPatchPresets(nextUserPresets);
+    setActiveUserPresetId(nextPreset.id);
+    setUserPresetName(nextName);
+  }, [userPatchPresets, userPresetName]);
+
+  const deleteUserPreset = useCallback(() => {
+    if (!activeUserPresetId) {
+      return;
+    }
+
+    const nextUserPresets = userPatchPresets.filter((preset) => preset.id !== activeUserPresetId);
+    writeUserPatchPresets(nextUserPresets);
+    setUserPatchPresets(nextUserPresets);
+    setActiveUserPresetId('');
+  }, [activeUserPresetId, userPatchPresets]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -1028,6 +1685,92 @@ function App() {
                 </button>
               );
             })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 mb-3 px-1">
+            <div className="text-[9px] uppercase tracking-[0.22em] text-white/40">Patch Presets</div>
+            <select
+              value={activePresetId}
+              onChange={(event) => setActivePresetId(event.target.value)}
+              className="bg-slate-950/80 text-white text-xs p-2 rounded-xl border border-white/10 outline-none focus:border-sky-400 min-w-[180px]"
+            >
+              {patchPresets.map((preset) => (
+                <option key={preset.id} value={preset.id}>
+                  {preset.name}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                void loadPreset(activePresetId);
+              }}
+              className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.18em] border bg-sky-500/15 text-sky-300 border-sky-500/30 hover:bg-sky-500/25 transition-all"
+              title={patchPresets.find((preset) => preset.id === activePresetId)?.hint}
+            >
+              Load Patch
+            </button>
+            <div className="text-[10px] text-white/40 truncate">
+              {patchPresets.find((preset) => preset.id === activePresetId)?.hint}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 mb-3 px-1">
+            <div className="text-[9px] uppercase tracking-[0.22em] text-white/40">My Patches</div>
+            <input
+              type="text"
+              value={userPresetName}
+              onChange={(event) => setUserPresetName(event.target.value)}
+              onMouseDown={(event) => event.stopPropagation()}
+              placeholder="Nom del patch"
+              className="bg-slate-950/80 text-white text-xs p-2 rounded-xl border border-white/10 outline-none focus:border-emerald-400 min-w-[170px]"
+            />
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                saveCurrentPatchAsPreset();
+              }}
+              className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.18em] border bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25 transition-all"
+            >
+              Save Current
+            </button>
+            <select
+              value={activeUserPresetId}
+              onChange={(event) => setActiveUserPresetId(event.target.value)}
+              className="bg-slate-950/80 text-white text-xs p-2 rounded-xl border border-white/10 outline-none focus:border-emerald-400 min-w-[180px]"
+            >
+              <option value="">Tria un patch guardat</option>
+              {userPatchPresets.map((preset) => (
+                <option key={preset.id} value={preset.id}>
+                  {preset.name}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                if (activeUserPresetId) {
+                  void loadUserPreset(activeUserPresetId);
+                }
+              }}
+              disabled={!activeUserPresetId}
+              className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.18em] border bg-white/5 text-white/75 border-white/10 hover:bg-white/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Load Saved
+            </button>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                deleteUserPreset();
+              }}
+              disabled={!activeUserPresetId}
+              className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.18em] border bg-rose-500/10 text-rose-300 border-rose-500/20 hover:bg-rose-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Delete
+            </button>
+            <div className="text-[10px] text-white/40 truncate">
+              {userPatchPresets.find((preset) => preset.id === activeUserPresetId)?.hint ?? 'Guarda el graf actual al navegador'}
+            </div>
           </div>
 
           <nav className="flex flex-wrap items-center gap-1.5 min-w-0">

@@ -3,6 +3,9 @@ import type { Node, NodeProps } from 'reactflow';
 export const editableNodeTypes = [
   'oscillator',
   'dualOsc',
+  'dronePad',
+  'bassline',
+  'leadVoice',
   'gain',
   'filter',
   'delay',
@@ -25,6 +28,12 @@ export const editableNodeTypes = [
   'randomCv',
   'sampleHold',
   'gateSeq',
+  'cvOffset',
+  'envelopeFollower',
+  'quantizer',
+  'comparator',
+  'lag',
+  'chordSeq',
   'resonator',
   'wah',
   'stereoWidener',
@@ -35,6 +44,9 @@ export const editableNodeTypes = [
   'transientShaper',
   'freezeFx',
   'granular',
+  'stutter',
+  'humanizer',
+  'triggerDelay',
   'monoSynth',
   'kickSynth',
   'snareSynth',
@@ -123,6 +135,8 @@ export interface SoundNodeData {
   sustain?: number;
   grainSize?: number;
   spray?: number;
+  offset?: number;
+  glide?: number;
 }
 
 export interface DrumPattern {

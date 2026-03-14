@@ -33,12 +33,21 @@ const ringMods = new Map<string, RingModState>();
 const vibratos = new Map<string, VibratoState>();
 const combFilters = new Map<string, CombFilterState>();
 const dualOscs = new Map<string, DualOscState>();
+const dronePads = new Map<string, DronePadState>();
+const basslines = new Map<string, BasslineState>();
+const leadVoices = new Map<string, LeadVoiceState>();
 const autoPans = new Map<string, AutoPanState>();
 const autoFilters = new Map<string, AutoFilterState>();
 const clockDividers = new Map<string, ClockDividerState>();
 const randomCvs = new Map<string, RandomCvState>();
 const sampleHolds = new Map<string, SampleHoldState>();
 const gateSeqs = new Map<string, GateSeqState>();
+const cvOffsets = new Map<string, CVOffsetState>();
+const envelopeFollowers = new Map<string, EnvelopeFollowerState>();
+const quantizers = new Map<string, QuantizerState>();
+const comparators = new Map<string, ComparatorState>();
+const lags = new Map<string, LagState>();
+const chordSeqs = new Map<string, ChordSeqState>();
 const resonators = new Map<string, ResonatorState>();
 const wahs = new Map<string, WahState>();
 const stereoWideners = new Map<string, StereoWidenerState>();
@@ -49,6 +58,9 @@ const cabSims = new Map<string, CabSimState>();
 const transientShapers = new Map<string, TransientShaperState>();
 const freezeFxs = new Map<string, FreezeFxState>();
 const granulars = new Map<string, GranularState>();
+const stutters = new Map<string, StutterState>();
+const humanizers = new Map<string, HumanizerState>();
+const triggerDelays = new Map<string, TriggerDelayState>();
 const monoSynths = new Map<string, MonoSynthState>();
 const kickSynths = new Map<string, StepSynthState>();
 const snareSynths = new Map<string, StepSynthState>();
@@ -220,6 +232,29 @@ interface DualOscState {
   output: GainNode;
 }
 
+interface DronePadState {
+  oscillators: OscillatorNode[];
+  output: GainNode;
+}
+
+interface BasslineState {
+  id: string;
+  output: GainNode;
+  steps: boolean[];
+  syncDivision: SyncDivision;
+  note: NoteName;
+  octave: number;
+  tone: number;
+  gain: number;
+}
+
+interface LeadVoiceState {
+  oscillator: OscillatorNode;
+  filter: BiquadFilterNode;
+  output: GainNode;
+  glide: number;
+}
+
 interface AutoPanState {
   input: GainNode;
   output: GainNode;
@@ -272,6 +307,69 @@ interface GateSeqState {
   gate: GainNode;
   steps: boolean[];
   syncDivision: SyncDivision;
+}
+
+interface CVOffsetState {
+  source: ConstantSourceNode;
+  scaler: GainNode;
+}
+
+interface EnvelopeFollowerState {
+  input: GainNode;
+  analyser: ScriptProcessorNode;
+  source: ConstantSourceNode;
+  scaler: GainNode;
+  params: {
+    attack: number;
+    release: number;
+    gain: number;
+  };
+}
+
+interface QuantizerState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  processor: ScriptProcessorNode;
+  params: {
+    steps: number;
+    mix: number;
+  };
+}
+
+interface ComparatorState {
+  input: GainNode;
+  processor: ScriptProcessorNode;
+  output: GainNode;
+  params: {
+    threshold: number;
+  };
+}
+
+interface LagState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  processor: ScriptProcessorNode;
+  params: {
+    rise: number;
+    fall: number;
+    mix: number;
+  };
+}
+
+interface ChordSeqState {
+  id: string;
+  output: GainNode;
+  steps: boolean[];
+  syncDivision: SyncDivision;
+  note: NoteName;
+  octave: number;
+  chordType: ChordType;
+  spread: number;
+  gain: number;
 }
 
 interface ResonatorState {
@@ -377,6 +475,36 @@ interface GranularState {
   };
 }
 
+interface StutterState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  processor: ScriptProcessorNode;
+  params: {
+    lengthSamples: number;
+    mix: number;
+  };
+}
+
+interface HumanizerState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  delay: DelayNode;
+  lfo: OscillatorNode;
+  lfoGain: GainNode;
+}
+
+interface TriggerDelayState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  delay: DelayNode;
+}
+
 interface MonoSynthState {
   oscillator: OscillatorNode;
   filter: BiquadFilterNode;
@@ -465,6 +593,8 @@ const CHORD_INTERVALS: Record<ChordType, number[]> = {
   sus4: [0, 5, 7],
   dim: [0, 3, 6],
 };
+
+const BASSLINE_OFFSETS = [0, 0, 7, 0, 3, 0, 7, 10, 0, 7, 12, 7, 3, 0, 7, 10];
 
 const DEFAULT_KICK_STEPS = [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false];
 const DEFAULT_SNARE_STEPS = [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false];
@@ -805,6 +935,65 @@ const triggerHiHatVoice = (
   noise.stop(ctx.currentTime + Math.max(0.03, decay + 0.02));
 };
 
+const triggerBasslineVoice = (
+  ctx: AudioContext,
+  destination: AudioNode,
+  frequency: number,
+  tone: number,
+  level: number,
+) => {
+  const oscillator = ctx.createOscillator();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+
+  oscillator.type = 'sawtooth';
+  oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(30, frequency * 0.985), ctx.currentTime + 0.12);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(Math.max(120, tone), ctx.currentTime);
+  filter.Q.setValueAtTime(1.2, ctx.currentTime);
+  gain.gain.setValueAtTime(Math.max(0.001, level), ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+
+  oscillator.connect(filter);
+  filter.connect(gain);
+  gain.connect(destination);
+  oscillator.start();
+  oscillator.stop(ctx.currentTime + 0.22);
+};
+
+const triggerChordSequenceVoice = (
+  ctx: AudioContext,
+  destination: AudioNode,
+  rootFrequency: number,
+  chordType: ChordType,
+  spread: number,
+  level: number,
+  durationSeconds: number,
+) => {
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  const oscillators = CHORD_INTERVALS[chordType].map((interval, index) => {
+    const oscillator = ctx.createOscillator();
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(rootFrequency * Math.pow(2, interval / 12), ctx.currentTime);
+    oscillator.detune.setValueAtTime((index - 1) * spread, ctx.currentTime);
+    oscillator.connect(filter);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + durationSeconds + 0.04);
+    return oscillator;
+  });
+
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(2800, ctx.currentTime);
+  gain.gain.setValueAtTime(Math.max(0.001, level), ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationSeconds);
+  filter.connect(gain);
+  gain.connect(destination);
+
+  return oscillators;
+};
+
 const updateSyncedNodesForTransport = () => {
   nodeConfigs.forEach((config, id) => {
     if (
@@ -823,7 +1012,9 @@ const updateSyncedNodesForTransport = () => {
       config.type === 'autoFilter' ||
       config.type === 'wah' ||
       config.type === 'freezeFx' ||
-      config.type === 'granular'
+      config.type === 'granular' ||
+      config.type === 'stutter' ||
+      config.type === 'triggerDelay'
     ) {
       applyAudioNodeData(config.type, id, config.data);
     }
@@ -921,6 +1112,43 @@ const tickTransport = () => {
     if (synth.pattern[step]) {
       triggerHiHatVoice(ctx, synth.output, synth.tone, synth.decay, synth.gain);
     }
+  });
+
+  basslines.forEach((bassline) => {
+    if (!shouldTriggerOnTransportStep(step, bassline.syncDivision)) {
+      return;
+    }
+
+    if (!(bassline.steps[step] ?? false)) {
+      return;
+    }
+
+    const root = noteToFrequency(bassline.note, bassline.octave);
+    const offset = BASSLINE_OFFSETS[step] ?? 0;
+    const frequency = root * Math.pow(2, offset / 12);
+    triggerBasslineVoice(ctx, bassline.output, frequency, bassline.tone, bassline.gain);
+  });
+
+  chordSeqs.forEach((chordSeq) => {
+    if (!shouldTriggerOnTransportStep(step, chordSeq.syncDivision)) {
+      return;
+    }
+
+    if (!(chordSeq.steps[step] ?? false)) {
+      return;
+    }
+
+    const root = noteToFrequency(chordSeq.note, chordSeq.octave);
+    const durationSeconds = getSyncedDurationSeconds(chordSeq.syncDivision, transportState.bpm) * 0.9;
+    triggerChordSequenceVoice(
+      ctx,
+      chordSeq.output,
+      root,
+      chordSeq.chordType,
+      chordSeq.spread,
+      chordSeq.gain,
+      durationSeconds,
+    );
   });
 
   clockDividers.forEach((divider) => {
@@ -1281,6 +1509,37 @@ const destroyNodeById = (id: string) => {
     nodes.delete(`${id}_out`);
   }
 
+  const dronePad = dronePads.get(id);
+  if (dronePad) {
+    try {
+      dronePad.oscillators.forEach((oscillator) => {
+        oscillator.disconnect();
+        oscillator.stop();
+      });
+      dronePad.output.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the drone pad.
+    }
+    dronePads.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  basslines.delete(id);
+
+  const leadVoice = leadVoices.get(id);
+  if (leadVoice) {
+    try {
+      leadVoice.oscillator.disconnect();
+      leadVoice.filter.disconnect();
+      leadVoice.output.disconnect();
+      leadVoice.oscillator.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the lead voice.
+    }
+    leadVoices.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
   const autoPan = autoPans.get(id);
   if (autoPan) {
     try {
@@ -1371,6 +1630,83 @@ const destroyNodeById = (id: string) => {
     gateSeqs.delete(id);
     nodes.delete(`${id}_out`);
   }
+
+  const cvOffset = cvOffsets.get(id);
+  if (cvOffset) {
+    try {
+      cvOffset.source.disconnect();
+      cvOffset.scaler.disconnect();
+      cvOffset.source.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the CV offset.
+    }
+    cvOffsets.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const envelopeFollower = envelopeFollowers.get(id);
+  if (envelopeFollower) {
+    try {
+      envelopeFollower.input.disconnect();
+      envelopeFollower.analyser.disconnect();
+      envelopeFollower.analyser.onaudioprocess = null;
+      envelopeFollower.source.disconnect();
+      envelopeFollower.scaler.disconnect();
+      envelopeFollower.source.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the envelope follower.
+    }
+    envelopeFollowers.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const quantizer = quantizers.get(id);
+  if (quantizer) {
+    try {
+      quantizer.input.disconnect();
+      quantizer.output.disconnect();
+      quantizer.dry.disconnect();
+      quantizer.wet.disconnect();
+      quantizer.processor.disconnect();
+      quantizer.processor.onaudioprocess = null;
+    } catch {
+      // Ignore cleanup errors while tearing down the quantizer.
+    }
+    quantizers.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const comparator = comparators.get(id);
+  if (comparator) {
+    try {
+      comparator.input.disconnect();
+      comparator.processor.disconnect();
+      comparator.processor.onaudioprocess = null;
+      comparator.output.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the comparator.
+    }
+    comparators.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const lag = lags.get(id);
+  if (lag) {
+    try {
+      lag.input.disconnect();
+      lag.output.disconnect();
+      lag.dry.disconnect();
+      lag.wet.disconnect();
+      lag.processor.disconnect();
+      lag.processor.onaudioprocess = null;
+    } catch {
+      // Ignore cleanup errors while tearing down the lag processor.
+    }
+    lags.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  chordSeqs.delete(id);
 
   const resonator = resonators.get(id);
   if (resonator) {
@@ -1531,6 +1867,55 @@ const destroyNodeById = (id: string) => {
       // Ignore cleanup errors while tearing down the granular effect.
     }
     granulars.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const stutter = stutters.get(id);
+  if (stutter) {
+    try {
+      stutter.input.disconnect();
+      stutter.output.disconnect();
+      stutter.dry.disconnect();
+      stutter.wet.disconnect();
+      stutter.processor.disconnect();
+      stutter.processor.onaudioprocess = null;
+    } catch {
+      // Ignore cleanup errors while tearing down the stutter effect.
+    }
+    stutters.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const humanizer = humanizers.get(id);
+  if (humanizer) {
+    try {
+      humanizer.input.disconnect();
+      humanizer.output.disconnect();
+      humanizer.dry.disconnect();
+      humanizer.wet.disconnect();
+      humanizer.delay.disconnect();
+      humanizer.lfo.disconnect();
+      humanizer.lfoGain.disconnect();
+      humanizer.lfo.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the humanizer.
+    }
+    humanizers.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const triggerDelay = triggerDelays.get(id);
+  if (triggerDelay) {
+    try {
+      triggerDelay.input.disconnect();
+      triggerDelay.output.disconnect();
+      triggerDelay.dry.disconnect();
+      triggerDelay.wet.disconnect();
+      triggerDelay.delay.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the trigger delay.
+    }
+    triggerDelays.delete(id);
     nodes.delete(`${id}_out`);
   }
 
@@ -2414,6 +2799,71 @@ export const createDualOsc = (id: string) => {
   });
 };
 
+export const createDronePad = (id: string) => {
+  const ctx = getAudioContext();
+  const output = ctx.createGain();
+  output.gain.setValueAtTime(0.25, ctx.currentTime);
+
+  const oscillators = Array.from({ length: 3 }, () => {
+    const oscillator = ctx.createOscillator();
+    oscillator.type = 'sawtooth';
+    oscillator.connect(output);
+    oscillator.start();
+    return oscillator;
+  });
+
+  nodes.set(id, output);
+  nodes.set(`${id}_out`, output);
+  dronePads.set(id, {
+    oscillators,
+    output,
+  });
+};
+
+export const createBassline = (id: string) => {
+  const ctx = getAudioContext();
+  const output = ctx.createGain();
+  output.gain.setValueAtTime(1, ctx.currentTime);
+  nodes.set(id, output);
+  basslines.set(id, {
+    id,
+    output,
+    steps: Array.from({ length: 16 }, (_, index) => index % 4 === 0),
+    syncDivision: '1/16',
+    note: 'C',
+    octave: 2,
+    tone: 900,
+    gain: 0.45,
+  });
+};
+
+export const createLeadVoice = (id: string) => {
+  const ctx = getAudioContext();
+  const oscillator = ctx.createOscillator();
+  const filter = ctx.createBiquadFilter();
+  const output = ctx.createGain();
+
+  oscillator.type = 'sawtooth';
+  oscillator.frequency.setValueAtTime(330, ctx.currentTime);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(2200, ctx.currentTime);
+  filter.Q.setValueAtTime(0.8, ctx.currentTime);
+  output.gain.setValueAtTime(0.3, ctx.currentTime);
+
+  oscillator.connect(filter);
+  filter.connect(output);
+  oscillator.start();
+
+  nodes.set(id, oscillator);
+  nodes.set(`${id}_out`, output);
+  leadVoices.set(id, {
+    oscillator,
+    filter,
+    output,
+    glide: 0.04,
+  });
+};
+
 export const createAutoPan = (id: string) => {
   const ctx = getAudioContext();
   const input = ctx.createGain();
@@ -2602,6 +3052,209 @@ export const createGateSeq = (id: string) => {
     gate,
     steps: Array.from({ length: 16 }, (_, index) => index % 2 === 0),
     syncDivision: '1/16',
+  });
+};
+
+export const createCVOffset = (id: string) => {
+  const ctx = getAudioContext();
+  const source = ctx.createConstantSource();
+  const scaler = ctx.createGain();
+
+  source.offset.setValueAtTime(0, ctx.currentTime);
+  scaler.gain.setValueAtTime(1, ctx.currentTime);
+  source.connect(scaler);
+  source.start();
+
+  nodes.set(id, source);
+  nodes.set(`${id}_out`, scaler);
+  cvOffsets.set(id, {
+    source,
+    scaler,
+  });
+};
+
+export const createEnvelopeFollower = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const analyser = ctx.createScriptProcessor(2048, 1, 1);
+  const source = ctx.createConstantSource();
+  const scaler = ctx.createGain();
+  const params = {
+    attack: 0.03,
+    release: 0.18,
+    gain: 200,
+  };
+  let env = 0;
+
+  source.offset.setValueAtTime(0, ctx.currentTime);
+  scaler.gain.setValueAtTime(params.gain, ctx.currentTime);
+
+  analyser.onaudioprocess = (event) => {
+    const inputBuffer = event.inputBuffer.getChannelData(0);
+
+    for (let index = 0; index < inputBuffer.length; index += 1) {
+      const magnitude = Math.abs(inputBuffer[index]);
+      const coefficient = magnitude > env ? params.attack : params.release;
+      env += (magnitude - env) * Math.min(1, Math.max(0.0001, coefficient));
+    }
+
+    source.offset.setTargetAtTime(env, ctx.currentTime, 0.01);
+  };
+
+  input.connect(analyser);
+  analyser.connect(ctx.createGain());
+  source.connect(scaler);
+  source.start();
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, scaler);
+  envelopeFollowers.set(id, {
+    input,
+    analyser,
+    source,
+    scaler,
+    params,
+  });
+};
+
+export const createQuantizer = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const processor = ctx.createScriptProcessor(2048, 1, 1);
+  const params = {
+    steps: 12,
+    mix: 1,
+  };
+
+  dry.gain.setValueAtTime(0, ctx.currentTime);
+  wet.gain.setValueAtTime(1, ctx.currentTime);
+
+  processor.onaudioprocess = (event) => {
+    const inputBuffer = event.inputBuffer.getChannelData(0);
+    const outputBuffer = event.outputBuffer.getChannelData(0);
+    const steps = Math.max(2, Math.round(params.steps));
+    const stepSize = 2 / steps;
+
+    for (let index = 0; index < inputBuffer.length; index += 1) {
+      const sample = inputBuffer[index];
+      outputBuffer[index] = Math.round(sample / stepSize) * stepSize;
+    }
+  };
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(processor);
+  processor.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  quantizers.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    processor,
+    params,
+  });
+};
+
+export const createComparator = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const processor = ctx.createScriptProcessor(2048, 1, 1);
+  const output = ctx.createGain();
+  const params = {
+    threshold: 0,
+  };
+
+  processor.onaudioprocess = (event) => {
+    const inputBuffer = event.inputBuffer.getChannelData(0);
+    const outputBuffer = event.outputBuffer.getChannelData(0);
+
+    for (let index = 0; index < inputBuffer.length; index += 1) {
+      outputBuffer[index] = inputBuffer[index] >= params.threshold ? 1 : 0;
+    }
+  };
+
+  input.connect(processor);
+  processor.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  comparators.set(id, {
+    input,
+    processor,
+    output,
+    params,
+  });
+};
+
+export const createLag = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const processor = ctx.createScriptProcessor(2048, 1, 1);
+  const params = {
+    rise: 0.02,
+    fall: 0.08,
+    mix: 1,
+  };
+  let state = 0;
+
+  dry.gain.setValueAtTime(0, ctx.currentTime);
+  wet.gain.setValueAtTime(1, ctx.currentTime);
+
+  processor.onaudioprocess = (event) => {
+    const inputBuffer = event.inputBuffer.getChannelData(0);
+    const outputBuffer = event.outputBuffer.getChannelData(0);
+
+    for (let index = 0; index < inputBuffer.length; index += 1) {
+      const target = inputBuffer[index];
+      const coefficient = target > state ? params.rise : params.fall;
+      state += (target - state) * Math.min(1, Math.max(0.0001, coefficient));
+      outputBuffer[index] = state;
+    }
+  };
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(processor);
+  processor.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  lags.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    processor,
+    params,
+  });
+};
+
+export const createChordSeq = (id: string) => {
+  const ctx = getAudioContext();
+  const output = ctx.createGain();
+  output.gain.setValueAtTime(1, ctx.currentTime);
+  nodes.set(id, output);
+  chordSeqs.set(id, {
+    id,
+    output,
+    steps: Array.from({ length: 16 }, (_, index) => index % 4 === 0),
+    syncDivision: '1/4',
+    note: 'C',
+    octave: 3,
+    chordType: 'major',
+    spread: 10,
+    gain: 0.22,
   });
 };
 
@@ -3030,6 +3683,127 @@ export const createGranular = (id: string) => {
   });
 };
 
+export const createStutter = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const processor = ctx.createScriptProcessor(2048, 1, 1);
+  const maxSamples = Math.max(1, Math.floor(ctx.sampleRate));
+  const buffer = new Float32Array(maxSamples);
+  let writeIndex = 0;
+  let readIndex = 0;
+  const params = {
+    lengthSamples: Math.max(1, Math.floor(ctx.sampleRate * 0.12)),
+    mix: 0.8,
+  };
+
+  dry.gain.setValueAtTime(0.2, ctx.currentTime);
+  wet.gain.setValueAtTime(0.8, ctx.currentTime);
+
+  processor.onaudioprocess = (event) => {
+    const inputBuffer = event.inputBuffer.getChannelData(0);
+    const outputBuffer = event.outputBuffer.getChannelData(0);
+    const segmentLength = Math.max(1, Math.min(maxSamples, params.lengthSamples));
+
+    for (let index = 0; index < inputBuffer.length; index += 1) {
+      buffer[writeIndex] = inputBuffer[index];
+      outputBuffer[index] = buffer[readIndex] ?? 0;
+
+      writeIndex = (writeIndex + 1) % maxSamples;
+      readIndex = (readIndex + 1) % segmentLength;
+      if (writeIndex % segmentLength === 0) {
+        readIndex = 0;
+      }
+    }
+  };
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(processor);
+  processor.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  stutters.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    processor,
+    params,
+  });
+};
+
+export const createHumanizer = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const delay = ctx.createDelay(0.03);
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+
+  dry.gain.setValueAtTime(0.3, ctx.currentTime);
+  wet.gain.setValueAtTime(0.7, ctx.currentTime);
+  delay.delayTime.setValueAtTime(0.008, ctx.currentTime);
+  lfo.frequency.setValueAtTime(2, ctx.currentTime);
+  lfoGain.gain.setValueAtTime(0.003, ctx.currentTime);
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(delay);
+  delay.connect(wet);
+  wet.connect(output);
+  lfo.connect(lfoGain);
+  lfoGain.connect(delay.delayTime);
+  lfo.start();
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  humanizers.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    delay,
+    lfo,
+    lfoGain,
+  });
+};
+
+export const createTriggerDelay = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const delay = ctx.createDelay(0.4);
+
+  dry.gain.setValueAtTime(0, ctx.currentTime);
+  wet.gain.setValueAtTime(1, ctx.currentTime);
+  delay.delayTime.setValueAtTime(0.08, ctx.currentTime);
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(delay);
+  delay.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  triggerDelays.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    delay,
+  });
+};
+
 export const createMonoSynth = (id: string) => {
   const ctx = getAudioContext();
   const oscillator = ctx.createOscillator();
@@ -3133,6 +3907,15 @@ export const createAudioNode = (
     case 'dualOsc':
       createDualOsc(id);
       break;
+    case 'dronePad':
+      createDronePad(id);
+      break;
+    case 'bassline':
+      createBassline(id);
+      break;
+    case 'leadVoice':
+      createLeadVoice(id);
+      break;
     case 'gain':
       createGain(id);
       break;
@@ -3199,6 +3982,24 @@ export const createAudioNode = (
     case 'gateSeq':
       createGateSeq(id);
       break;
+    case 'cvOffset':
+      createCVOffset(id);
+      break;
+    case 'envelopeFollower':
+      createEnvelopeFollower(id);
+      break;
+    case 'quantizer':
+      createQuantizer(id);
+      break;
+    case 'comparator':
+      createComparator(id);
+      break;
+    case 'lag':
+      createLag(id);
+      break;
+    case 'chordSeq':
+      createChordSeq(id);
+      break;
     case 'resonator':
       createResonator(id);
       break;
@@ -3228,6 +4029,15 @@ export const createAudioNode = (
       break;
     case 'granular':
       createGranular(id);
+      break;
+    case 'stutter':
+      createStutter(id);
+      break;
+    case 'humanizer':
+      createHumanizer(id);
+      break;
+    case 'triggerDelay':
+      createTriggerDelay(id);
       break;
     case 'monoSynth':
       createMonoSynth(id);
@@ -3322,6 +4132,59 @@ export const applyAudioNodeData = (
       dualOsc.mixA.gain.setTargetAtTime(1 - blend, currentTime, 0.03);
       dualOsc.mixB.gain.setTargetAtTime(blend, currentTime, 0.03);
       dualOsc.output.gain.setTargetAtTime(data.gain ?? 0.35, currentTime, 0.03);
+      break;
+    }
+    case 'dronePad': {
+      const dronePad = dronePads.get(id);
+      if (!dronePad) {
+        break;
+      }
+
+      const root = noteToFrequency(data.note ?? 'C', data.octave ?? 3);
+      const intervals = CHORD_INTERVALS[data.chordType ?? 'minor'];
+      const spread = data.spread ?? 14;
+      const currentTime = getAudioContext().currentTime;
+      const waveType = (data.type as OscillatorType | undefined) ?? 'sawtooth';
+
+      dronePad.oscillators.forEach((oscillator, index) => {
+        const semitones = intervals[index] ?? 0;
+        oscillator.frequency.setTargetAtTime(root * Math.pow(2, semitones / 12), currentTime, 0.03);
+        oscillator.detune.setTargetAtTime((index - 1) * spread, currentTime, 0.03);
+        oscillator.type = waveType;
+      });
+      dronePad.output.gain.setTargetAtTime(data.gain ?? 0.25, currentTime, 0.03);
+      break;
+    }
+    case 'bassline': {
+      const bassline = basslines.get(id);
+      if (!bassline) {
+        break;
+      }
+
+      bassline.steps = cloneStepPattern(data.steps, Array.from({ length: 16 }, (_, index) => index % 4 === 0));
+      bassline.syncDivision = data.syncDivision ?? '1/16';
+      bassline.note = data.note ?? 'C';
+      bassline.octave = data.octave ?? 2;
+      bassline.tone = data.tone ?? 900;
+      bassline.gain = data.gain ?? 0.45;
+      break;
+    }
+    case 'leadVoice': {
+      const leadVoice = leadVoices.get(id);
+      if (!leadVoice) {
+        break;
+      }
+
+      const currentTime = getAudioContext().currentTime;
+      const glide = data.glide ?? 0.04;
+      leadVoice.glide = glide;
+      leadVoice.oscillator.frequency.cancelScheduledValues(currentTime);
+      leadVoice.oscillator.frequency.setTargetAtTime(data.frequency ?? 330, currentTime, Math.max(0.001, glide));
+      leadVoice.oscillator.type = (data.type as OscillatorType | undefined) ?? 'sawtooth';
+      leadVoice.filter.type = 'lowpass';
+      leadVoice.filter.frequency.setTargetAtTime(data.tone ?? 2200, currentTime, 0.03);
+      leadVoice.filter.Q.setTargetAtTime(data.Q ?? 0.8, currentTime, 0.03);
+      leadVoice.output.gain.setTargetAtTime(data.gain ?? 0.3, currentTime, 0.03);
       break;
     }
     case 'gain':
@@ -3707,6 +4570,85 @@ export const applyAudioNodeData = (
       gateSeq.syncDivision = data.syncDivision ?? '1/16';
       break;
     }
+    case 'cvOffset': {
+      const cvOffset = cvOffsets.get(id);
+      if (!cvOffset) {
+        break;
+      }
+
+      const currentTime = getAudioContext().currentTime;
+      cvOffset.source.offset.setTargetAtTime(data.offset ?? 0, currentTime, 0.03);
+      cvOffset.scaler.gain.setTargetAtTime(data.gain ?? 1, currentTime, 0.03);
+      break;
+    }
+    case 'envelopeFollower': {
+      const envelopeFollower = envelopeFollowers.get(id);
+      if (!envelopeFollower) {
+        break;
+      }
+
+      envelopeFollower.params.attack = data.attack ?? 0.03;
+      envelopeFollower.params.release = data.release ?? 0.18;
+      envelopeFollower.params.gain = data.gain ?? 200;
+      envelopeFollower.scaler.gain.setTargetAtTime(envelopeFollower.params.gain, getAudioContext().currentTime, 0.03);
+      break;
+    }
+    case 'quantizer': {
+      const quantizer = quantizers.get(id);
+      if (!quantizer) {
+        break;
+      }
+
+      const steps = Math.max(2, Math.round(data.divider ?? 12));
+      const mix = data.mix ?? 1;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+      quantizer.params.steps = steps;
+      quantizer.params.mix = mix;
+      quantizer.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      quantizer.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'comparator': {
+      const comparator = comparators.get(id);
+      if (!comparator) {
+        break;
+      }
+
+      comparator.params.threshold = data.threshold ?? 0;
+      break;
+    }
+    case 'lag': {
+      const lag = lags.get(id);
+      if (!lag) {
+        break;
+      }
+
+      const mix = data.mix ?? 1;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+      lag.params.rise = data.attack ?? 0.02;
+      lag.params.fall = data.release ?? 0.08;
+      lag.params.mix = mix;
+      lag.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      lag.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'chordSeq': {
+      const chordSeq = chordSeqs.get(id);
+      if (!chordSeq) {
+        break;
+      }
+
+      chordSeq.steps = cloneStepPattern(data.steps, Array.from({ length: 16 }, (_, index) => index % 4 === 0));
+      chordSeq.syncDivision = data.syncDivision ?? '1/4';
+      chordSeq.note = data.note ?? 'C';
+      chordSeq.octave = data.octave ?? 3;
+      chordSeq.chordType = data.chordType ?? 'major';
+      chordSeq.spread = data.spread ?? 10;
+      chordSeq.gain = data.gain ?? 0.22;
+      break;
+    }
     case 'resonator': {
       const resonator = resonators.get(id);
       if (!resonator) {
@@ -3914,6 +4856,60 @@ export const applyAudioNodeData = (
       granular.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
       break;
     }
+    case 'stutter': {
+      const stutter = stutters.get(id);
+      if (!stutter) {
+        break;
+      }
+
+      const repeatLength = data.sync
+        ? getSyncedDurationSeconds(data.syncDivision ?? '1/8', transportState.bpm)
+        : (data.loopLength ?? 0.12);
+      const mix = data.mix ?? 0.8;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      stutter.params.lengthSamples = Math.max(1, Math.floor(getAudioContext().sampleRate * repeatLength));
+      stutter.params.mix = mix;
+      stutter.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      stutter.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'humanizer': {
+      const humanizer = humanizers.get(id);
+      if (!humanizer) {
+        break;
+      }
+
+      const rate = data.rate ?? 2;
+      const depth = data.depth ?? 0.35;
+      const mix = data.mix ?? 0.7;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+      humanizer.delay.delayTime.setTargetAtTime(0.008 + depth * 0.01, currentTime, 0.03);
+      humanizer.lfo.frequency.setTargetAtTime(rate, currentTime, 0.03);
+      humanizer.lfoGain.gain.setTargetAtTime(depth * 0.008, currentTime, 0.03);
+      humanizer.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      humanizer.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'triggerDelay': {
+      const triggerDelay = triggerDelays.get(id);
+      if (!triggerDelay) {
+        break;
+      }
+
+      const delayTime = data.sync
+        ? getSyncedDurationSeconds(data.syncDivision ?? '1/16', transportState.bpm)
+        : (data.delayTime ?? 0.08);
+      const mix = data.mix ?? 1;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+      triggerDelay.delay.delayTime.setTargetAtTime(delayTime, currentTime, 0.03);
+      triggerDelay.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      triggerDelay.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
     case 'monoSynth': {
       const monoSynth = monoSynths.get(id);
       if (!monoSynth) {
@@ -4065,6 +5061,7 @@ export const connectNodes = (
     targetHandleId === 'pitch' &&
     (targetConfig?.type === 'oscillator' ||
       targetConfig?.type === 'dualOsc' ||
+      targetConfig?.type === 'leadVoice' ||
       targetConfig?.type === 'monoSynth' ||
       targetConfig?.type === 'fmSynth' ||
       targetConfig?.type === 'subOsc')
@@ -4109,6 +5106,7 @@ export const disconnectNodes = (
     targetHandleId === 'pitch' &&
     (targetConfig?.type === 'oscillator' ||
       targetConfig?.type === 'dualOsc' ||
+      targetConfig?.type === 'leadVoice' ||
       targetConfig?.type === 'monoSynth' ||
       targetConfig?.type === 'fmSynth' ||
       targetConfig?.type === 'subOsc')
@@ -4157,6 +5155,18 @@ export const updateNodeParam = (
       dualOsc.oscA.type = value as OscillatorType;
     } else if (param === 'gain' && typeof value === 'number' && Number.isFinite(value)) {
       dualOsc.output.gain.setTargetAtTime(value, ctx.currentTime, 0.03);
+    }
+    return;
+  }
+
+  const leadVoice = leadVoices.get(id);
+  if (leadVoice) {
+    if (param === 'frequency' && typeof value === 'number' && Number.isFinite(value)) {
+      leadVoice.oscillator.frequency.setTargetAtTime(value, ctx.currentTime, Math.max(0.001, leadVoice.glide));
+    } else if (param === 'type') {
+      leadVoice.oscillator.type = value as OscillatorType;
+    } else if (param === 'gain' && typeof value === 'number' && Number.isFinite(value)) {
+      leadVoice.output.gain.setTargetAtTime(value, ctx.currentTime, 0.03);
     }
     return;
   }
@@ -4286,12 +5296,21 @@ export const stopAudio = async () => {
   vibratos.clear();
   combFilters.clear();
   dualOscs.clear();
+  dronePads.clear();
+  basslines.clear();
+  leadVoices.clear();
   autoPans.clear();
   autoFilters.clear();
   clockDividers.clear();
   randomCvs.clear();
   sampleHolds.clear();
   gateSeqs.clear();
+  cvOffsets.clear();
+  envelopeFollowers.clear();
+  quantizers.clear();
+  comparators.clear();
+  lags.clear();
+  chordSeqs.clear();
   resonators.clear();
   wahs.clear();
   stereoWideners.clear();
@@ -4302,6 +5321,9 @@ export const stopAudio = async () => {
   transientShapers.clear();
   freezeFxs.clear();
   granulars.clear();
+  stutters.clear();
+  humanizers.clear();
+  triggerDelays.clear();
   monoSynths.clear();
   kickSynths.clear();
   snareSynths.clear();
