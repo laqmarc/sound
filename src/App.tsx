@@ -33,6 +33,7 @@ import ScopeNode from './nodes/ScopeNode';
 import SpectrogramNode from './nodes/SpectrogramNode';
 import DrumMachineNode from './nodes/DrumMachineNode';
 import ArpeggiatorNode from './nodes/ArpeggiatorNode';
+import Arp2Node from './nodes/Arp2Node';
 import Equalizer8Node from './nodes/Equalizer8Node';
 import PhaserNode from './nodes/PhaserNode';
 import CompressorNode from './nodes/CompressorNode';
@@ -441,6 +442,9 @@ function App() {
       ),
       arpeggiator: (props: SoundNodeProps) => (
         <ArpeggiatorNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      arp2: (props: SoundNodeProps) => (
+        <Arp2Node {...props} onDataChange={handleNodeDataChange} />
       ),
       equalizer8: (props: SoundNodeProps) => (
         <Equalizer8Node {...props} onDataChange={handleNodeDataChange} />

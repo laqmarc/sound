@@ -2,6 +2,8 @@ import {
   analysers,
   arpeggiatorTargets,
   arpeggiators,
+  arp2Targets,
+  arp2s,
   audioContext,
   autoFilters,
   autoPans,
@@ -70,6 +72,9 @@ export const destroyNodeById = (id: string) => {
   arpeggiators.delete(id);
   arpeggiatorTargets.delete(id);
   arpeggiatorTargets.forEach((targets) => targets.delete(id));
+  arp2s.delete(id);
+  arp2Targets.delete(id);
+  arp2Targets.forEach((targets) => targets.delete(id));
 
   const equalizer = equalizers.get(id);
   if (equalizer) {
@@ -913,6 +918,8 @@ export const clearAudioEngineStores = () => {
   drumMachines.clear();
   arpeggiators.clear();
   arpeggiatorTargets.clear();
+  arp2s.clear();
+  arp2Targets.clear();
   equalizers.clear();
   mixers.clear();
   reverbs.clear();

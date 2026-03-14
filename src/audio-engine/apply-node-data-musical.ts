@@ -6,11 +6,13 @@ import {
   DEFAULT_KICK_STEPS,
   DEFAULT_SNARE_STEPS,
   arpeggiators,
+  arp2s,
   basslines,
   chordGenerators,
   chordSeqs,
   clockDividers,
   cloneArpSteps,
+  cloneArp2Steps,
   cloneDrumPattern,
   cloneStepPattern,
   cvOffsets,
@@ -159,6 +161,24 @@ export const applyMusicalNodeData = (
       arpeggiator.mode = data.arpMode ?? 'up';
       arpeggiator.scale = data.arpScale ?? 'chromatic';
       arpeggiator.stepIndex = 0;
+      return true;
+    }
+    case 'arp2': {
+      const arp2 = arp2s.get(id);
+      if (!arp2) {
+        return true;
+      }
+
+      arp2.syncDivision = data.syncDivision ?? '1/16';
+      arp2.steps = cloneArp2Steps(data.arp2Steps);
+      arp2.mode = data.arpMode ?? 'up';
+      arp2.scale = data.arpScale ?? 'minor';
+      arp2.length = Math.max(1, Math.min(16, Math.round(data.arpLength ?? 16)));
+      arp2.octaveSpan = Math.max(1, Math.min(4, Math.round(data.arpOctaveSpan ?? 2)));
+      arp2.transpose = Math.max(-24, Math.min(24, Math.round(data.arpTranspose ?? 0)));
+      arp2.chance = Math.max(0, Math.min(100, data.arpChance ?? 100));
+      arp2.ratchet = Math.max(1, Math.min(4, Math.round(data.arpRatchet ?? 1)));
+      arp2.stepIndex = 0;
       return true;
     }
     case 'clockDivider': {

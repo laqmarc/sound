@@ -5,6 +5,8 @@ import {
   audioContext,
   drumMachines,
   arpeggiators,
+  arp2s,
+  arp2Targets,
   arpeggiatorTargets,
   basslines,
   clockDividers,
@@ -26,6 +28,7 @@ import {
   shouldTriggerOnTransportStep,
   noteToFrequency,
   getPlayableArpSteps,
+  getPlayableArp2Steps,
   triggerKick,
   triggerKickVoice,
   triggerSnare,
@@ -169,6 +172,54 @@ const scheduleTransportStep = (
     if (arpeggiator.mode !== 'random') {
       arpeggiator.stepIndex = (arpeggiator.stepIndex + 1) % playableSteps.length;
     }
+  });
+
+  arp2s.forEach((arp2) => {
+    if (!shouldTriggerOnTransportStep(step, arp2.syncDivision)) {
+      return;
+    }
+
+    const targets = arp2Targets.get(arp2.id);
+    const playableSteps = getPlayableArp2Steps(arp2);
+    if (playableSteps.length === 0) {
+      return;
+    }
+
+    const baseIndex = arp2.stepIndex;
+    const stepPosition =
+      arp2.mode === 'random'
+        ? Math.floor(Math.random() * playableSteps.length)
+        : baseIndex % playableSteps.length;
+    const arpStep = playableSteps[stepPosition];
+    const octaveCycle = Math.floor(baseIndex / playableSteps.length) % Math.max(1, arp2.octaveSpan);
+    const shouldPlay = Boolean(arpStep?.enabled) && Math.random() * 100 <= arp2.chance;
+    const ratchetCount = Math.max(1, Math.min(4, Math.round(arp2.ratchet)));
+    const stepDuration = getStepDurationSeconds(step);
+
+    if (targets && arpStep && shouldPlay) {
+      const quantizedNote = quantizeNoteToScale(arpStep.note, arp2.scale);
+      const frequency =
+        noteToFrequency(quantizedNote, arpStep.octave + octaveCycle) * Math.pow(2, arp2.transpose / 12);
+
+      for (let pulseIndex = 0; pulseIndex < ratchetCount; pulseIndex += 1) {
+        const pulseTime = scheduledTime + (stepDuration / ratchetCount) * pulseIndex * 0.92;
+        targets.forEach((targetId) => {
+          updateNodeParam(targetId, 'frequency', frequency, pulseTime);
+        });
+      }
+    }
+
+    queueTransportUiEvent('arp2-step', {
+      id: arp2.id,
+      stepIndex: stepPosition,
+      note: arpStep ? quantizeNoteToScale(arpStep.note, arp2.scale) : undefined,
+      octave: arpStep?.octave,
+      octaveCycle,
+      active: shouldPlay,
+      ratchet: ratchetCount,
+    }, scheduledTime);
+
+    arp2.stepIndex = (baseIndex + 1) % (playableSteps.length * Math.max(1, arp2.octaveSpan));
   });
 
   drumMachines.forEach((drumMachine) => {

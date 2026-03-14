@@ -213,6 +213,7 @@ export const addNodeButtons: AddNodeButton[] = [
   { type: 'snareSynth', label: 'Snare', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'groove' },
   { type: 'hiHatSynth', label: 'HiHat', color: 'bg-amber-500/10 text-amber-300 border-amber-500/20', tab: 'groove' },
   { type: 'arpeggiator', label: 'Arp', color: 'bg-lime-500/10 text-lime-400 border-lime-500/20', tab: 'groove' },
+  { type: 'arp2', label: 'Arp2', color: 'bg-cyan-500/10 text-cyan-200 border-cyan-500/20', tab: 'groove' },
   { type: 'looper', label: 'Looper', color: 'bg-lime-500/10 text-lime-300 border-lime-500/20', tab: 'groove' },
   { type: 'filter', label: 'Filter', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20', tab: 'fx' },
   { type: 'distortion', label: 'Disto', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20', tab: 'fx' },

@@ -19,6 +19,8 @@ export const analysers = new Map<string, AnalyserNode>();
 export const drumMachines = new Map<string, DrumMachineState>();
 export const arpeggiators = new Map<string, ArpeggiatorState>();
 export const arpeggiatorTargets = new Map<string, Set<string>>();
+export const arp2s = new Map<string, Arp2State>();
+export const arp2Targets = new Map<string, Set<string>>();
 export const equalizers = new Map<string, EqualizerState>();
 export const reverbs = new Map<string, ReverbState>();
 export const mixers = new Map<string, MixerState>();
@@ -618,6 +620,20 @@ export interface ArpeggiatorState {
   scale: ArpScale;
 }
 
+export interface Arp2State {
+  id: string;
+  stepIndex: number;
+  syncDivision: SyncDivision;
+  steps: ArpStep[];
+  mode: ArpMode;
+  scale: ArpScale;
+  length: number;
+  octaveSpan: number;
+  transpose: number;
+  chance: number;
+  ratchet: number;
+}
+
 export interface TransportState {
   bpm: number;
   swing: number;
@@ -714,10 +730,39 @@ export const defaultArpSteps = (): ArpStep[] => [
   { note: 'E', octave: 4, enabled: true },
 ];
 
+export const defaultArp2Steps = (): ArpStep[] => [
+  { note: 'C', octave: 3, enabled: true },
+  { note: 'G', octave: 3, enabled: false },
+  { note: 'A#', octave: 3, enabled: true },
+  { note: 'D', octave: 4, enabled: true },
+  { note: 'F', octave: 4, enabled: true },
+  { note: 'A', octave: 4, enabled: false },
+  { note: 'C', octave: 5, enabled: true },
+  { note: 'D#', octave: 5, enabled: true },
+  { note: 'C', octave: 4, enabled: true },
+  { note: 'G', octave: 3, enabled: false },
+  { note: 'F', octave: 3, enabled: true },
+  { note: 'A#', octave: 3, enabled: true },
+  { note: 'D', octave: 4, enabled: false },
+  { note: 'F', octave: 4, enabled: true },
+  { note: 'G', octave: 4, enabled: true },
+  { note: 'C', octave: 5, enabled: true },
+];
+
 export const cloneArpSteps = (steps?: ArpStep[]) => {
   const base = steps && steps.length > 0 ? steps : defaultArpSteps();
 
   return Array.from({ length: 8 }, (_, index) => ({
+    note: base[index]?.note ?? 'C',
+    octave: base[index]?.octave ?? 4,
+    enabled: base[index]?.enabled ?? true,
+  }));
+};
+
+export const cloneArp2Steps = (steps?: ArpStep[]) => {
+  const base = steps && steps.length > 0 ? steps : defaultArp2Steps();
+
+  return Array.from({ length: 16 }, (_, index) => ({
     note: base[index]?.note ?? 'C',
     octave: base[index]?.octave ?? 4,
     enabled: base[index]?.enabled ?? true,
@@ -826,6 +871,16 @@ export const getPlayableArpSteps = (state: ArpeggiatorState) => {
   }
 
   return baseSteps;
+};
+
+export const getPlayableArp2Steps = (state: Arp2State) => {
+  const slicedSteps = state.steps.slice(0, Math.max(1, Math.min(16, state.length)));
+
+  if (state.mode === 'down') {
+    return [...slicedSteps].reverse();
+  }
+
+  return slicedSteps;
 };
 
 export const cloneStepPattern = (steps: boolean[] | undefined, fallback: boolean[]) => {

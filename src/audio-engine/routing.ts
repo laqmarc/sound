@@ -1,4 +1,4 @@
-import { audioContext, arpeggiatorTargets, getDestinationInput, nodeConfigs, nodes } from './runtime';
+import { arp2Targets, arpeggiatorTargets, audioContext, getDestinationInput, nodeConfigs, nodes } from './runtime';
 
 const PITCH_TARGET_TYPES = [
   'oscillator',
@@ -50,7 +50,7 @@ const resolveSource = (sourceId: string) => {
   return nodes.get(`${sourceId}_out`) ?? nodes.get(`${sourceId}_gain`) ?? nodes.get(sourceId);
 };
 
-const isArpeggiatorPitchConnection = (
+const isPitchSequencerConnection = (
   sourceId: string,
   targetId: string,
   targetHandleId?: string | null,
@@ -59,11 +59,25 @@ const isArpeggiatorPitchConnection = (
   const targetConfig = nodeConfigs.get(targetId);
 
   return (
-    sourceConfig?.type === 'arpeggiator' &&
+    (sourceConfig?.type === 'arpeggiator' || sourceConfig?.type === 'arp2') &&
     targetHandleId === 'pitch' &&
     targetConfig !== undefined &&
     PITCH_TARGET_TYPES.includes(targetConfig.type as (typeof PITCH_TARGET_TYPES)[number])
   );
+};
+
+const resolvePitchSequencerTargets = (sourceId: string) => {
+  const sourceType = nodeConfigs.get(sourceId)?.type;
+
+  if (sourceType === 'arpeggiator') {
+    return arpeggiatorTargets;
+  }
+
+  if (sourceType === 'arp2') {
+    return arp2Targets;
+  }
+
+  return null;
 };
 
 export const connectAudioGraphNodes = (
@@ -71,11 +85,16 @@ export const connectAudioGraphNodes = (
   targetId: string,
   targetHandleId?: string | null,
 ) => {
-  if (isArpeggiatorPitchConnection(sourceId, targetId, targetHandleId)) {
-    let targets = arpeggiatorTargets.get(sourceId);
+  if (isPitchSequencerConnection(sourceId, targetId, targetHandleId)) {
+    const targetStore = resolvePitchSequencerTargets(sourceId);
+    if (!targetStore) {
+      return;
+    }
+
+    let targets = targetStore.get(sourceId);
     if (!targets) {
       targets = new Set<string>();
-      arpeggiatorTargets.set(sourceId, targets);
+      targetStore.set(sourceId, targets);
     }
     targets.add(targetId);
     return;
@@ -104,8 +123,8 @@ export const disconnectAudioGraphNodes = (
   targetId: string,
   targetHandleId?: string | null,
 ) => {
-  if (isArpeggiatorPitchConnection(sourceId, targetId, targetHandleId)) {
-    arpeggiatorTargets.get(sourceId)?.delete(targetId);
+  if (isPitchSequencerConnection(sourceId, targetId, targetHandleId)) {
+    resolvePitchSequencerTargets(sourceId)?.get(sourceId)?.delete(targetId);
     return;
   }
 

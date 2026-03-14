@@ -5,6 +5,8 @@ import {
   drumMachines,
   arpeggiators,
   arpeggiatorTargets,
+  arp2s,
+  arp2Targets,
   fmSynths,
   subOscs,
   noiseLayers,
@@ -36,6 +38,7 @@ import {
   DEFAULT_SNARE_STEPS,
   DEFAULT_HIHAT_STEPS,
   defaultArpSteps,
+  defaultArp2Steps,
   getNoiseBuffer,
   buildSaturatorCurve,
   getAudioContext,
@@ -66,6 +69,23 @@ const createArpeggiator = (id: string) => {
     scale: 'chromatic',
   });
   arpeggiatorTargets.set(id, new Set());
+};
+
+const createArp2 = (id: string) => {
+  arp2s.set(id, {
+    id,
+    stepIndex: 0,
+    syncDivision: '1/16',
+    steps: defaultArp2Steps(),
+    mode: 'up',
+    scale: 'minor',
+    length: 16,
+    octaveSpan: 2,
+    transpose: 0,
+    chance: 100,
+    ratchet: 1,
+  });
+  arp2Targets.set(id, new Set());
 };
 
 const createFMSynth = (id: string) => {
@@ -984,6 +1004,9 @@ export const createMusicalAudioNode = (type: EditableAudioNodeType, id: string) 
       return true;
     case 'arpeggiator':
       createArpeggiator(id);
+      return true;
+    case 'arp2':
+      createArp2(id);
       return true;
     case 'fmSynth':
       createFMSynth(id);

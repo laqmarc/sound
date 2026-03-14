@@ -22,6 +22,25 @@ const defaultArpSteps = (): ArpStep[] => [
   { note: 'E', octave: 4, enabled: true },
 ];
 
+const defaultArp2Steps = (): ArpStep[] => [
+  { note: 'C', octave: 3, enabled: true },
+  { note: 'G', octave: 3, enabled: false },
+  { note: 'A#', octave: 3, enabled: true },
+  { note: 'D', octave: 4, enabled: true },
+  { note: 'F', octave: 4, enabled: true },
+  { note: 'A', octave: 4, enabled: false },
+  { note: 'C', octave: 5, enabled: true },
+  { note: 'D#', octave: 5, enabled: true },
+  { note: 'C', octave: 4, enabled: true },
+  { note: 'G', octave: 3, enabled: false },
+  { note: 'F', octave: 3, enabled: true },
+  { note: 'A#', octave: 3, enabled: true },
+  { note: 'D', octave: 4, enabled: false },
+  { note: 'F', octave: 4, enabled: true },
+  { note: 'G', octave: 4, enabled: true },
+  { note: 'C', octave: 5, enabled: true },
+];
+
 const defaultEqBands = () => [0, 0, 0, 0, 0, 0, 0, 0];
 
 export const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
@@ -447,6 +466,18 @@ export const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     arpMode: 'up',
     arpScale: 'chromatic',
     arpSteps: defaultArpSteps(),
+  },
+  arp2: {
+    label: 'ARP2',
+    syncDivision: '1/16',
+    arpMode: 'up',
+    arpScale: 'minor',
+    arp2Steps: defaultArp2Steps(),
+    arpLength: 16,
+    arpOctaveSpan: 2,
+    arpTranspose: 0,
+    arpChance: 100,
+    arpRatchet: 1,
   },
   equalizer8: {
     label: 'EQ 8-Band',

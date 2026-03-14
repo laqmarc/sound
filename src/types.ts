@@ -63,6 +63,7 @@ export const editableNodeTypes = [
   'lfo',
   'drumMachine',
   'arpeggiator',
+  'arp2',
   'equalizer8',
   'phaser',
   'fmSynth',
@@ -119,8 +120,14 @@ export interface SoundNodeData {
   sync?: boolean;
   syncDivision?: SyncDivision;
   arpSteps?: ArpStep[];
+  arp2Steps?: ArpStep[];
   arpMode?: ArpMode;
   arpScale?: ArpScale;
+  arpLength?: number;
+  arpOctaveSpan?: number;
+  arpTranspose?: number;
+  arpChance?: number;
+  arpRatchet?: number;
   eqBands?: number[];
   rate?: number;
   depth?: number;
