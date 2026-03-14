@@ -32,6 +32,23 @@ const tremolos = new Map<string, TremoloState>();
 const ringMods = new Map<string, RingModState>();
 const vibratos = new Map<string, VibratoState>();
 const combFilters = new Map<string, CombFilterState>();
+const dualOscs = new Map<string, DualOscState>();
+const autoPans = new Map<string, AutoPanState>();
+const autoFilters = new Map<string, AutoFilterState>();
+const clockDividers = new Map<string, ClockDividerState>();
+const randomCvs = new Map<string, RandomCvState>();
+const sampleHolds = new Map<string, SampleHoldState>();
+const gateSeqs = new Map<string, GateSeqState>();
+const resonators = new Map<string, ResonatorState>();
+const wahs = new Map<string, WahState>();
+const stereoWideners = new Map<string, StereoWidenerState>();
+const foldbacks = new Map<string, FoldbackState>();
+const tiltEqs = new Map<string, TiltEqState>();
+const saturators = new Map<string, SaturatorState>();
+const cabSims = new Map<string, CabSimState>();
+const transientShapers = new Map<string, TransientShaperState>();
+const freezeFxs = new Map<string, FreezeFxState>();
+const granulars = new Map<string, GranularState>();
 const monoSynths = new Map<string, MonoSynthState>();
 const kickSynths = new Map<string, StepSynthState>();
 const snareSynths = new Map<string, StepSynthState>();
@@ -193,6 +210,171 @@ interface CombFilterState {
   dry: GainNode;
   delay: DelayNode;
   feedbackGain: GainNode;
+}
+
+interface DualOscState {
+  oscA: OscillatorNode;
+  oscB: OscillatorNode;
+  mixA: GainNode;
+  mixB: GainNode;
+  output: GainNode;
+}
+
+interface AutoPanState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  panner: StereoPannerNode;
+  lfo: OscillatorNode;
+  lfoGain: GainNode;
+}
+
+interface AutoFilterState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  filter: BiquadFilterNode;
+  lfo: OscillatorNode;
+  lfoGain: GainNode;
+}
+
+interface ClockDividerState {
+  source: ConstantSourceNode;
+  output: GainNode;
+  syncDivision: SyncDivision;
+}
+
+interface RandomCvState {
+  source: ConstantSourceNode;
+  output: GainNode;
+  syncDivision: SyncDivision;
+  minValue: number;
+  maxValue: number;
+}
+
+interface SampleHoldState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  processor: ScriptProcessorNode;
+  params: {
+    holdSamples: number;
+    mix: number;
+  };
+}
+
+interface GateSeqState {
+  input: GainNode;
+  output: GainNode;
+  gate: GainNode;
+  steps: boolean[];
+  syncDivision: SyncDivision;
+}
+
+interface ResonatorState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  filters: BiquadFilterNode[];
+}
+
+interface WahState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  filter: BiquadFilterNode;
+  lfo: OscillatorNode;
+  lfoGain: GainNode;
+}
+
+interface StereoWidenerState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  merger: ChannelMergerNode;
+  delayLeft: DelayNode;
+  delayRight: DelayNode;
+}
+
+interface FoldbackState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  shaper: WaveShaperNode;
+}
+
+interface TiltEqState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  lowShelf: BiquadFilterNode;
+  highShelf: BiquadFilterNode;
+}
+
+interface SaturatorState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  shaper: WaveShaperNode;
+  makeup: GainNode;
+}
+
+interface CabSimState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  highpass: BiquadFilterNode;
+  peak: BiquadFilterNode;
+  lowpass: BiquadFilterNode;
+}
+
+interface TransientShaperState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  processor: ScriptProcessorNode;
+  params: {
+    attack: number;
+    sustain: number;
+    mix: number;
+  };
+}
+
+interface FreezeFxState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  processor: ScriptProcessorNode;
+  params: {
+    lengthSamples: number;
+    mix: number;
+    freeze: boolean;
+  };
+}
+
+interface GranularState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  processor: ScriptProcessorNode;
+  params: {
+    grainSamples: number;
+    spray: number;
+    mix: number;
+  };
 }
 
 interface MonoSynthState {
@@ -463,6 +645,19 @@ const buildDistortionCurve = (amount: number) => {
   return curve;
 };
 
+const buildSaturatorCurve = (drive: number) => {
+  const sampleCount = 44100;
+  const curve = new Float32Array(sampleCount);
+  const safeDrive = Math.max(1, drive);
+
+  for (let i = 0; i < sampleCount; i += 1) {
+    const x = (i * 2) / sampleCount - 1;
+    curve[i] = Math.tanh(x * safeDrive) / Math.tanh(safeDrive);
+  }
+
+  return curve;
+};
+
 const buildImpulseResponse = (ctx: AudioContext, duration: number, decay: number) => {
   const length = ctx.sampleRate * duration;
   const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
@@ -477,6 +672,31 @@ const buildImpulseResponse = (ctx: AudioContext, duration: number, decay: number
   }
 
   return impulse;
+};
+
+const buildFoldbackCurve = (drive: number, threshold: number) => {
+  const sampleCount = 44100;
+  const curve = new Float32Array(sampleCount);
+  const safeDrive = Math.max(1, drive);
+  const safeThreshold = Math.max(0.05, Math.min(1, threshold));
+
+  for (let i = 0; i < sampleCount; i += 1) {
+    const x = ((i / (sampleCount - 1)) * 2 - 1) * safeDrive;
+    const sign = Math.sign(x) || 1;
+    const magnitude = Math.abs(x);
+
+    if (magnitude <= safeThreshold) {
+      curve[i] = x / safeDrive;
+      continue;
+    }
+
+    const folded =
+      Math.abs(((magnitude - safeThreshold) % (safeThreshold * 4)) - safeThreshold * 2) -
+      safeThreshold;
+    curve[i] = (sign * folded) / safeDrive;
+  }
+
+  return curve;
 };
 
 const triggerKick = (ctx: AudioContext, destination: AudioNode) => {
@@ -595,9 +815,15 @@ const updateSyncedNodesForTransport = () => {
       config.type === 'chorus' ||
       config.type === 'flanger' ||
       config.type === 'looper' ||
+      config.type === 'sampleHold' ||
       config.type === 'tremolo' ||
       config.type === 'ringMod' ||
-      config.type === 'vibrato'
+      config.type === 'vibrato' ||
+      config.type === 'autoPan' ||
+      config.type === 'autoFilter' ||
+      config.type === 'wah' ||
+      config.type === 'freezeFx' ||
+      config.type === 'granular'
     ) {
       applyAudioNodeData(config.type, id, config.data);
     }
@@ -695,6 +921,31 @@ const tickTransport = () => {
     if (synth.pattern[step]) {
       triggerHiHatVoice(ctx, synth.output, synth.tone, synth.decay, synth.gain);
     }
+  });
+
+  clockDividers.forEach((divider) => {
+    const isPulse = shouldTriggerOnTransportStep(step, divider.syncDivision);
+    divider.source.offset.setTargetAtTime(isPulse ? 1 : 0, ctx.currentTime, 0.002);
+  });
+
+  randomCvs.forEach((randomCv) => {
+    if (!shouldTriggerOnTransportStep(step, randomCv.syncDivision)) {
+      return;
+    }
+
+    const minValue = Math.min(randomCv.minValue, randomCv.maxValue);
+    const maxValue = Math.max(randomCv.minValue, randomCv.maxValue);
+    const value = minValue + Math.random() * (maxValue - minValue);
+    randomCv.source.offset.setTargetAtTime(value, ctx.currentTime, 0.002);
+  });
+
+  gateSeqs.forEach((gateSeq) => {
+    if (!shouldTriggerOnTransportStep(step, gateSeq.syncDivision)) {
+      return;
+    }
+
+    const isOpen = gateSeq.steps[step] ?? false;
+    gateSeq.gate.gain.setTargetAtTime(isOpen ? 1 : 0, ctx.currentTime, 0.003);
   });
 
   dispatchTransportEvent('transport-step', {
@@ -1010,6 +1261,276 @@ const destroyNodeById = (id: string) => {
       // Ignore cleanup errors while tearing down the comb filter chain.
     }
     combFilters.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const dualOsc = dualOscs.get(id);
+  if (dualOsc) {
+    try {
+      dualOsc.oscA.disconnect();
+      dualOsc.oscB.disconnect();
+      dualOsc.mixA.disconnect();
+      dualOsc.mixB.disconnect();
+      dualOsc.output.disconnect();
+      dualOsc.oscA.stop();
+      dualOsc.oscB.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the dual oscillator.
+    }
+    dualOscs.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const autoPan = autoPans.get(id);
+  if (autoPan) {
+    try {
+      autoPan.input.disconnect();
+      autoPan.output.disconnect();
+      autoPan.dry.disconnect();
+      autoPan.wet.disconnect();
+      autoPan.panner.disconnect();
+      autoPan.lfo.disconnect();
+      autoPan.lfoGain.disconnect();
+      autoPan.lfo.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the auto-pan chain.
+    }
+    autoPans.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const autoFilter = autoFilters.get(id);
+  if (autoFilter) {
+    try {
+      autoFilter.input.disconnect();
+      autoFilter.output.disconnect();
+      autoFilter.dry.disconnect();
+      autoFilter.wet.disconnect();
+      autoFilter.filter.disconnect();
+      autoFilter.lfo.disconnect();
+      autoFilter.lfoGain.disconnect();
+      autoFilter.lfo.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the auto filter chain.
+    }
+    autoFilters.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const clockDivider = clockDividers.get(id);
+  if (clockDivider) {
+    try {
+      clockDivider.source.disconnect();
+      clockDivider.output.disconnect();
+      clockDivider.source.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the clock divider.
+    }
+    clockDividers.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const randomCv = randomCvs.get(id);
+  if (randomCv) {
+    try {
+      randomCv.source.disconnect();
+      randomCv.output.disconnect();
+      randomCv.source.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the random CV source.
+    }
+    randomCvs.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const sampleHold = sampleHolds.get(id);
+  if (sampleHold) {
+    try {
+      sampleHold.input.disconnect();
+      sampleHold.output.disconnect();
+      sampleHold.dry.disconnect();
+      sampleHold.wet.disconnect();
+      sampleHold.processor.disconnect();
+      sampleHold.processor.onaudioprocess = null;
+    } catch {
+      // Ignore cleanup errors while tearing down the sample and hold effect.
+    }
+    sampleHolds.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const gateSeq = gateSeqs.get(id);
+  if (gateSeq) {
+    try {
+      gateSeq.input.disconnect();
+      gateSeq.output.disconnect();
+      gateSeq.gate.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the gate sequencer.
+    }
+    gateSeqs.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const resonator = resonators.get(id);
+  if (resonator) {
+    try {
+      resonator.input.disconnect();
+      resonator.output.disconnect();
+      resonator.dry.disconnect();
+      resonator.wet.disconnect();
+      resonator.filters.forEach((filter) => filter.disconnect());
+    } catch {
+      // Ignore cleanup errors while tearing down the resonator chain.
+    }
+    resonators.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const wah = wahs.get(id);
+  if (wah) {
+    try {
+      wah.input.disconnect();
+      wah.output.disconnect();
+      wah.dry.disconnect();
+      wah.wet.disconnect();
+      wah.filter.disconnect();
+      wah.lfo.disconnect();
+      wah.lfoGain.disconnect();
+      wah.lfo.stop();
+    } catch {
+      // Ignore cleanup errors while tearing down the wah chain.
+    }
+    wahs.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const stereoWidener = stereoWideners.get(id);
+  if (stereoWidener) {
+    try {
+      stereoWidener.input.disconnect();
+      stereoWidener.output.disconnect();
+      stereoWidener.dry.disconnect();
+      stereoWidener.wet.disconnect();
+      stereoWidener.merger.disconnect();
+      stereoWidener.delayLeft.disconnect();
+      stereoWidener.delayRight.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the stereo widener chain.
+    }
+    stereoWideners.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const foldback = foldbacks.get(id);
+  if (foldback) {
+    try {
+      foldback.input.disconnect();
+      foldback.output.disconnect();
+      foldback.dry.disconnect();
+      foldback.wet.disconnect();
+      foldback.shaper.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the foldback chain.
+    }
+    foldbacks.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const tiltEq = tiltEqs.get(id);
+  if (tiltEq) {
+    try {
+      tiltEq.input.disconnect();
+      tiltEq.output.disconnect();
+      tiltEq.dry.disconnect();
+      tiltEq.wet.disconnect();
+      tiltEq.lowShelf.disconnect();
+      tiltEq.highShelf.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the tilt EQ chain.
+    }
+    tiltEqs.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const saturator = saturators.get(id);
+  if (saturator) {
+    try {
+      saturator.input.disconnect();
+      saturator.output.disconnect();
+      saturator.dry.disconnect();
+      saturator.wet.disconnect();
+      saturator.shaper.disconnect();
+      saturator.makeup.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the saturator chain.
+    }
+    saturators.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const cabSim = cabSims.get(id);
+  if (cabSim) {
+    try {
+      cabSim.input.disconnect();
+      cabSim.output.disconnect();
+      cabSim.dry.disconnect();
+      cabSim.wet.disconnect();
+      cabSim.highpass.disconnect();
+      cabSim.peak.disconnect();
+      cabSim.lowpass.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the cab sim chain.
+    }
+    cabSims.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const transientShaper = transientShapers.get(id);
+  if (transientShaper) {
+    try {
+      transientShaper.input.disconnect();
+      transientShaper.output.disconnect();
+      transientShaper.dry.disconnect();
+      transientShaper.wet.disconnect();
+      transientShaper.processor.disconnect();
+      transientShaper.processor.onaudioprocess = null;
+    } catch {
+      // Ignore cleanup errors while tearing down the transient shaper.
+    }
+    transientShapers.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const freezeFx = freezeFxs.get(id);
+  if (freezeFx) {
+    try {
+      freezeFx.input.disconnect();
+      freezeFx.output.disconnect();
+      freezeFx.dry.disconnect();
+      freezeFx.wet.disconnect();
+      freezeFx.processor.disconnect();
+      freezeFx.processor.onaudioprocess = null;
+    } catch {
+      // Ignore cleanup errors while tearing down the freeze effect.
+    }
+    freezeFxs.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const granular = granulars.get(id);
+  if (granular) {
+    try {
+      granular.input.disconnect();
+      granular.output.disconnect();
+      granular.dry.disconnect();
+      granular.wet.disconnect();
+      granular.processor.disconnect();
+      granular.processor.onaudioprocess = null;
+    } catch {
+      // Ignore cleanup errors while tearing down the granular effect.
+    }
+    granulars.delete(id);
     nodes.delete(`${id}_out`);
   }
 
@@ -1859,6 +2380,656 @@ export const createCombFilter = (id: string) => {
   });
 };
 
+export const createDualOsc = (id: string) => {
+  const ctx = getAudioContext();
+  const oscA = ctx.createOscillator();
+  const oscB = ctx.createOscillator();
+  const mixA = ctx.createGain();
+  const mixB = ctx.createGain();
+  const output = ctx.createGain();
+
+  oscA.type = 'sawtooth';
+  oscB.type = 'square';
+  oscA.frequency.setValueAtTime(220, ctx.currentTime);
+  oscB.frequency.setValueAtTime(221.5, ctx.currentTime);
+  mixA.gain.setValueAtTime(0.5, ctx.currentTime);
+  mixB.gain.setValueAtTime(0.5, ctx.currentTime);
+  output.gain.setValueAtTime(0.35, ctx.currentTime);
+
+  oscA.connect(mixA);
+  oscB.connect(mixB);
+  mixA.connect(output);
+  mixB.connect(output);
+  oscA.start();
+  oscB.start();
+
+  nodes.set(id, oscA);
+  nodes.set(`${id}_out`, output);
+  dualOscs.set(id, {
+    oscA,
+    oscB,
+    mixA,
+    mixB,
+    output,
+  });
+};
+
+export const createAutoPan = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const panner = ctx.createStereoPanner();
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+
+  dry.gain.setValueAtTime(0, ctx.currentTime);
+  wet.gain.setValueAtTime(1, ctx.currentTime);
+  panner.pan.setValueAtTime(0, ctx.currentTime);
+  lfo.type = 'sine';
+  lfo.frequency.setValueAtTime(0.5, ctx.currentTime);
+  lfoGain.gain.setValueAtTime(1, ctx.currentTime);
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(wet);
+  wet.connect(panner);
+  panner.connect(output);
+  lfo.connect(lfoGain);
+  lfoGain.connect(panner.pan);
+  lfo.start();
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  autoPans.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    panner,
+    lfo,
+    lfoGain,
+  });
+};
+
+export const createAutoFilter = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+
+  dry.gain.setValueAtTime(0.15, ctx.currentTime);
+  wet.gain.setValueAtTime(0.85, ctx.currentTime);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(800, ctx.currentTime);
+  filter.Q.setValueAtTime(1.2, ctx.currentTime);
+  lfo.type = 'sine';
+  lfo.frequency.setValueAtTime(0.8, ctx.currentTime);
+  lfoGain.gain.setValueAtTime(1100, ctx.currentTime);
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(filter);
+  filter.connect(wet);
+  wet.connect(output);
+  lfo.connect(lfoGain);
+  lfoGain.connect(filter.frequency);
+  lfo.start();
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  autoFilters.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    filter,
+    lfo,
+    lfoGain,
+  });
+};
+
+export const createClockDivider = (id: string) => {
+  const ctx = getAudioContext();
+  const source = ctx.createConstantSource();
+  const output = ctx.createGain();
+
+  source.offset.setValueAtTime(0, ctx.currentTime);
+  output.gain.setValueAtTime(1, ctx.currentTime);
+  source.connect(output);
+  source.start();
+
+  nodes.set(id, source);
+  nodes.set(`${id}_out`, output);
+  clockDividers.set(id, {
+    source,
+    output,
+    syncDivision: '1/4',
+  });
+};
+
+export const createRandomCv = (id: string) => {
+  const ctx = getAudioContext();
+  const source = ctx.createConstantSource();
+  const output = ctx.createGain();
+
+  source.offset.setValueAtTime(0, ctx.currentTime);
+  output.gain.setValueAtTime(1, ctx.currentTime);
+  source.connect(output);
+  source.start();
+
+  nodes.set(id, source);
+  nodes.set(`${id}_out`, output);
+  randomCvs.set(id, {
+    source,
+    output,
+    syncDivision: '1/8',
+    minValue: -300,
+    maxValue: 300,
+  });
+};
+
+export const createSampleHold = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const processor = ctx.createScriptProcessor(2048, 1, 1);
+  const params = {
+    holdSamples: Math.max(1, Math.floor(ctx.sampleRate / 8)),
+    mix: 1,
+  };
+  let held = 0;
+  let counter = 0;
+
+  dry.gain.setValueAtTime(0, ctx.currentTime);
+  wet.gain.setValueAtTime(1, ctx.currentTime);
+
+  processor.onaudioprocess = (event) => {
+    const inputBuffer = event.inputBuffer.getChannelData(0);
+    const outputBuffer = event.outputBuffer.getChannelData(0);
+
+    for (let index = 0; index < inputBuffer.length; index += 1) {
+      if (counter <= 0) {
+        held = inputBuffer[index];
+        counter = params.holdSamples;
+      }
+
+      outputBuffer[index] = held;
+      counter -= 1;
+    }
+  };
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(processor);
+  processor.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  sampleHolds.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    processor,
+    params,
+  });
+};
+
+export const createGateSeq = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const gate = ctx.createGain();
+
+  gate.gain.setValueAtTime(1, ctx.currentTime);
+  input.connect(gate);
+  gate.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  gateSeqs.set(id, {
+    input,
+    output,
+    gate,
+    steps: Array.from({ length: 16 }, (_, index) => index % 2 === 0),
+    syncDivision: '1/16',
+  });
+};
+
+export const createResonator = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const filters = Array.from({ length: 3 }, () => {
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(440, ctx.currentTime);
+    filter.Q.setValueAtTime(12, ctx.currentTime);
+    return filter;
+  });
+
+  dry.gain.setValueAtTime(0.3, ctx.currentTime);
+  wet.gain.setValueAtTime(0.7, ctx.currentTime);
+
+  input.connect(dry);
+  dry.connect(output);
+  filters.forEach((filter) => {
+    input.connect(filter);
+    filter.connect(wet);
+  });
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  resonators.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    filters,
+  });
+};
+
+export const createWah = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+
+  dry.gain.setValueAtTime(0.25, ctx.currentTime);
+  wet.gain.setValueAtTime(0.75, ctx.currentTime);
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(700, ctx.currentTime);
+  filter.Q.setValueAtTime(8, ctx.currentTime);
+  lfo.type = 'triangle';
+  lfo.frequency.setValueAtTime(1.5, ctx.currentTime);
+  lfoGain.gain.setValueAtTime(900, ctx.currentTime);
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(filter);
+  filter.connect(wet);
+  wet.connect(output);
+  lfo.connect(lfoGain);
+  lfoGain.connect(filter.frequency);
+  lfo.start();
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  wahs.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    filter,
+    lfo,
+    lfoGain,
+  });
+};
+
+export const createStereoWidener = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const merger = ctx.createChannelMerger(2);
+  const delayLeft = ctx.createDelay(0.05);
+  const delayRight = ctx.createDelay(0.05);
+
+  dry.gain.setValueAtTime(0.35, ctx.currentTime);
+  wet.gain.setValueAtTime(0.65, ctx.currentTime);
+  delayLeft.delayTime.setValueAtTime(0.012, ctx.currentTime);
+  delayRight.delayTime.setValueAtTime(0.018, ctx.currentTime);
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(delayLeft);
+  input.connect(delayRight);
+  delayLeft.connect(merger, 0, 0);
+  delayRight.connect(merger, 0, 1);
+  merger.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  stereoWideners.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    merger,
+    delayLeft,
+    delayRight,
+  });
+};
+
+export const createFoldback = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const shaper = ctx.createWaveShaper();
+
+  dry.gain.setValueAtTime(0.25, ctx.currentTime);
+  wet.gain.setValueAtTime(0.75, ctx.currentTime);
+  shaper.curve = buildFoldbackCurve(2.2, 0.55);
+  shaper.oversample = '4x';
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(shaper);
+  shaper.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  foldbacks.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    shaper,
+  });
+};
+
+export const createTiltEq = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const lowShelf = ctx.createBiquadFilter();
+  const highShelf = ctx.createBiquadFilter();
+
+  dry.gain.setValueAtTime(0, ctx.currentTime);
+  wet.gain.setValueAtTime(1, ctx.currentTime);
+  lowShelf.type = 'lowshelf';
+  highShelf.type = 'highshelf';
+  lowShelf.frequency.setValueAtTime(900, ctx.currentTime);
+  highShelf.frequency.setValueAtTime(900, ctx.currentTime);
+  lowShelf.gain.setValueAtTime(0, ctx.currentTime);
+  highShelf.gain.setValueAtTime(0, ctx.currentTime);
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(lowShelf);
+  lowShelf.connect(highShelf);
+  highShelf.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  tiltEqs.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    lowShelf,
+    highShelf,
+  });
+};
+
+export const createSaturator = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const shaper = ctx.createWaveShaper();
+  const makeup = ctx.createGain();
+
+  dry.gain.setValueAtTime(0.2, ctx.currentTime);
+  wet.gain.setValueAtTime(0.8, ctx.currentTime);
+  shaper.curve = buildSaturatorCurve(2.4);
+  shaper.oversample = '4x';
+  makeup.gain.setValueAtTime(1, ctx.currentTime);
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(shaper);
+  shaper.connect(makeup);
+  makeup.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  saturators.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    shaper,
+    makeup,
+  });
+};
+
+export const createCabSim = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const highpass = ctx.createBiquadFilter();
+  const peak = ctx.createBiquadFilter();
+  const lowpass = ctx.createBiquadFilter();
+
+  dry.gain.setValueAtTime(0, ctx.currentTime);
+  wet.gain.setValueAtTime(1, ctx.currentTime);
+  highpass.type = 'highpass';
+  highpass.frequency.setValueAtTime(90, ctx.currentTime);
+  peak.type = 'peaking';
+  peak.frequency.setValueAtTime(1800, ctx.currentTime);
+  peak.Q.setValueAtTime(0.8, ctx.currentTime);
+  peak.gain.setValueAtTime(2, ctx.currentTime);
+  lowpass.type = 'lowpass';
+  lowpass.frequency.setValueAtTime(2600, ctx.currentTime);
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(highpass);
+  highpass.connect(peak);
+  peak.connect(lowpass);
+  lowpass.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  cabSims.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    highpass,
+    peak,
+    lowpass,
+  });
+};
+
+export const createTransientShaper = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const processor = ctx.createScriptProcessor(2048, 1, 1);
+  const params = {
+    attack: 0.7,
+    sustain: 0,
+    mix: 1,
+  };
+  let envFast = 0;
+  let envSlow = 0;
+
+  dry.gain.setValueAtTime(0, ctx.currentTime);
+  wet.gain.setValueAtTime(1, ctx.currentTime);
+
+  processor.onaudioprocess = (event) => {
+    const inputBuffer = event.inputBuffer.getChannelData(0);
+    const outputBuffer = event.outputBuffer.getChannelData(0);
+
+    for (let index = 0; index < inputBuffer.length; index += 1) {
+      const sample = inputBuffer[index];
+      const magnitude = Math.abs(sample);
+      envFast += (magnitude - envFast) * 0.35;
+      envSlow += (magnitude - envSlow) * 0.015;
+      const transient = Math.max(0, envFast - envSlow);
+      const body = envSlow;
+      const shaped = sample * (1 + transient * params.attack * 5 + body * params.sustain * 2);
+      outputBuffer[index] = Math.max(-1, Math.min(1, shaped));
+    }
+  };
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(processor);
+  processor.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  transientShapers.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    processor,
+    params,
+  });
+};
+
+export const createFreezeFx = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const processor = ctx.createScriptProcessor(2048, 1, 1);
+  const maxSamples = Math.max(1, Math.floor(ctx.sampleRate * 2));
+  const buffer = new Float32Array(maxSamples);
+  let position = 0;
+  const params = {
+    lengthSamples: Math.max(1, Math.floor(ctx.sampleRate * 0.35)),
+    mix: 0.9,
+    freeze: false,
+  };
+
+  dry.gain.setValueAtTime(0.1, ctx.currentTime);
+  wet.gain.setValueAtTime(0.9, ctx.currentTime);
+
+  processor.onaudioprocess = (event) => {
+    const inputBuffer = event.inputBuffer.getChannelData(0);
+    const outputBuffer = event.outputBuffer.getChannelData(0);
+    const lengthSamples = Math.max(1, Math.min(maxSamples, params.lengthSamples));
+
+    for (let index = 0; index < inputBuffer.length; index += 1) {
+      if (position >= lengthSamples) {
+        position = 0;
+      }
+
+      if (!params.freeze) {
+        buffer[position] = inputBuffer[index];
+      }
+
+      outputBuffer[index] = buffer[position];
+      position += 1;
+    }
+  };
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(processor);
+  processor.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  freezeFxs.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    processor,
+    params,
+  });
+};
+
+export const createGranular = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const processor = ctx.createScriptProcessor(2048, 1, 1);
+  const maxSamples = Math.max(1, Math.floor(ctx.sampleRate * 4));
+  const buffer = new Float32Array(maxSamples);
+  let writeIndex = 0;
+  let grainCounter = 0;
+  let readOffset = 0;
+  const params = {
+    grainSamples: Math.max(1, Math.floor(ctx.sampleRate * 0.12)),
+    spray: 0.35,
+    mix: 0.8,
+  };
+
+  dry.gain.setValueAtTime(0.2, ctx.currentTime);
+  wet.gain.setValueAtTime(0.8, ctx.currentTime);
+
+  processor.onaudioprocess = (event) => {
+    const inputBuffer = event.inputBuffer.getChannelData(0);
+    const outputBuffer = event.outputBuffer.getChannelData(0);
+
+    for (let index = 0; index < inputBuffer.length; index += 1) {
+      buffer[writeIndex] = inputBuffer[index];
+
+      if (grainCounter <= 0) {
+        const maxOffset = Math.min(maxSamples - 1, params.grainSamples * (1 + params.spray * 8));
+        readOffset = Math.max(1, Math.floor(params.grainSamples + Math.random() * maxOffset));
+        grainCounter = params.grainSamples;
+      }
+
+      const readIndex = (writeIndex - readOffset + maxSamples) % maxSamples;
+      outputBuffer[index] = buffer[readIndex] ?? 0;
+
+      writeIndex = (writeIndex + 1) % maxSamples;
+      grainCounter -= 1;
+    }
+  };
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(processor);
+  processor.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  granulars.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    processor,
+    params,
+  });
+};
+
 export const createMonoSynth = (id: string) => {
   const ctx = getAudioContext();
   const oscillator = ctx.createOscillator();
@@ -1959,6 +3130,9 @@ export const createAudioNode = (
     case 'oscillator':
       createOscillator(id);
       break;
+    case 'dualOsc':
+      createDualOsc(id);
+      break;
     case 'gain':
       createGain(id);
       break;
@@ -2006,6 +3180,54 @@ export const createAudioNode = (
       break;
     case 'combFilter':
       createCombFilter(id);
+      break;
+    case 'autoPan':
+      createAutoPan(id);
+      break;
+    case 'autoFilter':
+      createAutoFilter(id);
+      break;
+    case 'clockDivider':
+      createClockDivider(id);
+      break;
+    case 'randomCv':
+      createRandomCv(id);
+      break;
+    case 'sampleHold':
+      createSampleHold(id);
+      break;
+    case 'gateSeq':
+      createGateSeq(id);
+      break;
+    case 'resonator':
+      createResonator(id);
+      break;
+    case 'wah':
+      createWah(id);
+      break;
+    case 'stereoWidener':
+      createStereoWidener(id);
+      break;
+    case 'foldback':
+      createFoldback(id);
+      break;
+    case 'tiltEq':
+      createTiltEq(id);
+      break;
+    case 'saturator':
+      createSaturator(id);
+      break;
+    case 'cabSim':
+      createCabSim(id);
+      break;
+    case 'transientShaper':
+      createTransientShaper(id);
+      break;
+    case 'freezeFx':
+      createFreezeFx(id);
+      break;
+    case 'granular':
+      createGranular(id);
       break;
     case 'monoSynth':
       createMonoSynth(id);
@@ -2082,6 +3304,26 @@ export const applyAudioNodeData = (
       updateIfDefined(id, 'frequency', data.frequency);
       updateIfDefined(id, 'type', data.type);
       break;
+    case 'dualOsc': {
+      const dualOsc = dualOscs.get(id);
+      if (!dualOsc) {
+        break;
+      }
+
+      const baseFrequency = data.frequency ?? 220;
+      const detune = data.detune ?? 12;
+      const blend = Math.max(0, Math.min(1, data.blend ?? 0.5));
+      const currentTime = getAudioContext().currentTime;
+
+      dualOsc.oscA.frequency.setTargetAtTime(baseFrequency, currentTime, 0.03);
+      dualOsc.oscB.frequency.setTargetAtTime(baseFrequency * Math.pow(2, detune / 1200), currentTime, 0.03);
+      dualOsc.oscA.type = (data.type as OscillatorType | undefined) ?? 'sawtooth';
+      dualOsc.oscB.type = data.modType ?? 'square';
+      dualOsc.mixA.gain.setTargetAtTime(1 - blend, currentTime, 0.03);
+      dualOsc.mixB.gain.setTargetAtTime(blend, currentTime, 0.03);
+      dualOsc.output.gain.setTargetAtTime(data.gain ?? 0.35, currentTime, 0.03);
+      break;
+    }
     case 'gain':
       updateIfDefined(id, 'gain', data.gain);
       break;
@@ -2371,6 +3613,307 @@ export const applyAudioNodeData = (
       combFilter.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
       break;
     }
+    case 'autoPan': {
+      const autoPan = autoPans.get(id);
+      if (!autoPan) {
+        break;
+      }
+
+      const rate = data.sync
+        ? getSyncedLfoFrequency(data.syncDivision ?? '1/4', transportState.bpm)
+        : (data.rate ?? 0.5);
+      const depth = Math.max(0, Math.min(1, data.depth ?? 1));
+      const mix = data.mix ?? 1;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      autoPan.lfo.frequency.setTargetAtTime(rate, currentTime, 0.03);
+      autoPan.lfoGain.gain.setTargetAtTime(depth, currentTime, 0.03);
+      autoPan.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      autoPan.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'autoFilter': {
+      const autoFilter = autoFilters.get(id);
+      if (!autoFilter) {
+        break;
+      }
+
+      const rate = data.sync
+        ? getSyncedLfoFrequency(data.syncDivision ?? '1/8', transportState.bpm)
+        : (data.rate ?? 0.8);
+      const base = data.tone ?? 800;
+      const depth = data.depth ?? 2200;
+      const q = data.Q ?? 1.2;
+      const mix = data.mix ?? 0.85;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      autoFilter.filter.type = (data.type as BiquadFilterType | undefined) ?? 'lowpass';
+      autoFilter.filter.frequency.setTargetAtTime(base, currentTime, 0.03);
+      autoFilter.filter.Q.setTargetAtTime(q, currentTime, 0.03);
+      autoFilter.lfo.frequency.setTargetAtTime(rate, currentTime, 0.03);
+      autoFilter.lfoGain.gain.setTargetAtTime(depth, currentTime, 0.03);
+      autoFilter.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      autoFilter.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'clockDivider': {
+      const clockDivider = clockDividers.get(id);
+      if (!clockDivider) {
+        break;
+      }
+
+      clockDivider.syncDivision = data.syncDivision ?? '1/4';
+      break;
+    }
+    case 'randomCv': {
+      const randomCv = randomCvs.get(id);
+      if (!randomCv) {
+        break;
+      }
+
+      randomCv.syncDivision = data.syncDivision ?? '1/8';
+      randomCv.minValue = data.minValue ?? -300;
+      randomCv.maxValue = data.maxValue ?? 300;
+      break;
+    }
+    case 'sampleHold': {
+      const sampleHold = sampleHolds.get(id);
+      if (!sampleHold) {
+        break;
+      }
+
+      const holdSeconds = data.sync
+        ? getSyncedDurationSeconds(data.syncDivision ?? '1/16', transportState.bpm)
+        : 1 / Math.max(0.1, data.rate ?? 8);
+      const mix = data.mix ?? 1;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      sampleHold.params.holdSamples = Math.max(1, Math.floor(getAudioContext().sampleRate * holdSeconds));
+      sampleHold.params.mix = mix;
+      sampleHold.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      sampleHold.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'gateSeq': {
+      const gateSeq = gateSeqs.get(id);
+      if (!gateSeq) {
+        break;
+      }
+
+      gateSeq.steps = cloneStepPattern(data.steps, Array.from({ length: 16 }, (_, index) => index % 2 === 0));
+      gateSeq.syncDivision = data.syncDivision ?? '1/16';
+      break;
+    }
+    case 'resonator': {
+      const resonator = resonators.get(id);
+      if (!resonator) {
+        break;
+      }
+
+      const tone = data.tone ?? 440;
+      const q = data.Q ?? 12;
+      const spread = data.spread ?? 7;
+      const mix = data.mix ?? 0.7;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+      const frequencies = [
+        tone / Math.pow(2, spread / 12),
+        tone,
+        tone * Math.pow(2, spread / 12),
+      ];
+
+      resonator.filters.forEach((filter, index) => {
+        filter.frequency.setTargetAtTime(
+          Math.max(40, Math.min(18000, frequencies[index] ?? tone)),
+          currentTime,
+          0.03,
+        );
+        filter.Q.setTargetAtTime(q, currentTime, 0.03);
+      });
+      resonator.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      resonator.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'wah': {
+      const wah = wahs.get(id);
+      if (!wah) {
+        break;
+      }
+
+      const rate = data.sync
+        ? getSyncedLfoFrequency(data.syncDivision ?? '1/8', transportState.bpm)
+        : (data.rate ?? 1.5);
+      const base = data.tone ?? 700;
+      const depth = data.depth ?? 900;
+      const q = data.Q ?? 8;
+      const mix = data.mix ?? 0.75;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      wah.filter.frequency.setTargetAtTime(base, currentTime, 0.03);
+      wah.filter.Q.setTargetAtTime(q, currentTime, 0.03);
+      wah.lfo.frequency.setTargetAtTime(rate, currentTime, 0.03);
+      wah.lfoGain.gain.setTargetAtTime(depth, currentTime, 0.03);
+      wah.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      wah.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'stereoWidener': {
+      const stereoWidener = stereoWideners.get(id);
+      if (!stereoWidener) {
+        break;
+      }
+
+      const delay = Math.max(0.001, Math.min(0.03, data.delay ?? 0.012));
+      const spread = Math.max(0, Math.min(2, data.spread ?? 1));
+      const mix = data.mix ?? 0.65;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      stereoWidener.delayLeft.delayTime.setTargetAtTime(delay, currentTime, 0.03);
+      stereoWidener.delayRight.delayTime.setTargetAtTime(
+        Math.max(0.001, Math.min(0.05, delay * (1 + spread * 0.5))),
+        currentTime,
+        0.03,
+      );
+      stereoWidener.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      stereoWidener.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'foldback': {
+      const foldback = foldbacks.get(id);
+      if (!foldback) {
+        break;
+      }
+
+      const drive = data.drive ?? 2.2;
+      const threshold = data.threshold ?? 0.55;
+      const mix = data.mix ?? 0.75;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      foldback.shaper.curve = buildFoldbackCurve(drive, threshold);
+      foldback.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      foldback.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'tiltEq': {
+      const tiltEq = tiltEqs.get(id);
+      if (!tiltEq) {
+        break;
+      }
+
+      const pivot = data.tone ?? 900;
+      const tilt = Math.max(-18, Math.min(18, data.tilt ?? 0));
+      const mix = data.mix ?? 1;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      tiltEq.lowShelf.frequency.setTargetAtTime(pivot, currentTime, 0.03);
+      tiltEq.highShelf.frequency.setTargetAtTime(pivot, currentTime, 0.03);
+      tiltEq.lowShelf.gain.setTargetAtTime(-tilt, currentTime, 0.03);
+      tiltEq.highShelf.gain.setTargetAtTime(tilt, currentTime, 0.03);
+      tiltEq.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      tiltEq.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'saturator': {
+      const saturator = saturators.get(id);
+      if (!saturator) {
+        break;
+      }
+
+      const drive = data.drive ?? 2.4;
+      const makeup = data.makeup ?? 1;
+      const mix = data.mix ?? 0.8;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      saturator.shaper.curve = buildSaturatorCurve(drive);
+      saturator.makeup.gain.setTargetAtTime(makeup, currentTime, 0.03);
+      saturator.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      saturator.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'cabSim': {
+      const cabSim = cabSims.get(id);
+      if (!cabSim) {
+        break;
+      }
+
+      const tone = data.tone ?? 2600;
+      const q = data.Q ?? 0.8;
+      const mix = data.mix ?? 1;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      cabSim.peak.Q.setTargetAtTime(q, currentTime, 0.03);
+      cabSim.peak.frequency.setTargetAtTime(Math.max(900, tone * 0.7), currentTime, 0.03);
+      cabSim.lowpass.frequency.setTargetAtTime(tone, currentTime, 0.03);
+      cabSim.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      cabSim.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'transientShaper': {
+      const transientShaper = transientShapers.get(id);
+      if (!transientShaper) {
+        break;
+      }
+
+      const mix = data.mix ?? 1;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      transientShaper.params.attack = data.attack ?? 0.7;
+      transientShaper.params.sustain = data.sustain ?? 0;
+      transientShaper.params.mix = mix;
+      transientShaper.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      transientShaper.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'freezeFx': {
+      const freezeFx = freezeFxs.get(id);
+      if (!freezeFx) {
+        break;
+      }
+
+      const freezeLength = data.sync
+        ? getSyncedDurationSeconds(data.syncDivision ?? '1/4', transportState.bpm)
+        : (data.loopLength ?? 0.35);
+      const mix = data.mix ?? 0.9;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      freezeFx.params.lengthSamples = Math.max(1, Math.floor(getAudioContext().sampleRate * freezeLength));
+      freezeFx.params.mix = mix;
+      freezeFx.params.freeze = data.freeze ?? false;
+      freezeFx.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      freezeFx.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
+    case 'granular': {
+      const granular = granulars.get(id);
+      if (!granular) {
+        break;
+      }
+
+      const grainLength = data.sync
+        ? getSyncedDurationSeconds(data.syncDivision ?? '1/8', transportState.bpm)
+        : (data.grainSize ?? 0.12);
+      const mix = data.mix ?? 0.8;
+      const dryMix = 1 - mix;
+      const currentTime = getAudioContext().currentTime;
+
+      granular.params.grainSamples = Math.max(1, Math.floor(getAudioContext().sampleRate * grainLength));
+      granular.params.spray = data.spray ?? 0.35;
+      granular.params.mix = mix;
+      granular.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      granular.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      break;
+    }
     case 'monoSynth': {
       const monoSynth = monoSynths.get(id);
       if (!monoSynth) {
@@ -2521,6 +4064,7 @@ export const connectNodes = (
     sourceConfig?.type === 'arpeggiator' &&
     targetHandleId === 'pitch' &&
     (targetConfig?.type === 'oscillator' ||
+      targetConfig?.type === 'dualOsc' ||
       targetConfig?.type === 'monoSynth' ||
       targetConfig?.type === 'fmSynth' ||
       targetConfig?.type === 'subOsc')
@@ -2564,6 +4108,7 @@ export const disconnectNodes = (
     sourceConfig?.type === 'arpeggiator' &&
     targetHandleId === 'pitch' &&
     (targetConfig?.type === 'oscillator' ||
+      targetConfig?.type === 'dualOsc' ||
       targetConfig?.type === 'monoSynth' ||
       targetConfig?.type === 'fmSynth' ||
       targetConfig?.type === 'subOsc')
@@ -2601,6 +4146,20 @@ export const updateNodeParam = (
   }
 
   const ctx = getAudioContext();
+
+  const dualOsc = dualOscs.get(id);
+  if (dualOsc) {
+    if (param === 'frequency' && typeof value === 'number' && Number.isFinite(value)) {
+      const detune = nodeConfigs.get(id)?.data.detune ?? 12;
+      dualOsc.oscA.frequency.setTargetAtTime(value, ctx.currentTime, 0.03);
+      dualOsc.oscB.frequency.setTargetAtTime(value * Math.pow(2, detune / 1200), ctx.currentTime, 0.03);
+    } else if (param === 'type') {
+      dualOsc.oscA.type = value as OscillatorType;
+    } else if (param === 'gain' && typeof value === 'number' && Number.isFinite(value)) {
+      dualOsc.output.gain.setTargetAtTime(value, ctx.currentTime, 0.03);
+    }
+    return;
+  }
 
   const fmSynth = fmSynths.get(id);
   if (fmSynth) {
@@ -2726,6 +4285,23 @@ export const stopAudio = async () => {
   ringMods.clear();
   vibratos.clear();
   combFilters.clear();
+  dualOscs.clear();
+  autoPans.clear();
+  autoFilters.clear();
+  clockDividers.clear();
+  randomCvs.clear();
+  sampleHolds.clear();
+  gateSeqs.clear();
+  resonators.clear();
+  wahs.clear();
+  stereoWideners.clear();
+  foldbacks.clear();
+  tiltEqs.clear();
+  saturators.clear();
+  cabSims.clear();
+  transientShapers.clear();
+  freezeFxs.clear();
+  granulars.clear();
   monoSynths.clear();
   kickSynths.clear();
   snareSynths.clear();

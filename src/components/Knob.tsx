@@ -1,4 +1,4 @@
-import { useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 
 interface KnobProps {
   value: number;
@@ -26,15 +26,27 @@ const Knob = ({
   const [isDragging, setIsDragging] = useState(false);
   const startY = useRef(0);
   const startValue = useRef(0);
+  const cleanupDragRef = useRef<(() => void) | null>(null);
 
-  const handleMouseDown = (event: ReactMouseEvent) => {
+  useEffect(() => {
+    return () => {
+      cleanupDragRef.current?.();
+    };
+  }, []);
+
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) {
+      return;
+    }
+
     event.stopPropagation();
     event.preventDefault();
     setIsDragging(true);
     startY.current = event.clientY;
     startValue.current = value;
+    event.currentTarget.setPointerCapture(event.pointerId);
 
-    const onMouseMove = (moveEvent: MouseEvent) => {
+    const onPointerMove = (moveEvent: PointerEvent) => {
       const deltaY = startY.current - moveEvent.clientY;
       const range = max - min;
       const pixelsPerRange = 200;
@@ -49,14 +61,22 @@ const Knob = ({
       onChange(nextValue);
     };
 
-    const onMouseUp = () => {
+    const stopDrag = () => {
       setIsDragging(false);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', stopDrag);
+      window.removeEventListener('pointercancel', stopDrag);
+      window.removeEventListener('blur', stopDrag);
+      cleanupDragRef.current = null;
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    cleanupDragRef.current?.();
+    cleanupDragRef.current = stopDrag;
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', stopDrag);
+    window.addEventListener('pointercancel', stopDrag);
+    window.addEventListener('blur', stopDrag);
   };
 
   const rotation = ((value - min) / (max - min)) * 270 - 135;
@@ -66,7 +86,7 @@ const Knob = ({
       {label && <label className="text-slate-400 text-[9px] uppercase pointer-events-none">{label}</label>}
 
       <div
-        onMouseDown={handleMouseDown}
+        onPointerDown={handlePointerDown}
         className={`relative touch-none ${isDragging ? 'cursor-ns-resize scale-105' : 'cursor-ns-resize'}`}
         style={{ width: size, height: size }}
       >

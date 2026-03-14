@@ -25,6 +25,7 @@ import LFONode from './nodes/LFONode';
 import MixerNode from './nodes/MixerNode';
 import NoiseNode from './nodes/NoiseNode';
 import OscillatorNode from './nodes/OscillatorNode';
+import DualOscNode from './nodes/DualOscNode';
 import PannerNode from './nodes/PannerNode';
 import ReverbNode from './nodes/ReverbNode';
 import ScopeNode from './nodes/ScopeNode';
@@ -55,6 +56,22 @@ import VUMeterNode from './nodes/VUMeterNode';
 import PhaseCorrelatorNode from './nodes/PhaseCorrelatorNode';
 import LissajousNode from './nodes/LissajousNode';
 import TunerNode from './nodes/TunerNode';
+import AutoPanNode from './nodes/AutoPanNode';
+import AutoFilterNode from './nodes/AutoFilterNode';
+import ClockDividerNode from './nodes/ClockDividerNode';
+import RandomCVNode from './nodes/RandomCVNode';
+import SampleHoldNode from './nodes/SampleHoldNode';
+import GateSeqNode from './nodes/GateSeqNode';
+import ResonatorNode from './nodes/ResonatorNode';
+import WahNode from './nodes/WahNode';
+import StereoWidenerNode from './nodes/StereoWidenerNode';
+import FoldbackNode from './nodes/FoldbackNode';
+import TiltEQNode from './nodes/TiltEQNode';
+import SaturatorNode from './nodes/SaturatorNode';
+import CabSimNode from './nodes/CabSimNode';
+import TransientShaperNode from './nodes/TransientShaperNode';
+import FreezeFxNode from './nodes/FreezeFxNode';
+import GranularNode from './nodes/GranularNode';
 import Knob from './components/Knob';
 import {
   applyAudioNodeData,
@@ -114,6 +131,15 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     label: 'Oscillator',
     frequency: 440,
     type: 'sine',
+  },
+  dualOsc: {
+    label: 'Dual Osc',
+    frequency: 220,
+    gain: 0.35,
+    type: 'sawtooth',
+    modType: 'square',
+    detune: 12,
+    blend: 0.5,
   },
   gain: {
     label: 'Gain',
@@ -219,6 +245,116 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     delay: 0.015,
     feedback: 0.65,
     mix: 0.7,
+  },
+  autoPan: {
+    label: 'AutoPan',
+    rate: 0.5,
+    depth: 1,
+    mix: 1,
+    sync: false,
+    syncDivision: '1/4',
+  },
+  autoFilter: {
+    label: 'AutoFilter',
+    type: 'lowpass',
+    rate: 0.8,
+    depth: 2200,
+    tone: 800,
+    Q: 1.2,
+    mix: 0.85,
+    sync: false,
+    syncDivision: '1/8',
+  },
+  clockDivider: {
+    label: 'Clock Divider',
+    syncDivision: '1/4',
+  },
+  randomCv: {
+    label: 'Random CV',
+    minValue: -300,
+    maxValue: 300,
+    syncDivision: '1/8',
+  },
+  sampleHold: {
+    label: 'Sample Hold',
+    rate: 8,
+    mix: 1,
+    sync: false,
+    syncDivision: '1/16',
+  },
+  gateSeq: {
+    label: 'Gate Seq',
+    syncDivision: '1/16',
+    steps: Array.from({ length: 16 }, (_, index) => index % 2 === 0),
+  },
+  resonator: {
+    label: 'Resonator',
+    tone: 440,
+    Q: 12,
+    spread: 7,
+    mix: 0.7,
+  },
+  wah: {
+    label: 'Wah',
+    rate: 1.5,
+    depth: 900,
+    tone: 700,
+    Q: 8,
+    mix: 0.75,
+    sync: false,
+    syncDivision: '1/8',
+  },
+  stereoWidener: {
+    label: 'Stereo Widener',
+    delay: 0.012,
+    spread: 1,
+    mix: 0.65,
+  },
+  foldback: {
+    label: 'Foldback',
+    drive: 2.2,
+    threshold: 0.55,
+    mix: 0.75,
+  },
+  tiltEq: {
+    label: 'Tilt EQ',
+    tone: 900,
+    tilt: 0,
+    mix: 1,
+  },
+  saturator: {
+    label: 'Saturator',
+    drive: 2.4,
+    makeup: 1,
+    mix: 0.8,
+  },
+  cabSim: {
+    label: 'Cab Sim',
+    tone: 2600,
+    Q: 0.8,
+    mix: 1,
+  },
+  transientShaper: {
+    label: 'Transient',
+    attack: 0.7,
+    sustain: 0,
+    mix: 1,
+  },
+  freezeFx: {
+    label: 'Freeze',
+    loopLength: 0.35,
+    mix: 0.9,
+    freeze: false,
+    sync: false,
+    syncDivision: '1/4',
+  },
+  granular: {
+    label: 'Granular',
+    grainSize: 0.12,
+    spray: 0.35,
+    mix: 0.8,
+    sync: false,
+    syncDivision: '1/8',
   },
   monoSynth: {
     label: 'Mono Synth',
@@ -352,6 +488,7 @@ const addNodeButtons: Array<{
   tab: ComponentTabId;
 }> = [
   { type: 'oscillator', label: 'Osc', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20', tab: 'voices' },
+  { type: 'dualOsc', label: 'Dual', color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20', tab: 'voices' },
   { type: 'noise', label: 'Noise', color: 'bg-slate-500/10 text-slate-400 border-slate-500/20', tab: 'voices' },
   { type: 'monoSynth', label: 'Mono', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'voices' },
   { type: 'fmSynth', label: 'FM', color: 'bg-teal-500/10 text-teal-300 border-teal-500/20', tab: 'voices' },
@@ -377,12 +514,28 @@ const addNodeButtons: Array<{
   { type: 'ringMod', label: 'RingMod', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'fx' },
   { type: 'vibrato', label: 'Vibrato', color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20', tab: 'fx' },
   { type: 'combFilter', label: 'Comb', color: 'bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20', tab: 'fx' },
+  { type: 'autoPan', label: 'AutoPan', color: 'bg-pink-500/10 text-pink-300 border-pink-500/20', tab: 'fx' },
+  { type: 'autoFilter', label: 'AutoFilt', color: 'bg-violet-500/10 text-violet-300 border-violet-500/20', tab: 'fx' },
+  { type: 'resonator', label: 'Reso', color: 'bg-teal-500/10 text-teal-300 border-teal-500/20', tab: 'fx' },
+  { type: 'wah', label: 'Wah', color: 'bg-yellow-500/10 text-yellow-300 border-yellow-500/20', tab: 'fx' },
+  { type: 'stereoWidener', label: 'Wide', color: 'bg-blue-500/10 text-blue-300 border-blue-500/20', tab: 'fx' },
+  { type: 'foldback', label: 'Fold', color: 'bg-orange-500/10 text-orange-300 border-orange-500/20', tab: 'fx' },
+  { type: 'tiltEq', label: 'Tilt', color: 'bg-lime-500/10 text-lime-300 border-lime-500/20', tab: 'fx' },
+  { type: 'saturator', label: 'Sat', color: 'bg-red-500/10 text-red-300 border-red-500/20', tab: 'fx' },
   { type: 'equalizer8', label: 'EQ8', color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20', tab: 'fx' },
   { type: 'phaser', label: 'Phaser', color: 'bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20', tab: 'fx' },
   { type: 'gain', label: 'Gain', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', tab: 'wiring' },
   { type: 'mixer', label: 'Mixer', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', tab: 'wiring' },
   { type: 'panner', label: 'Panner', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20', tab: 'wiring' },
   { type: 'lfo', label: 'LFO', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20', tab: 'wiring' },
+  { type: 'clockDivider', label: 'Clock', color: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/20', tab: 'wiring' },
+  { type: 'randomCv', label: 'RandCV', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'wiring' },
+  { type: 'sampleHold', label: 'S&H', color: 'bg-slate-500/10 text-slate-300 border-slate-500/20', tab: 'wiring' },
+  { type: 'gateSeq', label: 'Gate', color: 'bg-amber-500/10 text-amber-300 border-amber-500/20', tab: 'wiring' },
+  { type: 'cabSim', label: 'Cab', color: 'bg-stone-500/10 text-stone-300 border-stone-500/20', tab: 'fx' },
+  { type: 'transientShaper', label: 'Punch', color: 'bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20', tab: 'fx' },
+  { type: 'freezeFx', label: 'Freeze', color: 'bg-sky-500/10 text-sky-300 border-sky-500/20', tab: 'fx' },
+  { type: 'granular', label: 'Granular', color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20', tab: 'fx' },
   { type: 'scope', label: 'Scope', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', tab: 'sight' },
   { type: 'vuMeter', label: 'Agulla', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'sight' },
   { type: 'phaseCorrelator', label: 'Fase', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'sight' },
@@ -514,6 +667,9 @@ function App() {
       oscillator: (props: SoundNodeProps) => (
         <OscillatorNode {...props} onDataChange={handleNodeDataChange} />
       ),
+      dualOsc: (props: SoundNodeProps) => (
+        <DualOscNode {...props} onDataChange={handleNodeDataChange} />
+      ),
       gain: (props: SoundNodeProps) => (
         <GainNode {...props} onDataChange={handleNodeDataChange} />
       ),
@@ -560,6 +716,54 @@ function App() {
       ),
       combFilter: (props: SoundNodeProps) => (
         <CombFilterNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      autoPan: (props: SoundNodeProps) => (
+        <AutoPanNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      autoFilter: (props: SoundNodeProps) => (
+        <AutoFilterNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      clockDivider: (props: SoundNodeProps) => (
+        <ClockDividerNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      randomCv: (props: SoundNodeProps) => (
+        <RandomCVNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      sampleHold: (props: SoundNodeProps) => (
+        <SampleHoldNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      gateSeq: (props: SoundNodeProps) => (
+        <GateSeqNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      resonator: (props: SoundNodeProps) => (
+        <ResonatorNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      wah: (props: SoundNodeProps) => (
+        <WahNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      stereoWidener: (props: SoundNodeProps) => (
+        <StereoWidenerNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      foldback: (props: SoundNodeProps) => (
+        <FoldbackNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      tiltEq: (props: SoundNodeProps) => (
+        <TiltEQNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      saturator: (props: SoundNodeProps) => (
+        <SaturatorNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      cabSim: (props: SoundNodeProps) => (
+        <CabSimNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      transientShaper: (props: SoundNodeProps) => (
+        <TransientShaperNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      freezeFx: (props: SoundNodeProps) => (
+        <FreezeFxNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      granular: (props: SoundNodeProps) => (
+        <GranularNode {...props} onDataChange={handleNodeDataChange} />
       ),
       monoSynth: (props: SoundNodeProps) => (
         <MonoSynthNode {...props} onDataChange={handleNodeDataChange} />

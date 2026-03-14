@@ -2,6 +2,7 @@ import type { Node, NodeProps } from 'reactflow';
 
 export const editableNodeTypes = [
   'oscillator',
+  'dualOsc',
   'gain',
   'filter',
   'delay',
@@ -18,6 +19,22 @@ export const editableNodeTypes = [
   'ringMod',
   'vibrato',
   'combFilter',
+  'autoPan',
+  'autoFilter',
+  'clockDivider',
+  'randomCv',
+  'sampleHold',
+  'gateSeq',
+  'resonator',
+  'wah',
+  'stereoWidener',
+  'foldback',
+  'tiltEq',
+  'saturator',
+  'cabSim',
+  'transientShaper',
+  'freezeFx',
+  'granular',
   'monoSynth',
   'kickSynth',
   'snareSynth',
@@ -96,6 +113,16 @@ export interface SoundNodeData {
   octave?: number;
   chordType?: ChordType;
   spread?: number;
+  drive?: number;
+  detune?: number;
+  blend?: number;
+  tilt?: number;
+  minValue?: number;
+  maxValue?: number;
+  divider?: number;
+  sustain?: number;
+  grainSize?: number;
+  spray?: number;
 }
 
 export interface DrumPattern {
