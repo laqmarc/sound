@@ -770,6 +770,19 @@ const buildUserPatchHint = (nodes: SoundFlowNode[], edges: Edge[]) => {
   return `${moduleLabel} | ${cableLabel}`;
 };
 
+const buildPatchPresetId = (name: string) => {
+  const slug = name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return slug || `patch-${Date.now()}`;
+};
+
+const formatPatchPresetForCode = (preset: PatchPreset) => `${JSON.stringify(preset, null, 2)},`;
+
 const readUserPatchPresets = (): PatchPreset[] => {
   if (typeof window === 'undefined') {
     return [];
@@ -1956,6 +1969,129 @@ const patchPresets: PatchPreset[] = [
       { id: 'orbit-6', source: 'preset_delay', target: 'preset_scope' },
     ],
   },
+  {
+    id: 'quitusbass',
+    name: 'quitusbass',
+    hint: 'Bassline + drums + mutant arp through mixer',
+    nodes: [
+      {
+        id: 'destination',
+        type: 'destination',
+        position: { x: 1804, y: 242 },
+        data: { label: 'Sortida' },
+      },
+      {
+        id: 'preset_bassline',
+        type: 'bassline',
+        position: { x: 45, y: -180 },
+        data: {
+          ...defaultNodeData.bassline,
+          note: 'F',
+          octave: 2,
+          tone: 1300,
+          gain: 0.52,
+          steps: [true, false, false, true, true, false, true, false, true, false, false, true, true, false, true, false],
+        },
+      },
+      {
+        id: 'compressor_6',
+        type: 'compressor',
+        position: { x: 536, y: -187 },
+        data: {
+          ...defaultNodeData.compressor,
+          threshold: -49,
+          knee: 18,
+          ratio: 6,
+          attack: 0.01,
+          release: 0.1,
+          makeup: 0.51,
+        },
+      },
+      {
+        id: 'drumMachine_2',
+        type: 'drumMachine',
+        position: { x: 43, y: 241 },
+        data: {
+          ...defaultNodeData.drumMachine,
+          bpm: 120,
+          drumPattern: {
+            kick: [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false],
+            snare: [false, false, false, true, false, false, true, false, false, false, false, true, false, false, true, false],
+            hihat: Array.from({ length: 16 }, () => true),
+          },
+        },
+      },
+      {
+        id: 'mixer_3',
+        type: 'mixer',
+        position: { x: 1022, y: 127 },
+        data: {
+          ...defaultNodeData.mixer,
+          ch1: 1,
+          ch2: 0.39,
+          ch3: 0.09,
+          ch4: 0.5,
+          ch1_low: 6.6,
+          ch1_mid: 0,
+          ch1_high: 0,
+          ch1_pan: 0,
+          ch2_low: 0,
+          ch2_mid: 0,
+          ch2_high: 0,
+          ch2_pan: 0,
+          ch3_low: 0,
+          ch3_mid: 0,
+          ch3_high: 0,
+          ch3_pan: 0,
+          ch4_low: 0,
+          ch4_mid: 0,
+          ch4_high: 0,
+          ch4_pan: 0,
+          label_ch1: 'Compressor',
+          label_ch2: 'Drum Machine',
+          label_ch3: 'Mutant Box',
+        },
+      },
+      {
+        id: 'weirdMachine_4',
+        type: 'weirdMachine',
+        position: { x: 1068, y: -845 },
+        data: {
+          ...defaultNodeData.weirdMachine,
+          frequency: 180,
+          modFrequency: 84,
+          modAmount: 120,
+          texture: 0.45,
+          chaos: 0.5,
+          tone: 1800,
+          Q: 1.4,
+          rate: 3.5,
+          depth: 900,
+          drive: 2.2,
+          gain: 0.22,
+          sync: true,
+          syncDivision: '1/8',
+          steps: [true, false, true, false, true, true, false, true],
+        },
+      },
+      {
+        id: 'arpeggiator_5',
+        type: 'arpeggiator',
+        position: { x: -19, y: -857 },
+        data: {
+          ...defaultNodeData.arpeggiator,
+        },
+      },
+    ],
+    edges: [
+      { id: 'quitus-1', source: 'preset_bassline', target: 'compressor_6' },
+      { id: 'quitus-2', source: 'compressor_6', target: 'mixer_3', targetHandle: 'ch1' },
+      { id: 'quitus-3', source: 'drumMachine_2', target: 'mixer_3', targetHandle: 'ch2' },
+      { id: 'quitus-4', source: 'arpeggiator_5', target: 'weirdMachine_4', targetHandle: 'pitch' },
+      { id: 'quitus-5', source: 'weirdMachine_4', target: 'mixer_3', targetHandle: 'ch3' },
+      { id: 'quitus-6', source: 'mixer_3', target: 'destination' },
+    ],
+  },
 ];
 
 let nodeSequence = 1;
@@ -2005,6 +2141,8 @@ function App() {
   const [userPatchPresets, setUserPatchPresets] = useState<PatchPreset[]>(() => readUserPatchPresets());
   const [activeUserPresetId, setActiveUserPresetId] = useState('');
   const [userPresetName, setUserPresetName] = useState('');
+  const [exportedPresetCode, setExportedPresetCode] = useState('');
+  const [exportPresetFeedback, setExportPresetFeedback] = useState('');
   const nodesRef = useRef<SoundFlowNode[]>(baseInitialNodes);
   const edgesRef = useRef<Edge[]>([]);
   const audioStartedRef = useRef(false);
@@ -2020,6 +2158,18 @@ function App() {
   useEffect(() => {
     audioStartedRef.current = audioStarted;
   }, [audioStarted]);
+
+  useEffect(() => {
+    if (!exportPresetFeedback) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setExportPresetFeedback('');
+    }, 3200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [exportPresetFeedback]);
 
   useEffect(() => {
     const syncTransport = () => {
@@ -2413,6 +2563,30 @@ function App() {
     setUserPresetName(nextName);
   }, [userPatchPresets, userPresetName]);
 
+  const exportCurrentPatchPreset = useCallback(async () => {
+    const trimmedName = userPresetName.trim();
+    const fallbackIndex = userPatchPresets.length + 1;
+    const nextName = trimmedName || `Patch ${fallbackIndex}`;
+    const nextPreset: PatchPreset = {
+      id: buildPatchPresetId(nextName),
+      name: nextName,
+      hint: buildUserPatchHint(nodesRef.current, edgesRef.current),
+      nodes: clonePatchNodes(nodesRef.current),
+      edges: clonePatchEdges(edgesRef.current),
+    };
+    const presetCode = formatPatchPresetForCode(nextPreset);
+
+    setUserPresetName(nextName);
+    setExportedPresetCode(presetCode);
+
+    try {
+      await navigator.clipboard.writeText(presetCode);
+      setExportPresetFeedback('Preset copiat al porta-retalls');
+    } catch {
+      setExportPresetFeedback('No s\'ha pogut copiar, pero el codi ha quedat aci baix');
+    }
+  }, [userPatchPresets.length, userPresetName]);
+
   const deleteUserPreset = useCallback(() => {
     if (!activeUserPresetId) {
       return;
@@ -2600,6 +2774,15 @@ function App() {
             >
               Save Current
             </button>
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                void exportCurrentPatchPreset();
+              }}
+              className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.18em] border bg-amber-500/15 text-amber-200 border-amber-500/30 hover:bg-amber-500/25 transition-all"
+            >
+              Export Preset
+            </button>
             <select
               value={activeUserPresetId}
               onChange={(event) => setActiveUserPresetId(event.target.value)}
@@ -2638,6 +2821,29 @@ function App() {
               {userPatchPresets.find((preset) => preset.id === activeUserPresetId)?.hint ?? 'Guarda el graf actual al navegador'}
             </div>
           </div>
+
+          {(exportPresetFeedback || exportedPresetCode) && (
+            <div className="mt-3 px-1">
+              {exportPresetFeedback && (
+                <div className="mb-2 text-[10px] uppercase tracking-[0.18em] text-amber-200">{exportPresetFeedback}</div>
+              )}
+              {exportedPresetCode && (
+                <details className="rounded-xl border border-white/10 bg-black/20">
+                  <summary className="cursor-pointer px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/70">
+                    Last Exported Preset Code
+                  </summary>
+                  <div className="p-3 pt-0">
+                    <textarea
+                      readOnly
+                      value={exportedPresetCode}
+                      onMouseDown={(event) => event.stopPropagation()}
+                      className="mt-2 h-48 w-full resize-y rounded-xl border border-white/10 bg-slate-950/90 p-3 font-mono text-[10px] leading-relaxed text-white/80 outline-none"
+                    />
+                  </div>
+                </details>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-1.5 px-1 pt-3 mt-3 border-t border-white/10">
             <div className="text-[9px] uppercase tracking-[0.22em] text-white/40 mr-2">Families</div>
@@ -2773,23 +2979,15 @@ function App() {
             onEdgesDelete={onEdgesDelete}
             onEdgeClick={onEdgeClick}
             nodeTypes={nodeTypes}
+            proOptions={{ hideAttribution: true }}
             fitView
             className="bg-black"
           >
             <Background color="#111" gap={20} />
-            <Controls className="glass-panel !fill-white !bg-transparent !border-white/10" />
+            <Controls className="glass-panel !bg-transparent !border-white/10" />
           </ReactFlow>
 
-          <div className="absolute bottom-4 left-4 z-50 pointer-events-none">
-            <div className="bg-slate-900/80 backdrop-blur-md p-3 border border-slate-800 rounded-lg text-[10px] text-slate-400 uppercase tracking-widest">
-              <p className="mb-1">Comandes:</p>
-              <ul className="list-none p-0 m-0">
-                <li>- Arrossega per moure moduls</li>
-                <li>- Clic sobre un cable per esborrar-lo</li>
-                <li>- Tecla Del per esborrar modul/cable</li>
-              </ul>
-            </div>
-          </div>
+          
         </main>
       </div>
     </div>

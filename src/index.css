@@ -88,6 +88,11 @@ body {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
 }
 
+.react-flow__controls-button svg {
+  fill: #000 !important;
+  stroke: #000 !important;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
