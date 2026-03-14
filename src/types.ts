@@ -68,6 +68,7 @@ export const editableNodeTypes = [
   'fmSynth',
   'subOsc',
   'noiseLayer',
+  'weirdMachine',
 ] as const;
 
 export type EditableAudioNodeType = (typeof editableNodeTypes)[number];
@@ -118,6 +119,8 @@ export interface SoundNodeData {
   modType?: OscillatorType;
   subOctave?: number;
   tone?: number;
+  texture?: number;
+  chaos?: number;
   loopLength?: number;
   freeze?: boolean;
   steps?: boolean[];
