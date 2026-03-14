@@ -43,7 +43,7 @@
 .step-synth-node__step {
   height: 2.5rem;
   border: 1px solid var(--step-synth-step-border);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-lg);
   background: var(--step-synth-step-surface);
   color: var(--step-synth-step-text);
   font-size: 9px;

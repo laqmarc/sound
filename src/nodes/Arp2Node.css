@@ -15,7 +15,7 @@
   --arp2-bg: var(--gradient-surface-arp2);
   min-width: 980px;
   border-color: var(--arp2-border);
-  border-radius: 28px;
+  border-radius: var(--radius-lg);
   background: var(--arp2-bg);
 }
 
@@ -53,7 +53,7 @@
 }
 
 .arp2-node__status-card {
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
   padding: 0.5rem 0.75rem;
   text-align: right;
 }
@@ -82,7 +82,7 @@
 }
 
 .arp2-node__range-card {
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
   padding: 0.75rem;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .arp2-node__button {
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   padding: 0.5rem 1rem;
   background: var(--node-accent);
   color: var(--color-ink);

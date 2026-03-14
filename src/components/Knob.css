@@ -44,7 +44,7 @@
   align-items: flex-start;
   justify-content: center;
   border: 1px solid var(--knob-body-border);
-  border-radius: 999px;
+  border-radius: 50%;
   background: var(--knob-body-surface);
   box-shadow: var(--knob-shadow);
   padding-top: 0.25rem;
@@ -53,7 +53,7 @@
 .knob__indicator {
   width: 0.25rem;
   height: 0.75rem;
-  border-radius: 999px;
+  border-radius: 50%;
   background: var(--knob-indicator);
 }
 

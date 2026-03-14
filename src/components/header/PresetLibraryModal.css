@@ -50,7 +50,7 @@
   max-height: 85vh;
   overflow-y: auto;
   border: 1px solid var(--preset-modal-border);
-  border-radius: 1.75rem;
+  border-radius: var(--radius-lg);
   background: var(--preset-modal-surface);
   padding: 1.25rem;
   box-shadow: var(--preset-modal-shadow);
@@ -80,7 +80,7 @@
 
 .preset-library-modal__close {
   border: 1px solid var(--preset-modal-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--preset-modal-surface-soft);
   padding: 0.5rem 0.75rem;
   color: var(--preset-modal-text-muted);
@@ -102,7 +102,7 @@
 }
 
 .preset-library-modal__section {
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
   padding: 1rem;
 }
 
@@ -134,7 +134,7 @@
 .preset-library-modal__textarea {
   width: 100%;
   border: 1px solid var(--preset-modal-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--preset-modal-field-surface);
   padding: 0.75rem;
   color: var(--ui-text-main);
@@ -156,7 +156,7 @@
 }
 
 .preset-library-modal__button {
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   padding: 0.75rem 1rem;
   font-size: 10px;
   font-weight: 900;
@@ -223,7 +223,7 @@
 .preset-library-modal__hint,
 .preset-library-modal__export {
   border: 1px solid var(--preset-modal-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--preset-modal-hint-surface);
   padding: 0.75rem;
   color: var(--preset-modal-text-soft);
@@ -232,7 +232,7 @@
 
 .preset-library-modal__export {
   margin-top: 1rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
 }
 
 .preset-library-modal__feedback {
@@ -245,7 +245,7 @@
 
 .preset-library-modal__details {
   border: 1px solid var(--preset-modal-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--preset-modal-details-surface);
 }
 

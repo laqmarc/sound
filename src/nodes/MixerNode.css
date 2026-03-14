@@ -15,7 +15,7 @@
   --mixer-bg: linear-gradient(145deg, rgba(8, 18, 16, 0.98), rgba(8, 24, 20, 0.94));
   min-width: 520px;
   border-color: var(--mixer-border);
-  border-radius: 26px;
+  border-radius: var(--radius-lg);
   background: var(--mixer-bg);
   box-shadow: var(--mixer-shadow);
 }
@@ -43,7 +43,7 @@
 
 .mixer-node__badge {
   border: 1px solid var(--mixer-card-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--mixer-surface);
   padding: 0.25rem 0.5rem;
   color: var(--mixer-accent-soft);
@@ -60,7 +60,7 @@
 .mixer-node__channel {
   position: relative;
   border: 1px solid var(--mixer-card-border);
-  border-radius: 22px;
+  border-radius: var(--radius-lg);
   background: var(--mixer-surface);
   padding: 0.75rem;
 }
@@ -87,7 +87,7 @@
 
 .mixer-node__mute-button {
   border: 1px solid var(--mixer-card-border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   background: var(--mixer-surface-soft);
   padding: 0.25rem 0.5rem;
   color: var(--mixer-text-soft);
@@ -127,6 +127,6 @@
 .mixer-node__meter {
   height: 0.375rem;
   margin-top: 0.75rem;
-  border-radius: 999px;
+  border-radius: var(--radius-lg);
   transition: all 0.2s ease;
 }

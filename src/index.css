@@ -23,7 +23,7 @@ body {
 }
 
 .react-flow__node {
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   backdrop-filter: blur(12px);
   transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1);
 }
@@ -35,7 +35,7 @@ body {
 .react-flow__handle {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: var(--radius-lg);
   border: 2px solid var(--color-brand-bg);
   background: var(--color-white);
   transition: all 0.2s ease;

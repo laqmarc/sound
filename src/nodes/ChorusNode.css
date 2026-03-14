@@ -22,14 +22,14 @@
 .chorus-node__toggle {
   display: flex;
   margin-bottom: 1rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   background: var(--ui-surface-panel);
   padding: 0.25rem;
 }
 
 .chorus-node__toggle-button {
   flex: 1 1 0%;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-lg);
   padding: 0.25rem 0;
   color: var(--chorus-text-soft);
   font-size: 8px;
@@ -65,7 +65,7 @@
 .chorus-node__select {
   width: 100%;
   border: 1px solid var(--chorus-border);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-lg);
   background: var(--chorus-surface-input);
   padding: 0.375rem;
   color: var(--ui-text-main);

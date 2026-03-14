@@ -24,7 +24,7 @@
 .node-chrome__dot {
   width: 0.375rem;
   height: 0.375rem;
-  border-radius: 999px;
+  border-radius: var(--radius-lg);
   background: var(--node-accent);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

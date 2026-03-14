@@ -47,7 +47,7 @@
 .chord-seq-node__step {
   height: 2rem;
   border: 1px solid var(--ui-border-soft);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-lg);
   background: var(--chord-step-surface);
   color: var(--chord-step-text);
   font-size: 9px;

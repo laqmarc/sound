@@ -39,7 +39,7 @@
   --chaos-step-glow: color-mix(in srgb, var(--chaos-accent) 70%, transparent);
   min-width: 540px;
   border-color: var(--chaos-border);
-  border-radius: 30px;
+  border-radius: var(--radius-lg);
   background: var(--chaos-bg);
   color: var(--ui-text-main);
 }
@@ -77,7 +77,7 @@
   grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 0.25rem;
   border: 1px solid var(--ui-border-soft);
-  border-radius: 22px;
+  border-radius: var(--radius-lg);
   background: var(--chaos-surface-led);
   padding: 0.5rem;
 }
@@ -86,7 +86,7 @@
   width: 1rem;
   height: 1rem;
   border: 1px solid var(--ui-border-soft);
-  border-radius: 999px;
+  border-radius: var(--radius-lg);
   transition: all var(--transition-fast);
 }
 
@@ -100,7 +100,7 @@
 .chaos-shrine-node__card {
   margin-bottom: 0.75rem;
   border: 1px solid var(--ui-border-soft);
-  border-radius: 22px;
+  border-radius: var(--radius-lg);
   background: var(--chaos-surface);
   padding: 0.75rem;
 }
@@ -157,7 +157,7 @@
 
 .chaos-shrine-node__select {
   border: 1px solid var(--chaos-select-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--chaos-surface-input);
   padding: 0.5rem;
   color: var(--ui-text-main);
@@ -179,7 +179,7 @@
 .chaos-shrine-node__button,
 .chaos-shrine-node__scene-button,
 .chaos-shrine-node__pattern-button {
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   padding: 0.5rem 0.75rem;
   font-size: 10px;
   font-weight: 900;
@@ -221,7 +221,7 @@
 .chaos-shrine-node__step {
   height: 2.25rem;
   border: 1px solid var(--ui-border-soft);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--ui-surface-panel);
   color: var(--ui-text-dim);
   font-size: 10px;

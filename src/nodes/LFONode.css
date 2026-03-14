@@ -21,7 +21,7 @@
 .lfo-node__toggle,
 .lfo-node__wave-toggle {
   display: flex;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   background: var(--lfo-toggle-surface);
   padding: 0.25rem;
 }
@@ -37,7 +37,7 @@
 .lfo-node__toggle-button,
 .lfo-node__wave-button {
   flex: 1 1 0%;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-lg);
   padding: 0.25rem 0;
   color: var(--lfo-toggle-text);
   font-size: 8px;

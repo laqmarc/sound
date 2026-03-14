@@ -26,7 +26,7 @@
   --weird-beast-border: color-mix(in srgb, var(--weird-accent-rose) 25%, transparent);
   min-width: 430px;
   border-color: var(--weird-border);
-  border-radius: 28px;
+  border-radius: var(--radius-lg);
   background: var(--weird-bg);
 }
 
@@ -56,7 +56,7 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.25rem;
   border: 1px solid var(--ui-border-soft);
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
   background: var(--weird-surface);
   padding: 0.5rem;
 }
@@ -65,7 +65,7 @@
   width: 1.25rem;
   height: 1.25rem;
   border: 1px solid var(--ui-border-soft);
-  border-radius: 999px;
+  border-radius: var(--radius-lg);
   transition: all var(--transition-fast);
 }
 
@@ -92,7 +92,7 @@
 
 .weird-machine-node__toggle,
 .weird-machine-node__mood-button {
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   padding: 0.5rem 0.75rem;
   font-size: 10px;
   font-weight: 900;
@@ -113,7 +113,7 @@
 .weird-machine-node__select {
   width: 100%;
   border: 1px solid var(--weird-select-border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--weird-surface-strong);
   padding: 0.5rem;
   color: var(--ui-text-main);
@@ -127,7 +127,7 @@
 
 .weird-machine-node__sequence {
   margin-bottom: 0.75rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
   padding: 0.75rem;
 }
 
@@ -162,7 +162,7 @@
 .weird-machine-node__step {
   height: 2.5rem;
   border: 1px solid var(--ui-border-soft);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--ui-surface-panel);
   color: var(--ui-text-dim);
   font-size: 10px;

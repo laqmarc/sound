@@ -40,7 +40,7 @@
 }
 
 .arpeggiator-node__button {
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   background: var(--arpeggiator-accent);
   padding: 0.5rem 1rem;
   color: var(--color-ink);

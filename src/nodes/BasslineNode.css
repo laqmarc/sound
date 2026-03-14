@@ -31,7 +31,7 @@
 .bassline-node__select {
   width: 100%;
   border: 1px solid var(--bassline-border);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-lg);
   background: var(--bassline-surface-input);
   padding: 0.375rem;
   color: var(--ui-text-main);
@@ -60,7 +60,7 @@
 .bassline-node__step {
   height: 2rem;
   border: 1px solid var(--ui-border-soft);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-lg);
   background: var(--bassline-step-surface);
   color: var(--bassline-step-text);
   font-size: 9px;
