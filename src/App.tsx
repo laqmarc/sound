@@ -14,7 +14,6 @@ import ReactFlow, {
   type NodeTypes,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Zap } from 'lucide-react';
 import DestinationNode from './nodes/DestinationNode';
 import DelayNode from './nodes/DelayNode';
 import DistortionNode from './nodes/DistortionNode';
@@ -585,6 +584,18 @@ function App() {
     [applyPresetGraph, userPatchPresets],
   );
 
+  const resetCanvas = useCallback(async () => {
+    nodeSequence = 1;
+    setActiveUserPresetId('');
+    await applyPresetGraph({
+      id: 'reset-canvas',
+      name: 'Reset Canvas',
+      hint: 'Canvas net',
+      nodes: clonePatchNodes(baseInitialNodes),
+      edges: clonePatchEdges([]),
+    });
+  }, [applyPresetGraph]);
+
   const saveCurrentPatchAsPreset = useCallback(() => {
     const trimmedName = userPresetName.trim();
     const fallbackIndex = userPatchPresets.length + 1;
@@ -888,18 +899,6 @@ function App() {
         </aside>
 
         <main className="flex-1 min-w-0 relative">
-          {!audioStarted && (
-            <div className="absolute inset-0 bg-slate-950/80 z-40 backdrop-blur-sm flex items-center justify-center">
-              <div className="text-center px-6">
-                <Zap className="w-16 h-16 text-sky-400 mx-auto mb-4 animate-pulse" />
-                <h2 className="text-2xl font-bold mb-2">Benvingut al Manipulador de So</h2>
-                <p className="text-slate-400 max-w-md mx-auto">
-                  Fes clic al boto superior per activar l'audio i comencar a crear el teu sintetitzador modular.
-                </p>
-              </div>
-            </div>
-          )}
-
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -928,6 +927,9 @@ function App() {
           onSetTransportSwing={setTransportSwing}
           onStartAudio={startAudio}
           onStopAudio={handleStopAudio}
+          onResetCanvas={() => {
+            void resetCanvas();
+          }}
         />
       </div>
     </div>

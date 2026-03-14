@@ -16,6 +16,7 @@ interface TransportAsideProps {
   onSetTransportSwing: (value: number) => void;
   onStartAudio: () => void;
   onStopAudio: () => void;
+  onResetCanvas: () => void;
 }
 
 export function TransportAside({
@@ -25,6 +26,7 @@ export function TransportAside({
   onSetTransportSwing,
   onStartAudio,
   onStopAudio,
+  onResetCanvas,
 }: TransportAsideProps) {
   return (
     <aside className="hidden lg:flex w-52 xl:w-56 shrink-0 border-l border-white/10 bg-black/35 backdrop-blur-xl p-4 flex-col gap-4 overflow-y-auto">
@@ -83,21 +85,37 @@ export function TransportAside({
       </section>
 
       {!audioStarted ? (
-        <button
-          onClick={onStartAudio}
-          className="w-full bg-emerald-500 hover:bg-emerald-400 text-black px-4 py-3 rounded-2xl font-black text-xs tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95"
-        >
-          <Volume2 className="w-4 h-4" />
-          START ENGINE
-        </button>
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={onStartAudio}
+            className="w-full bg-emerald-500 hover:bg-emerald-400 text-black px-4 py-3 rounded-2xl font-black text-xs tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95"
+          >
+            <Volume2 className="w-4 h-4" />
+            START ENGINE
+          </button>
+          <button
+            onClick={onResetCanvas}
+            className="w-full bg-white/5 hover:bg-white/10 text-white/70 border border-white/10 px-4 py-3 rounded-2xl font-black text-xs tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95"
+          >
+            RESET
+          </button>
+        </div>
       ) : (
-        <button
-          onClick={onStopAudio}
-          className="w-full bg-white/5 hover:bg-rose-500/20 hover:text-rose-500 text-white/60 border border-white/10 px-4 py-3 rounded-2xl font-black text-xs tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95"
-        >
-          <VolumeX className="w-4 h-4" />
-          STOP
-        </button>
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={onStopAudio}
+            className="w-full bg-white/5 hover:bg-rose-500/20 hover:text-rose-500 text-white/60 border border-white/10 px-4 py-3 rounded-2xl font-black text-xs tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95"
+          >
+            <VolumeX className="w-4 h-4" />
+            STOP
+          </button>
+          <button
+            onClick={onResetCanvas}
+            className="w-full bg-white/5 hover:bg-white/10 text-white/70 border border-white/10 px-4 py-3 rounded-2xl font-black text-xs tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95"
+          >
+            RESET
+          </button>
+        </div>
       )}
     </aside>
   );
