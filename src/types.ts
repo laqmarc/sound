@@ -8,13 +8,37 @@ export const editableNodeTypes = [
   'noise',
   'distortion',
   'reverb',
+  'compressor',
+  'chorus',
+  'bitcrusher',
+  'flanger',
+  'limiter',
+  'looper',
+  'tremolo',
+  'ringMod',
+  'vibrato',
+  'combFilter',
+  'monoSynth',
+  'kickSynth',
+  'snareSynth',
+  'hiHatSynth',
+  'chordGenerator',
   'scope',
+  'vuMeter',
+  'phaseCorrelator',
+  'lissajous',
+  'tuner',
   'mixer',
   'spectrogram',
   'panner',
   'lfo',
   'drumMachine',
   'arpeggiator',
+  'equalizer8',
+  'phaser',
+  'fmSynth',
+  'subOsc',
+  'noiseLayer',
 ] as const;
 
 export type EditableAudioNodeType = (typeof editableNodeTypes)[number];
@@ -44,6 +68,34 @@ export interface SoundNodeData {
   sync?: boolean;
   syncDivision?: SyncDivision;
   arpSteps?: ArpStep[];
+  arpMode?: ArpMode;
+  arpScale?: ArpScale;
+  eqBands?: number[];
+  rate?: number;
+  depth?: number;
+  feedback?: number;
+  mix?: number;
+  threshold?: number;
+  knee?: number;
+  ratio?: number;
+  attack?: number;
+  release?: number;
+  makeup?: number;
+  delay?: number;
+  bits?: number;
+  normFreq?: number;
+  modFrequency?: number;
+  modAmount?: number;
+  modType?: OscillatorType;
+  subOctave?: number;
+  tone?: number;
+  loopLength?: number;
+  freeze?: boolean;
+  steps?: boolean[];
+  note?: NoteName;
+  octave?: number;
+  chordType?: ChordType;
+  spread?: number;
 }
 
 export interface DrumPattern {
@@ -54,10 +106,14 @@ export interface DrumPattern {
 
 export type SyncDivision = '1/1' | '1/2' | '1/4' | '1/8' | '1/16';
 export type NoteName = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B';
+export type ArpMode = 'up' | 'down' | 'random';
+export type ArpScale = 'chromatic' | 'major' | 'minor' | 'pentatonic';
+export type ChordType = 'major' | 'minor' | 'sus2' | 'sus4' | 'dim';
 
 export interface ArpStep {
   note: NoteName;
   octave: number;
+  enabled: boolean;
 }
 
 export type SoundFlowNode = Node<SoundNodeData, FlowNodeType>;

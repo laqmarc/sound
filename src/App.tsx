@@ -31,6 +31,30 @@ import ScopeNode from './nodes/ScopeNode';
 import SpectrogramNode from './nodes/SpectrogramNode';
 import DrumMachineNode from './nodes/DrumMachineNode';
 import ArpeggiatorNode from './nodes/ArpeggiatorNode';
+import Equalizer8Node from './nodes/Equalizer8Node';
+import PhaserNode from './nodes/PhaserNode';
+import CompressorNode from './nodes/CompressorNode';
+import ChorusNode from './nodes/ChorusNode';
+import BitcrusherNode from './nodes/BitcrusherNode';
+import FlangerNode from './nodes/FlangerNode';
+import LimiterNode from './nodes/LimiterNode';
+import LooperNode from './nodes/LooperNode';
+import FMSynthNode from './nodes/FMSynthNode';
+import SubOscNode from './nodes/SubOscNode';
+import NoiseLayerNode from './nodes/NoiseLayerNode';
+import TremoloNode from './nodes/TremoloNode';
+import RingModNode from './nodes/RingModNode';
+import VibratoNode from './nodes/VibratoNode';
+import CombFilterNode from './nodes/CombFilterNode';
+import MonoSynthNode from './nodes/MonoSynthNode';
+import KickSynthNode from './nodes/KickSynthNode';
+import SnareSynthNode from './nodes/SnareSynthNode';
+import HiHatSynthNode from './nodes/HiHatSynthNode';
+import ChordGeneratorNode from './nodes/ChordGeneratorNode';
+import VUMeterNode from './nodes/VUMeterNode';
+import PhaseCorrelatorNode from './nodes/PhaseCorrelatorNode';
+import LissajousNode from './nodes/LissajousNode';
+import TunerNode from './nodes/TunerNode';
 import Knob from './components/Knob';
 import {
   applyAudioNodeData,
@@ -73,15 +97,17 @@ const defaultDrumPattern = (): DrumPattern => ({
 });
 
 const defaultArpSteps = (): ArpStep[] => [
-  { note: 'C', octave: 4 },
-  { note: 'E', octave: 4 },
-  { note: 'G', octave: 4 },
-  { note: 'B', octave: 4 },
-  { note: 'C', octave: 5 },
-  { note: 'B', octave: 4 },
-  { note: 'G', octave: 4 },
-  { note: 'E', octave: 4 },
+  { note: 'C', octave: 4, enabled: true },
+  { note: 'E', octave: 4, enabled: true },
+  { note: 'G', octave: 4, enabled: true },
+  { note: 'B', octave: 4, enabled: true },
+  { note: 'C', octave: 5, enabled: true },
+  { note: 'B', octave: 4, enabled: true },
+  { note: 'G', octave: 4, enabled: true },
+  { note: 'E', octave: 4, enabled: true },
 ];
+
+const defaultEqBands = () => [0, 0, 0, 0, 0, 0, 0, 0];
 
 const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
   oscillator: {
@@ -116,8 +142,136 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     label: 'Reverb',
     decay: 3,
   },
+  compressor: {
+    label: 'Compressor',
+    threshold: -24,
+    knee: 18,
+    ratio: 6,
+    attack: 0.01,
+    release: 0.25,
+    makeup: 1,
+  },
+  chorus: {
+    label: 'Chorus',
+    rate: 0.8,
+    depth: 0.012,
+    delay: 0.02,
+    mix: 0.45,
+    sync: false,
+    syncDivision: '1/4',
+  },
+  bitcrusher: {
+    label: 'Bitcrusher',
+    bits: 6,
+    normFreq: 0.2,
+    mix: 0.7,
+  },
+  flanger: {
+    label: 'Flanger',
+    rate: 0.25,
+    depth: 0.003,
+    feedback: 0.55,
+    mix: 0.5,
+    sync: false,
+    syncDivision: '1/4',
+  },
+  limiter: {
+    label: 'Limiter',
+    threshold: -6,
+    release: 0.08,
+    makeup: 1,
+  },
+  looper: {
+    label: 'Looper',
+    loopLength: 0.5,
+    feedback: 0.2,
+    mix: 0.8,
+    sync: true,
+    syncDivision: '1/4',
+    freeze: false,
+  },
+  tremolo: {
+    label: 'Tremolo',
+    rate: 4,
+    depth: 0.75,
+    mix: 1,
+    sync: false,
+    syncDivision: '1/8',
+  },
+  ringMod: {
+    label: 'Ring Mod',
+    modFrequency: 60,
+    depth: 1,
+    mix: 0.8,
+    sync: false,
+    syncDivision: '1/8',
+  },
+  vibrato: {
+    label: 'Vibrato',
+    rate: 5,
+    depth: 0.004,
+    mix: 1,
+    sync: false,
+    syncDivision: '1/8',
+  },
+  combFilter: {
+    label: 'Comb Filter',
+    delay: 0.015,
+    feedback: 0.65,
+    mix: 0.7,
+  },
+  monoSynth: {
+    label: 'Mono Synth',
+    frequency: 220,
+    gain: 0.35,
+    tone: 1800,
+    Q: 0.8,
+    type: 'sawtooth',
+  },
+  kickSynth: {
+    label: 'Kick Synth',
+    gain: 0.9,
+    tone: 58,
+    decay: 0.24,
+    steps: [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false],
+  },
+  snareSynth: {
+    label: 'Snare Synth',
+    gain: 0.65,
+    tone: 180,
+    decay: 0.16,
+    steps: [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false],
+  },
+  hiHatSynth: {
+    label: 'HiHat Synth',
+    gain: 0.4,
+    tone: 9500,
+    decay: 0.06,
+    steps: Array.from({ length: 16 }, () => true),
+  },
+  chordGenerator: {
+    label: 'Chord Generator',
+    note: 'C',
+    octave: 4,
+    chordType: 'major',
+    spread: 10,
+    gain: 0.22,
+    type: 'triangle',
+  },
   scope: {
     label: 'Scope',
+  },
+  vuMeter: {
+    label: 'VU Meter',
+  },
+  phaseCorrelator: {
+    label: 'Phase Correlator',
+  },
+  lissajous: {
+    label: 'Lissajous',
+  },
+  tuner: {
+    label: 'Tuner',
   },
   mixer: {
     label: 'Mixer',
@@ -149,7 +303,45 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
   arpeggiator: {
     label: 'Arpeggiator',
     syncDivision: '1/8',
+    arpMode: 'up',
+    arpScale: 'chromatic',
     arpSteps: defaultArpSteps(),
+  },
+  equalizer8: {
+    label: 'EQ 8-Band',
+    eqBands: defaultEqBands(),
+  },
+  phaser: {
+    label: 'Phaser',
+    rate: 0.6,
+    depth: 800,
+    feedback: 0.35,
+    mix: 0.5,
+    sync: false,
+    syncDivision: '1/4',
+  },
+  fmSynth: {
+    label: 'FM Synth',
+    frequency: 220,
+    modFrequency: 220,
+    modAmount: 180,
+    gain: 0.35,
+    type: 'sine',
+    modType: 'sine',
+  },
+  subOsc: {
+    label: 'Sub Osc',
+    frequency: 110,
+    gain: 0.4,
+    type: 'square',
+    subOctave: 1,
+  },
+  noiseLayer: {
+    label: 'Noise Layer',
+    tone: 2800,
+    Q: 0.8,
+    gain: 0.18,
+    type: 'lowpass',
   },
 };
 
@@ -157,21 +349,61 @@ const addNodeButtons: Array<{
   type: EditableAudioNodeType;
   label: string;
   color: string;
+  tab: ComponentTabId;
 }> = [
-  { type: 'oscillator', label: 'Osc', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
-  { type: 'noise', label: 'Noise', color: 'bg-slate-500/10 text-slate-400 border-slate-500/20' },
-  { type: 'lfo', label: 'LFO', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-  { type: 'gain', label: 'Gain', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-  { type: 'filter', label: 'Filter', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
-  { type: 'distortion', label: 'Disto', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
-  { type: 'delay', label: 'Delay', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-  { type: 'reverb', label: 'Reverb', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
-  { type: 'mixer', label: 'Mixer', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-  { type: 'panner', label: 'Panner', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' },
-  { type: 'scope', label: 'Scope', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' },
-  { type: 'spectrogram', label: 'Spectrum', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
-  { type: 'drumMachine', label: 'Drums', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
-  { type: 'arpeggiator', label: 'Arp', color: 'bg-lime-500/10 text-lime-400 border-lime-500/20' },
+  { type: 'oscillator', label: 'Osc', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20', tab: 'voices' },
+  { type: 'noise', label: 'Noise', color: 'bg-slate-500/10 text-slate-400 border-slate-500/20', tab: 'voices' },
+  { type: 'monoSynth', label: 'Mono', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'voices' },
+  { type: 'fmSynth', label: 'FM', color: 'bg-teal-500/10 text-teal-300 border-teal-500/20', tab: 'voices' },
+  { type: 'subOsc', label: 'Sub', color: 'bg-blue-500/10 text-blue-300 border-blue-500/20', tab: 'voices' },
+  { type: 'noiseLayer', label: 'Layer', color: 'bg-stone-500/10 text-stone-300 border-stone-500/20', tab: 'voices' },
+  { type: 'chordGenerator', label: 'Chord', color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20', tab: 'voices' },
+  { type: 'drumMachine', label: 'Drums', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20', tab: 'groove' },
+  { type: 'kickSynth', label: 'Kick', color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20', tab: 'groove' },
+  { type: 'snareSynth', label: 'Snare', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'groove' },
+  { type: 'hiHatSynth', label: 'HiHat', color: 'bg-amber-500/10 text-amber-300 border-amber-500/20', tab: 'groove' },
+  { type: 'arpeggiator', label: 'Arp', color: 'bg-lime-500/10 text-lime-400 border-lime-500/20', tab: 'groove' },
+  { type: 'looper', label: 'Looper', color: 'bg-lime-500/10 text-lime-300 border-lime-500/20', tab: 'groove' },
+  { type: 'filter', label: 'Filter', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20', tab: 'fx' },
+  { type: 'distortion', label: 'Disto', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20', tab: 'fx' },
+  { type: 'delay', label: 'Delay', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20', tab: 'fx' },
+  { type: 'reverb', label: 'Reverb', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20', tab: 'fx' },
+  { type: 'compressor', label: 'Comp', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'fx' },
+  { type: 'chorus', label: 'Chorus', color: 'bg-sky-500/10 text-sky-300 border-sky-500/20', tab: 'fx' },
+  { type: 'bitcrusher', label: 'Crusher', color: 'bg-orange-500/10 text-orange-300 border-orange-500/20', tab: 'fx' },
+  { type: 'flanger', label: 'Flanger', color: 'bg-violet-500/10 text-violet-300 border-violet-500/20', tab: 'fx' },
+  { type: 'limiter', label: 'Limiter', color: 'bg-red-500/10 text-red-300 border-red-500/20', tab: 'fx' },
+  { type: 'tremolo', label: 'Tremolo', color: 'bg-amber-500/10 text-amber-300 border-amber-500/20', tab: 'fx' },
+  { type: 'ringMod', label: 'RingMod', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'fx' },
+  { type: 'vibrato', label: 'Vibrato', color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20', tab: 'fx' },
+  { type: 'combFilter', label: 'Comb', color: 'bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20', tab: 'fx' },
+  { type: 'equalizer8', label: 'EQ8', color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20', tab: 'fx' },
+  { type: 'phaser', label: 'Phaser', color: 'bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20', tab: 'fx' },
+  { type: 'gain', label: 'Gain', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', tab: 'wiring' },
+  { type: 'mixer', label: 'Mixer', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', tab: 'wiring' },
+  { type: 'panner', label: 'Panner', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20', tab: 'wiring' },
+  { type: 'lfo', label: 'LFO', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20', tab: 'wiring' },
+  { type: 'scope', label: 'Scope', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', tab: 'sight' },
+  { type: 'vuMeter', label: 'Agulla', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'sight' },
+  { type: 'phaseCorrelator', label: 'Fase', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'sight' },
+  { type: 'lissajous', label: 'Mirall', color: 'bg-sky-500/10 text-sky-300 border-sky-500/20', tab: 'sight' },
+  { type: 'tuner', label: 'Oracle', color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20', tab: 'sight' },
+  { type: 'spectrogram', label: 'Spectrum', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20', tab: 'sight' },
+];
+
+type ComponentTabId = 'all' | 'voices' | 'groove' | 'fx' | 'wiring' | 'sight';
+
+const componentTabs: Array<{
+  id: ComponentTabId;
+  label: string;
+  hint: string;
+}> = [
+  { id: 'all', label: 'Tot el Caos', hint: 'Totes les joguines' },
+  { id: 'voices', label: 'Bestiari Sonor', hint: 'Fonts i sintes' },
+  { id: 'groove', label: 'Ritmes Toxics', hint: 'Loops i sequencies' },
+  { id: 'fx', label: 'Spa Radioactiu', hint: 'Efectes i destrosses' },
+  { id: 'wiring', label: 'Cablejat Fino', hint: 'Control i routing' },
+  { id: 'sight', label: 'Ulls Mutants', hint: 'Analisi i visuals' },
 ];
 
 let nodeSequence = 1;
@@ -216,6 +448,7 @@ function App() {
   const [edges, setEdges] = useState<Edge[]>([]);
   const [audioStarted, setAudioStarted] = useState(false);
   const [transport, setTransport] = useState(() => getTransportState());
+  const [activeComponentTab, setActiveComponentTab] = useState<ComponentTabId>('all');
   const nodesRef = useRef<SoundFlowNode[]>(baseInitialNodes);
   const audioStartedRef = useRef(false);
 
@@ -298,7 +531,56 @@ function App() {
       reverb: (props: SoundNodeProps) => (
         <ReverbNode {...props} onDataChange={handleNodeDataChange} />
       ),
+      compressor: (props: SoundNodeProps) => (
+        <CompressorNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      chorus: (props: SoundNodeProps) => (
+        <ChorusNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      bitcrusher: (props: SoundNodeProps) => (
+        <BitcrusherNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      flanger: (props: SoundNodeProps) => (
+        <FlangerNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      limiter: (props: SoundNodeProps) => (
+        <LimiterNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      looper: (props: SoundNodeProps) => (
+        <LooperNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      tremolo: (props: SoundNodeProps) => (
+        <TremoloNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      ringMod: (props: SoundNodeProps) => (
+        <RingModNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      vibrato: (props: SoundNodeProps) => (
+        <VibratoNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      combFilter: (props: SoundNodeProps) => (
+        <CombFilterNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      monoSynth: (props: SoundNodeProps) => (
+        <MonoSynthNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      kickSynth: (props: SoundNodeProps) => (
+        <KickSynthNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      snareSynth: (props: SoundNodeProps) => (
+        <SnareSynthNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      hiHatSynth: (props: SoundNodeProps) => (
+        <HiHatSynthNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      chordGenerator: (props: SoundNodeProps) => (
+        <ChordGeneratorNode {...props} onDataChange={handleNodeDataChange} />
+      ),
       scope: ScopeNode,
+      vuMeter: VUMeterNode,
+      phaseCorrelator: PhaseCorrelatorNode,
+      lissajous: LissajousNode,
+      tuner: TunerNode,
       mixer: (props: SoundNodeProps) => (
         <MixerNode {...props} onDataChange={handleNodeDataChange} />
       ),
@@ -315,9 +597,32 @@ function App() {
       arpeggiator: (props: SoundNodeProps) => (
         <ArpeggiatorNode {...props} onDataChange={handleNodeDataChange} />
       ),
+      equalizer8: (props: SoundNodeProps) => (
+        <Equalizer8Node {...props} onDataChange={handleNodeDataChange} />
+      ),
+      phaser: (props: SoundNodeProps) => (
+        <PhaserNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      fmSynth: (props: SoundNodeProps) => (
+        <FMSynthNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      subOsc: (props: SoundNodeProps) => (
+        <SubOscNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      noiseLayer: (props: SoundNodeProps) => (
+        <NoiseLayerNode {...props} onDataChange={handleNodeDataChange} />
+      ),
     }),
     [handleNodeDataChange],
   );
+
+  const visibleAddNodeButtons = useMemo(() => {
+    if (activeComponentTab === 'all') {
+      return addNodeButtons;
+    }
+
+    return addNodeButtons.filter((button) => button.tab === activeComponentTab);
+  }, [activeComponentTab]);
 
   const updateMixerLabel = useCallback((targetId: string, handleId?: string | null, label?: string) => {
     const labelKey = getMixerLabelKey(handleId);
@@ -497,20 +802,45 @@ function App() {
           </h1>
         </div>
 
-        <nav className="flex items-center gap-1.5 bg-white/5 p-1.5 rounded-2xl border border-white/5 overflow-x-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent scroll-smooth shadow-inner flex-1 mx-2">
-          {addNodeButtons.map((button) => (
-            <button
-              key={button.type}
-              onClick={(event) => {
-                event.stopPropagation();
-                addNode(button.type);
-              }}
-              className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-tighter border ${button.color} hover:bg-white/10 hover:scale-105 transition-all active:scale-95 flex-shrink-0 whitespace-nowrap shadow-lg`}
-            >
-              + {button.label}
-            </button>
-          ))}
-        </nav>
+        <div className="flex-1 mx-2 min-w-0 bg-white/5 p-1.5 rounded-2xl border border-white/5 shadow-inner">
+          <div className="flex flex-wrap items-center gap-1.5 mb-2">
+            {componentTabs.map((tab) => {
+              const isActive = activeComponentTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setActiveComponentTab(tab.id);
+                  }}
+                  className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.18em] border transition-all ${
+                    isActive
+                      ? 'bg-white text-black border-white shadow-lg'
+                      : 'bg-white/5 text-white/55 border-white/10 hover:bg-white/10 hover:text-white'
+                  }`}
+                  title={tab.hint}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <nav className="flex flex-wrap items-center gap-1.5 min-w-0">
+            {visibleAddNodeButtons.map((button) => (
+              <button
+                key={button.type}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  addNode(button.type);
+                }}
+                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-tighter border ${button.color} hover:bg-white/10 hover:scale-105 transition-all active:scale-95 flex-shrink-0 whitespace-nowrap shadow-lg`}
+              >
+                + {button.label}
+              </button>
+            ))}
+          </nav>
+        </div>
 
         <div className="flex items-center gap-4 flex-shrink-0">
           <div className="hidden xl:flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-4 py-2">
