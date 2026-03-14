@@ -119,18 +119,25 @@ const baseInitialNodes: SoundFlowNode[] = [
   {
     id: 'destination',
     type: 'destination',
-    position: { x: 800, y: 300 },
+    position: { x: 800, y: 400 },
     data: { label: 'Sortida' },
   },
   {
-    id: 'osc_1',
-    type: 'oscillator',
-    position: { x: 100, y: 100 },
+    id: 'mixer_1',
+    type: 'mixer',
+    position: { x: 220, y: 260 },
     data: {
-      label: 'Oscillator',
-      frequency: 440,
-      type: 'sine',
+      ...defaultNodeData.mixer,
+      label: 'Mixer',
     },
+  },
+];
+
+const baseInitialEdges: Edge[] = [
+  {
+    id: 'reactflow__edge-mixer_1-destination',
+    source: 'mixer_1',
+    target: 'destination',
   },
 ];
 
@@ -173,7 +180,7 @@ const nextNodePlacement = () => {
 
 function App() {
   const [nodes, setNodes] = useState<SoundFlowNode[]>(baseInitialNodes);
-  const [edges, setEdges] = useState<Edge[]>([]);
+  const [edges, setEdges] = useState<Edge[]>(baseInitialEdges);
   const [audioStarted, setAudioStarted] = useState(false);
   const [transport, setTransport] = useState(() => getTransportState());
   const [activeComponentTab, setActiveComponentTab] = useState<ComponentTabId>('all');
@@ -184,7 +191,7 @@ function App() {
   const [exportedPresetCode, setExportedPresetCode] = useState('');
   const [exportPresetFeedback, setExportPresetFeedback] = useState('');
   const nodesRef = useRef<SoundFlowNode[]>(baseInitialNodes);
-  const edgesRef = useRef<Edge[]>([]);
+  const edgesRef = useRef<Edge[]>(baseInitialEdges);
   const audioStartedRef = useRef(false);
 
   useEffect(() => {
@@ -592,7 +599,7 @@ function App() {
       name: 'Reset Canvas',
       hint: 'Canvas net',
       nodes: clonePatchNodes(baseInitialNodes),
-      edges: clonePatchEdges([]),
+      edges: clonePatchEdges(baseInitialEdges),
     });
   }, [applyPresetGraph]);
 
@@ -937,4 +944,3 @@ function App() {
 }
 
 export default App;
-
