@@ -85,20 +85,191 @@ const channels: Array<{
 const defaultPattern = (): Drum2Pattern => ({
   kick: Array.from({ length: 32 }, (_, index) => [0, 4, 8, 12].includes(index)),
   snare: Array.from({ length: 32 }, (_, index) => [4, 12].includes(index)),
-  hihat: Array.from({ length: 32 }, (_, index) => index < 16),
-  tom: Array.from({ length: 32 }, (_, index) => [7, 15].includes(index)),
-  fx: Array.from({ length: 32 }, (_, index) => [3, 11].includes(index)),
+  hihat: Array.from({ length: 32 }, (_, index) => [0, 2, 4, 6, 8, 10, 12, 14].includes(index)),
+  tom: Array.from({ length: 32 }, () => false),
+  fx: Array.from({ length: 32 }, () => false),
   cymbal: Array.from({ length: 32 }, (_, index) => [15].includes(index)),
 });
 
 const defaultVoices = (): Drum2Voices => ({
-  kick: { tone: 54, decay: 0.24, gain: 0.92, shape: 0.58 },
-  snare: { tone: 180, decay: 0.16, gain: 0.68, shape: 0.54 },
-  hihat: { tone: 9500, decay: 0.06, gain: 0.42, shape: 0.52 },
-  tom: { tone: 145, decay: 0.28, gain: 0.62, shape: 0.48 },
-  fx: { tone: 2200, decay: 0.22, gain: 0.46, shape: 0.66 },
-  cymbal: { tone: 7200, decay: 0.58, gain: 0.34, shape: 0.74 },
+  kick: { tone: 52, decay: 0.26, gain: 0.95, shape: 0.6 },
+  snare: { tone: 190, decay: 0.16, gain: 0.68, shape: 0.55 },
+  hihat: { tone: 9800, decay: 0.05, gain: 0.38, shape: 0.5 },
+  tom: { tone: 140, decay: 0.24, gain: 0.48, shape: 0.4 },
+  fx: { tone: 2100, decay: 0.18, gain: 0.26, shape: 0.42 },
+  cymbal: { tone: 7400, decay: 0.62, gain: 0.34, shape: 0.72 },
 });
+
+const createVoiceSteps = (activeSteps: number[]) =>
+  Array.from({ length: 32 }, (_, index) => activeSteps.includes(index));
+
+const createPresetPattern = (channelsByVoice: Partial<Record<Drum2VoiceId, number[]>>): Drum2Pattern => ({
+  kick: createVoiceSteps(channelsByVoice.kick ?? []),
+  snare: createVoiceSteps(channelsByVoice.snare ?? []),
+  hihat: createVoiceSteps(channelsByVoice.hihat ?? []),
+  tom: createVoiceSteps(channelsByVoice.tom ?? []),
+  fx: createVoiceSteps(channelsByVoice.fx ?? []),
+  cymbal: createVoiceSteps(channelsByVoice.cymbal ?? []),
+});
+
+const drum2Presets = [
+  {
+    name: 'Four Floor',
+    length: 16,
+    pattern: createPresetPattern({
+      kick: [0, 4, 8, 12],
+      snare: [4, 12],
+      hihat: [0, 2, 4, 6, 8, 10, 12, 14],
+      cymbal: [15],
+    }),
+    voices: {
+      kick: { tone: 52, decay: 0.26, gain: 0.95, shape: 0.6 },
+      snare: { tone: 190, decay: 0.16, gain: 0.68, shape: 0.55 },
+      hihat: { tone: 9800, decay: 0.05, gain: 0.38, shape: 0.5 },
+      tom: { tone: 140, decay: 0.24, gain: 0.48, shape: 0.4 },
+      fx: { tone: 2100, decay: 0.18, gain: 0.26, shape: 0.42 },
+      cymbal: { tone: 7400, decay: 0.62, gain: 0.34, shape: 0.72 },
+    },
+  },
+  {
+    name: 'Electro Snap',
+    length: 16,
+    pattern: createPresetPattern({
+      kick: [0, 3, 8, 10, 12],
+      snare: [4, 12],
+      hihat: [0, 2, 6, 8, 10, 14],
+      tom: [7, 15],
+      fx: [5, 13],
+      cymbal: [15],
+    }),
+    voices: {
+      kick: { tone: 58, decay: 0.21, gain: 0.9, shape: 0.64 },
+      snare: { tone: 240, decay: 0.14, gain: 0.74, shape: 0.68 },
+      hihat: { tone: 11000, decay: 0.04, gain: 0.36, shape: 0.62 },
+      tom: { tone: 155, decay: 0.3, gain: 0.5, shape: 0.5 },
+      fx: { tone: 2800, decay: 0.16, gain: 0.42, shape: 0.74 },
+      cymbal: { tone: 7800, decay: 0.5, gain: 0.26, shape: 0.7 },
+    },
+  },
+  {
+    name: 'Trap Dust',
+    length: 16,
+    pattern: createPresetPattern({
+      kick: [0, 7, 10, 14],
+      snare: [4, 12],
+      hihat: [0, 1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 14],
+      fx: [11, 15],
+      cymbal: [15],
+    }),
+    voices: {
+      kick: { tone: 46, decay: 0.32, gain: 0.98, shape: 0.52 },
+      snare: { tone: 170, decay: 0.18, gain: 0.6, shape: 0.46 },
+      hihat: { tone: 12000, decay: 0.03, gain: 0.33, shape: 0.76 },
+      tom: { tone: 135, decay: 0.2, gain: 0.34, shape: 0.38 },
+      fx: { tone: 3200, decay: 0.22, gain: 0.46, shape: 0.8 },
+      cymbal: { tone: 6800, decay: 0.44, gain: 0.22, shape: 0.64 },
+    },
+  },
+  {
+    name: 'House Roller',
+    length: 16,
+    pattern: createPresetPattern({
+      kick: [0, 4, 8, 12],
+      snare: [4, 12],
+      hihat: [0, 2, 4, 6, 8, 10, 11, 12, 14, 15],
+      tom: [11],
+      fx: [7],
+      cymbal: [15],
+    }),
+    voices: {
+      kick: { tone: 50, decay: 0.28, gain: 0.94, shape: 0.58 },
+      snare: { tone: 205, decay: 0.15, gain: 0.66, shape: 0.58 },
+      hihat: { tone: 10200, decay: 0.055, gain: 0.42, shape: 0.56 },
+      tom: { tone: 150, decay: 0.26, gain: 0.38, shape: 0.48 },
+      fx: { tone: 2400, decay: 0.16, gain: 0.24, shape: 0.52 },
+      cymbal: { tone: 7200, decay: 0.72, gain: 0.36, shape: 0.76 },
+    },
+  },
+  {
+    name: 'Tom Run',
+    length: 16,
+    pattern: createPresetPattern({
+      kick: [0, 8, 12],
+      snare: [4, 12],
+      hihat: [0, 2, 4, 6, 8, 10, 12, 14],
+      tom: [10, 11, 12, 13, 14, 15],
+      fx: [7, 15],
+      cymbal: [15],
+    }),
+    voices: {
+      kick: { tone: 56, decay: 0.22, gain: 0.86, shape: 0.54 },
+      snare: { tone: 190, decay: 0.14, gain: 0.62, shape: 0.5 },
+      hihat: { tone: 9000, decay: 0.05, gain: 0.34, shape: 0.46 },
+      tom: { tone: 170, decay: 0.36, gain: 0.72, shape: 0.66 },
+      fx: { tone: 1800, decay: 0.24, gain: 0.3, shape: 0.58 },
+      cymbal: { tone: 6600, decay: 0.48, gain: 0.24, shape: 0.62 },
+    },
+  },
+  {
+    name: 'Halfstep',
+    length: 8,
+    pattern: createPresetPattern({
+      kick: [0, 5],
+      snare: [4],
+      hihat: [0, 2, 4, 6],
+      fx: [7],
+      cymbal: [7],
+    }),
+    voices: {
+      kick: { tone: 44, decay: 0.34, gain: 1, shape: 0.5 },
+      snare: { tone: 165, decay: 0.2, gain: 0.64, shape: 0.44 },
+      hihat: { tone: 8600, decay: 0.07, gain: 0.36, shape: 0.4 },
+      tom: { tone: 128, decay: 0.22, gain: 0.2, shape: 0.34 },
+      fx: { tone: 1500, decay: 0.28, gain: 0.34, shape: 0.72 },
+      cymbal: { tone: 6200, decay: 0.7, gain: 0.28, shape: 0.68 },
+    },
+  },
+  {
+    name: 'Prog 24',
+    length: 24,
+    pattern: createPresetPattern({
+      kick: [0, 4, 8, 12, 16, 20],
+      snare: [4, 12, 20],
+      hihat: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
+      tom: [15, 19, 23],
+      fx: [11, 23],
+      cymbal: [23],
+    }),
+    voices: {
+      kick: { tone: 53, decay: 0.25, gain: 0.92, shape: 0.57 },
+      snare: { tone: 210, decay: 0.16, gain: 0.67, shape: 0.6 },
+      hihat: { tone: 9800, decay: 0.05, gain: 0.39, shape: 0.52 },
+      tom: { tone: 162, decay: 0.34, gain: 0.56, shape: 0.58 },
+      fx: { tone: 2600, decay: 0.2, gain: 0.32, shape: 0.62 },
+      cymbal: { tone: 7600, decay: 0.76, gain: 0.32, shape: 0.74 },
+    },
+  },
+  {
+    name: 'Jungle 32',
+    length: 32,
+    pattern: createPresetPattern({
+      kick: [0, 6, 10, 16, 19, 24, 28],
+      snare: [4, 12, 20, 28],
+      hihat: [0, 2, 3, 6, 8, 10, 11, 14, 16, 18, 19, 22, 24, 26, 27, 30],
+      tom: [7, 15, 23, 31],
+      fx: [5, 13, 21, 29],
+      cymbal: [15, 31],
+    }),
+    voices: {
+      kick: { tone: 57, decay: 0.2, gain: 0.88, shape: 0.7 },
+      snare: { tone: 250, decay: 0.12, gain: 0.78, shape: 0.72 },
+      hihat: { tone: 11800, decay: 0.035, gain: 0.34, shape: 0.78 },
+      tom: { tone: 175, decay: 0.26, gain: 0.48, shape: 0.55 },
+      fx: { tone: 3400, decay: 0.18, gain: 0.4, shape: 0.84 },
+      cymbal: { tone: 8200, decay: 0.56, gain: 0.28, shape: 0.8 },
+    },
+  },
+] as const;
 
 const normalizePattern = (pattern?: Drum2Pattern): Drum2Pattern => {
   const base = pattern ?? defaultPattern();
@@ -137,6 +308,7 @@ interface Drum2StepEventDetail {
 const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const [transportBpm, setTransportBpm] = useState(data.bpm ?? 120);
   const [currentStep, setCurrentStep] = useState(0);
+  const [selectedPreset, setSelectedPreset] = useState(0);
   const pattern = normalizePattern(data.drum2Pattern);
   const voices = normalizeVoices(data.drum2Voices);
   const length = Math.max(4, Math.min(32, Math.round(data.drum2Length ?? 16)));
@@ -178,6 +350,19 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
       ...patch,
     };
     onDataChange(id, { drum2Voices: nextVoices });
+  };
+
+  const applyPreset = (presetIndex: number) => {
+    const preset = drum2Presets[presetIndex];
+    if (!preset) {
+      return;
+    }
+
+    onDataChange(id, {
+      drum2Length: preset.length,
+      drum2Pattern: normalizePattern(preset.pattern),
+      drum2Voices: normalizeVoices(preset.voices),
+    });
   };
 
   return (
@@ -239,6 +424,29 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
             }`}
           />
         ))}
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto] gap-2 items-end mb-4">
+        <div>
+          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Pattern Bank</label>
+          <select
+            value={selectedPreset}
+            onChange={(event) => setSelectedPreset(Number(event.target.value))}
+            className="bg-slate-950/90 text-white text-xs p-2 rounded-xl border border-white/10 w-full outline-none focus:border-fuchsia-300"
+          >
+            {drum2Presets.map((preset, index) => (
+              <option key={preset.name} value={index}>
+                {index + 1}. {preset.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={() => applyPreset(selectedPreset)}
+          className="px-4 py-2 rounded-xl bg-fuchsia-300 text-black text-[10px] font-black uppercase tracking-[0.18em] hover:bg-fuchsia-200 transition-colors"
+        >
+          Load Preset
+        </button>
       </div>
 
       <div className="space-y-3">

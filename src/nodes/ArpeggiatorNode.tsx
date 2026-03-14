@@ -15,7 +15,18 @@ const makeSteps = (entries: Array<[NoteName, number, boolean?]>): ArpStep[] => {
   }));
 };
 
-const arpPresets = [
+interface ArpPreset {
+  name: string;
+  steps: ArpStep[];
+  syncDivision?: SyncDivision;
+}
+
+const arpPresets: ArpPreset[] = [
+  {
+    name: '4chords',
+    syncDivision: '1/1' as SyncDivision,
+    steps: makeSteps([['C', 3], ['G', 3], ['A', 3], ['F', 3], ['C', 3], ['G', 3], ['A', 3], ['F', 3]]),
+  },
   { name: 'Neon Minor', steps: makeSteps([['C', 4], ['D#', 4], ['G', 4], ['A#', 4], ['C', 5], ['A#', 4], ['G', 4], ['D#', 4]]) },
   { name: 'Major Lift', steps: makeSteps([['C', 4], ['E', 4], ['G', 4], ['B', 4], ['C', 5], ['B', 4], ['G', 4], ['E', 4]]) },
   { name: 'Dark Pulse', steps: makeSteps([['A', 3], ['C', 4], ['E', 4], ['G', 4], ['A', 4], ['G', 4], ['E', 4], ['C', 4]]) },
@@ -32,7 +43,7 @@ const arpPresets = [
   { name: 'Wide Gate', steps: makeSteps([['C', 4], ['E', 4], ['G', 4], ['B', 4], ['C', 5], ['B', 4, false], ['G', 4], ['E', 4, false]]) },
   { name: 'Broken Minor', steps: makeSteps([['D', 4], ['F', 4], ['A', 4], ['C', 5], ['A', 4], ['F', 4], ['D', 4], ['C', 4]]) },
   { name: 'Spark Line', steps: makeSteps([['B', 4], ['D#', 5], ['F#', 5], ['A#', 5], ['B', 5], ['A#', 5], ['F#', 5], ['D#', 5]]) },
-] as const;
+];
 
 const defaultSteps = (): ArpStep[] => {
   return arpPresets[1].steps.map((step) => ({ ...step }));
@@ -92,6 +103,7 @@ const ArpeggiatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
 
     onDataChange(id, {
       arpSteps: preset.steps.map((step) => ({ ...step })),
+      ...(preset.syncDivision ? { syncDivision: preset.syncDivision } : {}),
     });
   };
 

@@ -678,19 +678,19 @@ export const DRUM2_VOICE_IDS: Drum2VoiceId[] = ['kick', 'snare', 'hihat', 'tom',
 export const defaultDrum2Pattern = (): Drum2Pattern => ({
   kick: Array.from({ length: 32 }, (_, index) => [0, 4, 8, 12].includes(index)),
   snare: Array.from({ length: 32 }, (_, index) => [4, 12].includes(index)),
-  hihat: Array.from({ length: 32 }, (_, index) => index < 16),
-  tom: Array.from({ length: 32 }, (_, index) => [7, 15].includes(index)),
-  fx: Array.from({ length: 32 }, (_, index) => [3, 11].includes(index)),
+  hihat: Array.from({ length: 32 }, (_, index) => [0, 2, 4, 6, 8, 10, 12, 14].includes(index)),
+  tom: Array.from({ length: 32 }, () => false),
+  fx: Array.from({ length: 32 }, () => false),
   cymbal: Array.from({ length: 32 }, (_, index) => [15].includes(index)),
 });
 
 export const defaultDrum2Voices = (): Drum2Voices => ({
-  kick: { tone: 54, decay: 0.24, gain: 0.92, shape: 0.58 },
-  snare: { tone: 180, decay: 0.16, gain: 0.68, shape: 0.54 },
-  hihat: { tone: 9500, decay: 0.06, gain: 0.42, shape: 0.52 },
-  tom: { tone: 145, decay: 0.28, gain: 0.62, shape: 0.48 },
-  fx: { tone: 2200, decay: 0.22, gain: 0.46, shape: 0.66 },
-  cymbal: { tone: 7200, decay: 0.58, gain: 0.34, shape: 0.74 },
+  kick: { tone: 52, decay: 0.26, gain: 0.95, shape: 0.6 },
+  snare: { tone: 190, decay: 0.16, gain: 0.68, shape: 0.55 },
+  hihat: { tone: 9800, decay: 0.05, gain: 0.38, shape: 0.5 },
+  tom: { tone: 140, decay: 0.24, gain: 0.48, shape: 0.4 },
+  fx: { tone: 2100, decay: 0.18, gain: 0.26, shape: 0.42 },
+  cymbal: { tone: 7400, decay: 0.62, gain: 0.34, shape: 0.72 },
 });
 
 export const NOTE_OFFSETS: Record<NoteName, number> = {
