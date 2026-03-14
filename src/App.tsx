@@ -2542,7 +2542,7 @@ function App() {
         </defs>
       </svg>
 
-      <header className="px-6 py-4 bg-black/40 backdrop-blur-xl border-b border-white/5 flex items-center justify-between z-50 gap-4">
+      <header className="px-4 sm:px-6 py-4 bg-black/40 backdrop-blur-xl border-b border-white/5 flex flex-wrap items-center justify-between z-50 gap-4">
         <div className="flex items-center gap-3 group cursor-pointer flex-shrink-0" onClick={testSound}>
           <div className="bg-gradient-to-br from-sky-400 to-blue-600 p-2.5 rounded-xl shadow-lg shadow-sky-500/20 group-hover:scale-110 transition-transform">
             <Zap className="text-white w-5 h-5 fill-white" />
@@ -2552,30 +2552,7 @@ function App() {
           </h1>
         </div>
 
-        <div className="flex-1 mx-2 min-w-0 bg-white/5 p-1.5 rounded-2xl border border-white/5 shadow-inner">
-          <div className="flex flex-wrap items-center gap-1.5 mb-2">
-            {componentTabs.map((tab) => {
-              const isActive = activeComponentTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setActiveComponentTab(tab.id);
-                  }}
-                  className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.18em] border transition-all ${
-                    isActive
-                      ? 'bg-white text-black border-white shadow-lg'
-                      : 'bg-white/5 text-white/55 border-white/10 hover:bg-white/10 hover:text-white'
-                  }`}
-                  title={tab.hint}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-
+        <div className="flex-1 min-w-0 bg-white/5 p-3 rounded-2xl border border-white/5 shadow-inner">
           <div className="flex flex-wrap items-center gap-2 mb-3 px-1">
             <div className="text-[9px] uppercase tracking-[0.22em] text-white/40">Patch Presets</div>
             <select
@@ -2604,7 +2581,7 @@ function App() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 mb-3 px-1">
+          <div className="flex flex-wrap items-center gap-2 px-1">
             <div className="text-[9px] uppercase tracking-[0.22em] text-white/40">My Patches</div>
             <input
               type="text"
@@ -2662,20 +2639,29 @@ function App() {
             </div>
           </div>
 
-          <nav className="flex flex-wrap items-center gap-1.5 min-w-0">
-            {visibleAddNodeButtons.map((button) => (
-              <button
-                key={button.type}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  addNode(button.type);
-                }}
-                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-tighter border ${button.color} hover:bg-white/10 hover:scale-105 transition-all active:scale-95 flex-shrink-0 whitespace-nowrap shadow-lg`}
-              >
-                + {button.label}
-              </button>
-            ))}
-          </nav>
+          <div className="flex flex-wrap items-center gap-1.5 px-1 pt-3 mt-3 border-t border-white/10">
+            <div className="text-[9px] uppercase tracking-[0.22em] text-white/40 mr-2">Families</div>
+            {componentTabs.map((tab) => {
+              const isActive = activeComponentTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setActiveComponentTab(tab.id);
+                  }}
+                  className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.18em] border transition-all ${
+                    isActive
+                      ? 'bg-white text-black border-white shadow-lg'
+                      : 'bg-white/5 text-white/55 border-white/10 hover:bg-white/10 hover:text-white'
+                  }`}
+                  title={tab.hint}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex items-center gap-4 flex-shrink-0">
@@ -2740,46 +2726,71 @@ function App() {
         </div>
       </header>
 
-      <div className="flex-1 relative">
-        {!audioStarted && (
-          <div className="absolute inset-0 bg-slate-950/80 z-40 backdrop-blur-sm flex items-center justify-center">
-            <div className="text-center">
-              <Zap className="w-16 h-16 text-sky-400 mx-auto mb-4 animate-pulse" />
-              <h2 className="text-2xl font-bold mb-2">Benvingut al Manipulador de So</h2>
-              <p className="text-slate-400 max-w-md mx-auto">
-                Fes clic al boto superior per activar l'audio i comencar a crear el teu sintetitzador modular.
-              </p>
+      <div className="flex-1 min-h-0 flex">
+        <aside className="w-64 sm:w-72 lg:w-80 shrink-0 border-r border-white/10 bg-black/35 backdrop-blur-xl p-4 flex flex-col gap-4 overflow-y-auto">
+          <section className="bg-white/5 rounded-2xl border border-white/10 p-3 flex flex-col gap-3 min-h-[inherit]">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-[10px] uppercase tracking-[0.24em] text-white/40">Components</div>
+              <div className="text-[10px] text-white/30">{visibleAddNodeButtons.length}</div>
+            </div>
+            <nav className="flex flex-col gap-2 min-w-0">
+              {visibleAddNodeButtons.map((button) => (
+                <button
+                  key={button.type}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    addNode(button.type);
+                  }}
+                  className={`w-full px-4 py-2.5 rounded-xl text-left text-[11px] font-black uppercase tracking-tighter border ${button.color} hover:bg-white/10 hover:translate-x-1 transition-all active:scale-[0.98] shadow-lg`}
+                >
+                  + {button.label}
+                </button>
+              ))}
+            </nav>
+          </section>
+        </aside>
+
+        <main className="flex-1 min-w-0 relative">
+          {!audioStarted && (
+            <div className="absolute inset-0 bg-slate-950/80 z-40 backdrop-blur-sm flex items-center justify-center">
+              <div className="text-center px-6">
+                <Zap className="w-16 h-16 text-sky-400 mx-auto mb-4 animate-pulse" />
+                <h2 className="text-2xl font-bold mb-2">Benvingut al Manipulador de So</h2>
+                <p className="text-slate-400 max-w-md mx-auto">
+                  Fes clic al boto superior per activar l'audio i comencar a crear el teu sintetitzador modular.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodesDelete={onNodesDelete}
+            onEdgesDelete={onEdgesDelete}
+            onEdgeClick={onEdgeClick}
+            nodeTypes={nodeTypes}
+            fitView
+            className="bg-black"
+          >
+            <Background color="#111" gap={20} />
+            <Controls className="glass-panel !fill-white !bg-transparent !border-white/10" />
+          </ReactFlow>
+
+          <div className="absolute bottom-4 left-4 z-50 pointer-events-none">
+            <div className="bg-slate-900/80 backdrop-blur-md p-3 border border-slate-800 rounded-lg text-[10px] text-slate-400 uppercase tracking-widest">
+              <p className="mb-1">Comandes:</p>
+              <ul className="list-none p-0 m-0">
+                <li>- Arrossega per moure moduls</li>
+                <li>- Clic sobre un cable per esborrar-lo</li>
+                <li>- Tecla Del per esborrar modul/cable</li>
+              </ul>
             </div>
           </div>
-        )}
-
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodesDelete={onNodesDelete}
-          onEdgesDelete={onEdgesDelete}
-          onEdgeClick={onEdgeClick}
-          nodeTypes={nodeTypes}
-          fitView
-          className="bg-black"
-        >
-          <Background color="#111" gap={20} />
-          <Controls className="glass-panel !fill-white !bg-transparent !border-white/10" />
-        </ReactFlow>
-
-        <div className="absolute bottom-4 left-4 z-50 pointer-events-none">
-          <div className="bg-slate-900/80 backdrop-blur-md p-3 border border-slate-800 rounded-lg text-[10px] text-slate-400 uppercase tracking-widest">
-            <p className="mb-1">Comandes:</p>
-            <ul className="list-none p-0 m-0">
-              <li>- Arrossega per moure moduls</li>
-              <li>- Clic sobre un cable per esborrar-lo</li>
-              <li>- Tecla Del per esborrar modul/cable</li>
-            </ul>
-          </div>
-        </div>
+        </main>
       </div>
     </div>
   );
