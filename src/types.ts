@@ -133,6 +133,7 @@ export interface SoundNodeData {
   detune?: number;
   blend?: number;
   tilt?: number;
+  roomSize?: number;
   morph?: number;
   sceneA?: ShrineScene;
   sceneB?: ShrineScene;

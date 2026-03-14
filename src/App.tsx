@@ -93,6 +93,7 @@ import {
   createAudioNode,
   disconnectNodes,
   getAudioContext,
+  getDestinationInput,
   getTransportState,
   removeNode,
   setTransportBpm,
@@ -208,6 +209,10 @@ const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
   reverb: {
     label: 'Reverb',
     decay: 3,
+    roomSize: 0.55,
+    delayTime: 0.02,
+    tone: 4800,
+    mix: 0.55,
   },
   compressor: {
     label: 'Compressor',
@@ -2478,7 +2483,7 @@ function App() {
       const gain = ctx.createGain();
 
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(getDestinationInput());
       gain.gain.setValueAtTime(0, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.1);
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);

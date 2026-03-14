@@ -1,4 +1,4 @@
-import { audioContext, arpeggiatorTargets, nodeConfigs, nodes } from './runtime';
+import { audioContext, arpeggiatorTargets, getDestinationInput, nodeConfigs, nodes } from './runtime';
 
 const PITCH_TARGET_TYPES = [
   'oscillator',
@@ -20,7 +20,7 @@ const resolveTarget = (
   }
 
   if (targetId === 'destination') {
-    return audioContext.destination;
+    return getDestinationInput();
   }
 
   if (targetHandleId?.startsWith('ch')) {

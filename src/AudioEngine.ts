@@ -27,11 +27,14 @@ import { updateAudioNodeParam } from './audio-engine/update-node-param';
 import {
   nodes,
   analysers,
+  reverbs,
   stereoAnalysers,
   nodeConfigs,
   transportState,
   dispatchTransportEvent,
   emitTransportState,
+  getDestinationAnalyser,
+  getDestinationInput,
   getNoiseBuffer,
   buildDistortionCurve,
   buildImpulseResponse,
@@ -119,10 +122,42 @@ export const createDistortion = (id: string) => {
 
 export const createReverb = (id: string) => {
   const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const preDelay = ctx.createDelay(0.4);
+  const tone = ctx.createBiquadFilter();
   const convolver = ctx.createConvolver();
-  convolver.buffer = buildImpulseResponse(ctx, 2, 3);
-  nodes.set(id, convolver);
-  return convolver;
+
+  dry.gain.setValueAtTime(0.45, ctx.currentTime);
+  wet.gain.setValueAtTime(0.55, ctx.currentTime);
+  preDelay.delayTime.setValueAtTime(0.02, ctx.currentTime);
+  tone.type = 'lowpass';
+  tone.frequency.setValueAtTime(4800, ctx.currentTime);
+  tone.Q.setValueAtTime(0.2, ctx.currentTime);
+  convolver.buffer = buildImpulseResponse(ctx, 2.8, 3);
+
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(preDelay);
+  preDelay.connect(tone);
+  tone.connect(convolver);
+  convolver.connect(wet);
+  wet.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  reverbs.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    preDelay,
+    tone,
+    convolver,
+  });
+  return input;
 };
 
 export const createMixer = (id: string) => {
@@ -295,8 +330,10 @@ export const getStereoAnalysers = (id: string) => {
 };
 
 export const getDestination = () => {
-  return getAudioContext().destination;
+  return getDestinationInput();
 };
+
+export { getDestinationAnalyser, getDestinationInput };
 
 export const connectNodes = connectAudioGraphNodes;
 

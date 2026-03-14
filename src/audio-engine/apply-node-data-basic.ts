@@ -1,7 +1,15 @@
 import type { EditableAudioNodeType, SoundNodeData } from '../types';
 import type { AudioParamName, AudioParamValue } from './runtime';
 
-import { nodeConfigs, transportState, getSyncedDurationSeconds, getSyncedLfoFrequency } from './runtime';
+import {
+  nodeConfigs,
+  reverbs,
+  transportState,
+  getAudioContext,
+  getSyncedDurationSeconds,
+  getSyncedLfoFrequency,
+  buildImpulseResponse,
+} from './runtime';
 
 type UpdateNodeParam = (
   id: string,
@@ -53,7 +61,30 @@ export const applyBasicNodeData = (
       updateIfDefined(updateNodeParam, id, 'distortion', data.distortion);
       return true;
     case 'reverb':
-      updateIfDefined(updateNodeParam, id, 'decay', data.decay);
+      {
+        const reverb = reverbs.get(id);
+        if (!reverb) {
+          updateIfDefined(updateNodeParam, id, 'decay', data.decay);
+          return true;
+        }
+
+        const ctx = getAudioContext();
+        const roomSize = Math.max(0.2, Math.min(1, data.roomSize ?? 0.55));
+        const decay = Math.max(0.1, data.decay ?? 3);
+        const preDelay = Math.max(0, Math.min(0.4, data.delayTime ?? 0.02));
+        const tone = Math.max(400, Math.min(12000, data.tone ?? 4800));
+        const mix = Math.max(0, Math.min(1, data.mix ?? 0.55));
+
+        reverb.preDelay.delayTime.setTargetAtTime(preDelay, ctx.currentTime, 0.03);
+        reverb.tone.frequency.setTargetAtTime(tone, ctx.currentTime, 0.03);
+        reverb.dry.gain.setTargetAtTime(1 - mix, ctx.currentTime, 0.03);
+        reverb.wet.gain.setTargetAtTime(mix, ctx.currentTime, 0.03);
+        reverb.convolver.buffer = buildImpulseResponse(
+          ctx,
+          0.9 + roomSize * 5.1,
+          decay,
+        );
+      }
       return true;
     case 'panner':
       updateIfDefined(updateNodeParam, id, 'pan', data.pan);

@@ -11,6 +11,8 @@ import type {
 } from '../types';
 
 export let audioContext: AudioContext | null = null;
+let destinationInput: GainNode | null = null;
+let destinationAnalyser: AnalyserNode | null = null;
 
 export const nodes = new Map<string, AudioNode>();
 export const analysers = new Map<string, AnalyserNode>();
@@ -18,6 +20,7 @@ export const drumMachines = new Map<string, DrumMachineState>();
 export const arpeggiators = new Map<string, ArpeggiatorState>();
 export const arpeggiatorTargets = new Map<string, Set<string>>();
 export const equalizers = new Map<string, EqualizerState>();
+export const reverbs = new Map<string, ReverbState>();
 export const phasers = new Map<string, PhaserState>();
 export const compressors = new Map<string, CompressorState>();
 export const choruses = new Map<string, ChorusState>();
@@ -99,6 +102,16 @@ export interface EqualizerState {
   input: GainNode;
   output: GainNode;
   filters: BiquadFilterNode[];
+}
+
+export interface ReverbState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  preDelay: DelayNode;
+  tone: BiquadFilterNode;
+  convolver: ConvolverNode;
 }
 
 export interface PhaserState {
@@ -1045,6 +1058,10 @@ export const triggerChordSequenceVoice = (
 
 export const setAudioContext = (nextAudioContext: AudioContext | null) => {
   audioContext = nextAudioContext;
+  if (nextAudioContext === null) {
+    destinationInput = null;
+    destinationAnalyser = null;
+  }
 };
 
 export const clearNoiseBufferCache = () => {
@@ -1061,6 +1078,26 @@ export const getAudioContext = () => {
   }
 
   return audioContext;
+};
+
+export const getDestinationInput = () => {
+  const ctx = getAudioContext();
+
+  if (!destinationInput || !destinationAnalyser) {
+    destinationInput = ctx.createGain();
+    destinationAnalyser = ctx.createAnalyser();
+    destinationAnalyser.fftSize = 512;
+    destinationAnalyser.smoothingTimeConstant = 0.82;
+    destinationInput.connect(ctx.destination);
+    destinationInput.connect(destinationAnalyser);
+  }
+
+  return destinationInput;
+};
+
+export const getDestinationAnalyser = () => {
+  void getDestinationInput();
+  return destinationAnalyser;
 };
 
 export const getAudioContextState = () => {
