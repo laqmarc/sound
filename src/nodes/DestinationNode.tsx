@@ -76,7 +76,7 @@ const DestinationNode = () => {
             {isActive ? "Sortida viva i fent llum" : "Motor aturat"}
           </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-black/25 px-2 py-1 text-[10px] font-mono text-cyan-200">
+        <div className="min-w-[70px] rounded-xl border border-white/10 bg-black/25 px-2 py-1 text-[10px] font-mono text-cyan-200">
           {db.toFixed(1)} dB
         </div>
       </div>
