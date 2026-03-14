@@ -3,6 +3,7 @@ import type { EditableAudioNodeType } from '../types';
 import {
   nodes,
   drumMachines,
+  drum2s,
   arpeggiators,
   arpeggiatorTargets,
   arp2s,
@@ -34,6 +35,8 @@ import {
   hiHatSynths,
   chordGenerators,
   defaultDrumPattern,
+  defaultDrum2Pattern,
+  defaultDrum2Voices,
   DEFAULT_KICK_STEPS,
   DEFAULT_SNARE_STEPS,
   DEFAULT_HIHAT_STEPS,
@@ -54,6 +57,24 @@ const createDrumMachine = (id: string) => {
     id,
     output,
     pattern: defaultDrumPattern(),
+  });
+
+  return output;
+};
+
+const createDrum2 = (id: string) => {
+  const ctx = getAudioContext();
+  const output = ctx.createGain();
+  output.gain.setValueAtTime(0.92, ctx.currentTime);
+  nodes.set(id, output);
+
+  drum2s.set(id, {
+    id,
+    output,
+    pattern: defaultDrum2Pattern(),
+    length: 16,
+    stepIndex: 0,
+    voices: defaultDrum2Voices(),
   });
 
   return output;
@@ -1001,6 +1022,9 @@ export const createMusicalAudioNode = (type: EditableAudioNodeType, id: string) 
       return true;
     case 'drumMachine':
       createDrumMachine(id);
+      return true;
+    case 'drum2':
+      createDrum2(id);
       return true;
     case 'arpeggiator':
       createArpeggiator(id);

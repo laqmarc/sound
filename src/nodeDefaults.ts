@@ -1,6 +1,8 @@
 import type {
   ArpStep,
   DrumPattern,
+  Drum2Pattern,
+  Drum2Voices,
   EditableAudioNodeType,
   SoundNodeData,
 } from './types';
@@ -9,6 +11,24 @@ const defaultDrumPattern = (): DrumPattern => ({
   kick: [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false],
   snare: [false, false, true, false, false, false, true, false, false, false, true, false, false, false, true, false],
   hihat: [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true],
+});
+
+const defaultDrum2Pattern = (): Drum2Pattern => ({
+  kick: Array.from({ length: 32 }, (_, index) => [0, 4, 8, 12].includes(index)),
+  snare: Array.from({ length: 32 }, (_, index) => [4, 12].includes(index)),
+  hihat: Array.from({ length: 32 }, (_, index) => index < 16),
+  tom: Array.from({ length: 32 }, (_, index) => [7, 15].includes(index)),
+  fx: Array.from({ length: 32 }, (_, index) => [3, 11].includes(index)),
+  cymbal: Array.from({ length: 32 }, (_, index) => [15].includes(index)),
+});
+
+const defaultDrum2Voices = (): Drum2Voices => ({
+  kick: { tone: 54, decay: 0.24, gain: 0.92, shape: 0.58 },
+  snare: { tone: 180, decay: 0.16, gain: 0.68, shape: 0.54 },
+  hihat: { tone: 9500, decay: 0.06, gain: 0.42, shape: 0.52 },
+  tom: { tone: 145, decay: 0.28, gain: 0.62, shape: 0.48 },
+  fx: { tone: 2200, decay: 0.22, gain: 0.46, shape: 0.66 },
+  cymbal: { tone: 7200, decay: 0.58, gain: 0.34, shape: 0.74 },
 });
 
 const defaultArpSteps = (): ArpStep[] => [
@@ -459,6 +479,13 @@ export const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     label: 'Drum Machine',
     bpm: 120,
     drumPattern: defaultDrumPattern(),
+  },
+  drum2: {
+    label: 'DRUM2',
+    bpm: 120,
+    drum2Length: 16,
+    drum2Pattern: defaultDrum2Pattern(),
+    drum2Voices: defaultDrum2Voices(),
   },
   arpeggiator: {
     label: 'Arpeggiator',

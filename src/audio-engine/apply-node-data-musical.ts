@@ -14,10 +14,13 @@ import {
   cloneArpSteps,
   cloneArp2Steps,
   cloneDrumPattern,
+  cloneDrum2Pattern,
+  cloneDrum2Voices,
   cloneStepPattern,
   cvOffsets,
   dronePads,
   drumMachines,
+  drum2s,
   dualOscs,
   envelopeFollowers,
   fmSynths,
@@ -42,6 +45,7 @@ import {
 interface ApplyMusicalNodeDataOptions {
   setTransportBpm: (bpm: number) => void;
   updateNodeParam: (id: string, param: AudioParamName, value: AudioParamValue) => void;
+  changedData?: Partial<SoundNodeData>;
 }
 
 export const applyMusicalNodeData = (
@@ -145,7 +149,22 @@ export const applyMusicalNodeData = (
       }
 
       drumMachine.pattern = cloneDrumPattern(data.drumPattern);
-      if (data.bpm !== undefined) {
+      if (options.changedData?.bpm !== undefined && data.bpm !== undefined) {
+        options.setTransportBpm(data.bpm);
+      }
+      return true;
+    }
+    case 'drum2': {
+      const drum2 = drum2s.get(id);
+      if (!drum2) {
+        return true;
+      }
+
+      drum2.pattern = cloneDrum2Pattern(data.drum2Pattern);
+      drum2.length = Math.max(4, Math.min(32, Math.round(data.drum2Length ?? 16)));
+      drum2.voices = cloneDrum2Voices(data.drum2Voices);
+      drum2.stepIndex %= drum2.length;
+      if (options.changedData?.bpm !== undefined && data.bpm !== undefined) {
         options.setTransportBpm(data.bpm);
       }
       return true;

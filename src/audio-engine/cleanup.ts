@@ -21,6 +21,7 @@ import {
   cvOffsets,
   dronePads,
   drumMachines,
+  drum2s,
   dualOscs,
   envelopeFollowers,
   equalizers,
@@ -69,6 +70,7 @@ import {
 
 export const destroyNodeById = (id: string) => {
   drumMachines.delete(id);
+  drum2s.delete(id);
   arpeggiators.delete(id);
   arpeggiatorTargets.delete(id);
   arpeggiatorTargets.forEach((targets) => targets.delete(id));
@@ -916,6 +918,7 @@ export const destroyNodeById = (id: string) => {
 export const clearAudioEngineStores = () => {
   analysers.clear();
   drumMachines.clear();
+  drum2s.clear();
   arpeggiators.clear();
   arpeggiatorTargets.clear();
   arp2s.clear();

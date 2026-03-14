@@ -293,7 +293,7 @@ export const createAudioNode = (
   data: SoundNodeData = {},
 ) => {
   if (createMusicalAudioNode(type, id) || createFxAudioNode(type, id)) {
-    applyAudioNodeData(type, id, data);
+    applyAudioNodeData(type, id, data, data);
     return;
   }
 
@@ -340,13 +340,14 @@ export const createAudioNode = (
       break;
   }
 
-  applyAudioNodeData(type, id, data);
+  applyAudioNodeData(type, id, data, data);
 };
 
 export const applyAudioNodeData = (
   type: EditableAudioNodeType,
   id: string,
   data: SoundNodeData,
+  changedData: Partial<SoundNodeData> = data,
 ) => {
   nodeConfigs.set(id, {
     type,
@@ -357,6 +358,7 @@ export const applyAudioNodeData = (
     applyMusicalNodeData(type, id, data, {
       setTransportBpm,
       updateNodeParam,
+      changedData,
     })
   ) {
     return;

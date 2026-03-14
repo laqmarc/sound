@@ -4,6 +4,9 @@ import type {
   ArpScale,
   ChordType,
   DrumPattern,
+  Drum2Pattern,
+  Drum2VoiceId,
+  Drum2Voices,
   EditableAudioNodeType,
   NoteName,
   SoundNodeData,
@@ -17,6 +20,7 @@ let destinationAnalyser: AnalyserNode | null = null;
 export const nodes = new Map<string, AudioNode>();
 export const analysers = new Map<string, AnalyserNode>();
 export const drumMachines = new Map<string, DrumMachineState>();
+export const drum2s = new Map<string, Drum2State>();
 export const arpeggiators = new Map<string, ArpeggiatorState>();
 export const arpeggiatorTargets = new Map<string, Set<string>>();
 export const arp2s = new Map<string, Arp2State>();
@@ -94,6 +98,15 @@ export interface DrumMachineState {
   id: string;
   output: GainNode;
   pattern: DrumPattern;
+}
+
+export interface Drum2State {
+  id: string;
+  output: GainNode;
+  pattern: Drum2Pattern;
+  length: number;
+  stepIndex: number;
+  voices: Drum2Voices;
 }
 
 export interface NodeConfig {
@@ -660,6 +673,26 @@ export const defaultDrumPattern = (): DrumPattern => ({
   hihat: [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true],
 });
 
+export const DRUM2_VOICE_IDS: Drum2VoiceId[] = ['kick', 'snare', 'hihat', 'tom', 'fx', 'cymbal'];
+
+export const defaultDrum2Pattern = (): Drum2Pattern => ({
+  kick: Array.from({ length: 32 }, (_, index) => [0, 4, 8, 12].includes(index)),
+  snare: Array.from({ length: 32 }, (_, index) => [4, 12].includes(index)),
+  hihat: Array.from({ length: 32 }, (_, index) => index < 16),
+  tom: Array.from({ length: 32 }, (_, index) => [7, 15].includes(index)),
+  fx: Array.from({ length: 32 }, (_, index) => [3, 11].includes(index)),
+  cymbal: Array.from({ length: 32 }, (_, index) => [15].includes(index)),
+});
+
+export const defaultDrum2Voices = (): Drum2Voices => ({
+  kick: { tone: 54, decay: 0.24, gain: 0.92, shape: 0.58 },
+  snare: { tone: 180, decay: 0.16, gain: 0.68, shape: 0.54 },
+  hihat: { tone: 9500, decay: 0.06, gain: 0.42, shape: 0.52 },
+  tom: { tone: 145, decay: 0.28, gain: 0.62, shape: 0.48 },
+  fx: { tone: 2200, decay: 0.22, gain: 0.46, shape: 0.66 },
+  cymbal: { tone: 7200, decay: 0.58, gain: 0.34, shape: 0.74 },
+});
+
 export const NOTE_OFFSETS: Record<NoteName, number> = {
   C: 0,
   'C#': 1,
@@ -717,6 +750,34 @@ export const cloneDrumPattern = (pattern?: DrumPattern): DrumPattern => {
     snare: Array.from({ length: 16 }, (_, index) => base.snare[index] ?? false),
     hihat: Array.from({ length: 16 }, (_, index) => base.hihat[index] ?? false),
   };
+};
+
+export const cloneDrum2Pattern = (pattern?: Drum2Pattern): Drum2Pattern => {
+  const base = pattern ?? defaultDrum2Pattern();
+
+  return {
+    kick: Array.from({ length: 32 }, (_, index) => base.kick[index] ?? false),
+    snare: Array.from({ length: 32 }, (_, index) => base.snare[index] ?? false),
+    hihat: Array.from({ length: 32 }, (_, index) => base.hihat[index] ?? false),
+    tom: Array.from({ length: 32 }, (_, index) => base.tom[index] ?? false),
+    fx: Array.from({ length: 32 }, (_, index) => base.fx[index] ?? false),
+    cymbal: Array.from({ length: 32 }, (_, index) => base.cymbal[index] ?? false),
+  };
+};
+
+export const cloneDrum2Voices = (voices?: Partial<Drum2Voices>): Drum2Voices => {
+  const base = defaultDrum2Voices();
+
+  return DRUM2_VOICE_IDS.reduce<Drum2Voices>((accumulator, voiceId) => {
+    const nextVoice = voices?.[voiceId];
+    accumulator[voiceId] = {
+      tone: nextVoice?.tone ?? base[voiceId].tone,
+      decay: nextVoice?.decay ?? base[voiceId].decay,
+      gain: nextVoice?.gain ?? base[voiceId].gain,
+      shape: nextVoice?.shape ?? base[voiceId].shape,
+    };
+    return accumulator;
+  }, {} as Drum2Voices);
 };
 
 export const defaultArpSteps = (): ArpStep[] => [
@@ -1071,6 +1132,132 @@ export const triggerHiHatVoice = (
 
   noise.start(startTime);
   noise.stop(startTime + Math.max(0.03, decay + 0.02));
+};
+
+export const triggerTomVoice = (
+  ctx: AudioContext,
+  destination: AudioNode,
+  toneFrequency: number,
+  decay: number,
+  level: number,
+  shape: number,
+  startTime = ctx.currentTime,
+) => {
+  const oscillator = ctx.createOscillator();
+  const body = ctx.createOscillator();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+
+  oscillator.type = 'sine';
+  body.type = 'triangle';
+  oscillator.frequency.setValueAtTime(Math.max(70, toneFrequency * (1.5 + shape * 0.9)), startTime);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(40, toneFrequency), startTime + Math.max(0.06, decay));
+  body.frequency.setValueAtTime(Math.max(55, toneFrequency * (0.9 + shape * 0.25)), startTime);
+  body.frequency.exponentialRampToValueAtTime(Math.max(38, toneFrequency * 0.72), startTime + Math.max(0.05, decay * 0.92));
+
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(Math.max(180, toneFrequency * (5.5 + shape * 3.5)), startTime);
+  filter.Q.setValueAtTime(0.7 + shape * 5, startTime);
+
+  gain.gain.setValueAtTime(Math.max(0.001, level), startTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + Math.max(0.08, decay + 0.08));
+
+  oscillator.connect(filter);
+  body.connect(filter);
+  filter.connect(gain);
+  gain.connect(destination);
+
+  oscillator.start(startTime);
+  body.start(startTime);
+  oscillator.stop(startTime + Math.max(0.1, decay + 0.1));
+  body.stop(startTime + Math.max(0.1, decay + 0.12));
+};
+
+export const triggerFxVoice = (
+  ctx: AudioContext,
+  destination: AudioNode,
+  toneFrequency: number,
+  decay: number,
+  level: number,
+  shape: number,
+  startTime = ctx.currentTime,
+) => {
+  const noise = ctx.createBufferSource();
+  noise.buffer = getNoiseBuffer(ctx);
+  const bandpass = ctx.createBiquadFilter();
+  const shaper = ctx.createWaveShaper();
+  const oscillator = ctx.createOscillator();
+  const noiseGain = ctx.createGain();
+  const toneGain = ctx.createGain();
+  const output = ctx.createGain();
+
+  bandpass.type = 'bandpass';
+  bandpass.frequency.setValueAtTime(Math.max(250, toneFrequency * (0.8 + shape * 1.6)), startTime);
+  bandpass.Q.setValueAtTime(1.2 + shape * 8, startTime);
+  shaper.curve = buildSaturatorCurve(1.5 + shape * 3.2);
+  shaper.oversample = '4x';
+  oscillator.type = shape > 0.55 ? 'square' : 'triangle';
+  oscillator.frequency.setValueAtTime(Math.max(120, toneFrequency * (1.2 + shape * 2.2)), startTime);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(90, toneFrequency * 0.55), startTime + Math.max(0.04, decay * 0.75));
+
+  noiseGain.gain.setValueAtTime(Math.max(0.001, level * (0.5 + shape * 0.7)), startTime);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, startTime + Math.max(0.05, decay));
+  toneGain.gain.setValueAtTime(Math.max(0.001, level * (0.18 + shape * 0.55)), startTime);
+  toneGain.gain.exponentialRampToValueAtTime(0.001, startTime + Math.max(0.04, decay * 0.85));
+  output.gain.setValueAtTime(1, startTime);
+
+  noise.connect(bandpass);
+  bandpass.connect(shaper);
+  shaper.connect(noiseGain);
+  noiseGain.connect(output);
+  oscillator.connect(toneGain);
+  toneGain.connect(output);
+  output.connect(destination);
+
+  noise.start(startTime);
+  oscillator.start(startTime);
+  noise.stop(startTime + Math.max(0.06, decay + 0.04));
+  oscillator.stop(startTime + Math.max(0.05, decay + 0.02));
+};
+
+export const triggerCymbalVoice = (
+  ctx: AudioContext,
+  destination: AudioNode,
+  toneFrequency: number,
+  decay: number,
+  level: number,
+  shape: number,
+  startTime = ctx.currentTime,
+) => {
+  const merger = ctx.createGain();
+  const bandpass = ctx.createBiquadFilter();
+  const highpass = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  const ratios = [1, 1.37, 1.71, 2.13];
+  ratios.forEach((ratio, index) => {
+    const oscillator = ctx.createOscillator();
+    oscillator.type = index % 2 === 0 ? 'square' : 'triangle';
+    oscillator.frequency.setValueAtTime(
+      Math.max(1200, toneFrequency * (ratio + shape * (0.15 + index * 0.03))),
+      startTime,
+    );
+    oscillator.connect(merger);
+    oscillator.start(startTime);
+    oscillator.stop(startTime + Math.max(0.08, decay + 0.1));
+  });
+
+  bandpass.type = 'bandpass';
+  bandpass.frequency.setValueAtTime(Math.max(2500, toneFrequency * (0.8 + shape * 0.7)), startTime);
+  bandpass.Q.setValueAtTime(1 + shape * 5, startTime);
+  highpass.type = 'highpass';
+  highpass.frequency.setValueAtTime(Math.max(2000, toneFrequency * (0.45 + shape * 0.4)), startTime);
+  gain.gain.setValueAtTime(Math.max(0.001, level), startTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + Math.max(0.12, decay + 0.14));
+
+  merger.connect(bandpass);
+  bandpass.connect(highpass);
+  highpass.connect(gain);
+  gain.connect(destination);
 };
 
 export const triggerBasslineVoice = (

@@ -209,6 +209,7 @@ export const addNodeButtons: AddNodeButton[] = [
   { type: 'chaosShrine', label: 'Shrine', color: 'bg-rose-500/10 text-rose-200 border-rose-500/20', tab: 'voices' },
   { type: 'chordGenerator', label: 'Chord', color: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20', tab: 'voices' },
   { type: 'drumMachine', label: 'Drums', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20', tab: 'groove' },
+  { type: 'drum2', label: 'Drum2', color: 'bg-fuchsia-500/10 text-fuchsia-200 border-fuchsia-500/20', tab: 'groove' },
   { type: 'kickSynth', label: 'Kick', color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20', tab: 'groove' },
   { type: 'snareSynth', label: 'Snare', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'groove' },
   { type: 'hiHatSynth', label: 'HiHat', color: 'bg-amber-500/10 text-amber-300 border-amber-500/20', tab: 'groove' },

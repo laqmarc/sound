@@ -4,6 +4,7 @@ import type { AudioParamName, AudioParamValue } from './runtime';
 import {
   audioContext,
   drumMachines,
+  drum2s,
   arpeggiators,
   arp2s,
   arp2Targets,
@@ -35,6 +36,9 @@ import {
   triggerSnareVoice,
   triggerHiHat,
   triggerHiHatVoice,
+  triggerTomVoice,
+  triggerFxVoice,
+  triggerCymbalVoice,
   triggerBasslineVoice,
   triggerChordSequenceVoice,
 } from './runtime';
@@ -234,6 +238,93 @@ const scheduleTransportStep = (
     if (drumMachine.pattern.hihat[step]) {
       triggerHiHat(ctx, drumMachine.output, scheduledTime);
     }
+  });
+
+  drum2s.forEach((drum2) => {
+    const currentStep = drum2.stepIndex % Math.max(4, Math.min(32, drum2.length));
+    const kickVoice = drum2.voices.kick;
+    const snareVoice = drum2.voices.snare;
+    const hihatVoice = drum2.voices.hihat;
+    const tomVoice = drum2.voices.tom;
+    const fxVoice = drum2.voices.fx;
+    const cymbalVoice = drum2.voices.cymbal;
+
+    if (drum2.pattern.kick[currentStep]) {
+      triggerKickVoice(
+        ctx,
+        drum2.output,
+        kickVoice.tone,
+        kickVoice.decay,
+        kickVoice.gain * (0.82 + kickVoice.shape * 0.42),
+        scheduledTime,
+      );
+    }
+
+    if (drum2.pattern.snare[currentStep]) {
+      triggerSnareVoice(
+        ctx,
+        drum2.output,
+        snareVoice.tone * (0.92 + snareVoice.shape * 0.18),
+        snareVoice.decay,
+        snareVoice.gain * (0.78 + snareVoice.shape * 0.35),
+        scheduledTime,
+      );
+    }
+
+    if (drum2.pattern.hihat[currentStep]) {
+      triggerHiHatVoice(
+        ctx,
+        drum2.output,
+        hihatVoice.tone * (0.85 + hihatVoice.shape * 0.5),
+        hihatVoice.decay * (0.78 + hihatVoice.shape * 0.44),
+        hihatVoice.gain,
+        scheduledTime,
+      );
+    }
+
+    if (drum2.pattern.tom[currentStep]) {
+      triggerTomVoice(
+        ctx,
+        drum2.output,
+        tomVoice.tone,
+        tomVoice.decay,
+        tomVoice.gain,
+        tomVoice.shape,
+        scheduledTime,
+      );
+    }
+
+    if (drum2.pattern.fx[currentStep]) {
+      triggerFxVoice(
+        ctx,
+        drum2.output,
+        fxVoice.tone,
+        fxVoice.decay,
+        fxVoice.gain,
+        fxVoice.shape,
+        scheduledTime,
+      );
+    }
+
+    if (drum2.pattern.cymbal[currentStep]) {
+      triggerCymbalVoice(
+        ctx,
+        drum2.output,
+        cymbalVoice.tone,
+        cymbalVoice.decay,
+        cymbalVoice.gain,
+        cymbalVoice.shape,
+        scheduledTime,
+      );
+    }
+
+    queueTransportUiEvent('drum2-step', {
+      id: drum2.id,
+      stepIndex: currentStep,
+      length: drum2.length,
+    }, scheduledTime);
+
+    drum2.stepIndex = (currentStep + 1) % Math.max(4, Math.min(32, drum2.length));
   });
 
   kickSynths.forEach((synth) => {

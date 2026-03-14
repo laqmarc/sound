@@ -62,6 +62,7 @@ export const editableNodeTypes = [
   'panner',
   'lfo',
   'drumMachine',
+  'drum2',
   'arpeggiator',
   'arp2',
   'equalizer8',
@@ -116,6 +117,9 @@ export interface SoundNodeData {
   label_ch4?: string;
   bpm?: number;
   drumPattern?: DrumPattern;
+  drum2Pattern?: Drum2Pattern;
+  drum2Length?: number;
+  drum2Voices?: Drum2Voices;
   currentStep?: number;
   sync?: boolean;
   syncDivision?: SyncDivision;
@@ -179,6 +183,26 @@ export interface DrumPattern {
   snare: boolean[];
   hihat: boolean[];
 }
+
+export type Drum2VoiceId = 'kick' | 'snare' | 'hihat' | 'tom' | 'fx' | 'cymbal';
+
+export interface Drum2Pattern {
+  kick: boolean[];
+  snare: boolean[];
+  hihat: boolean[];
+  tom: boolean[];
+  fx: boolean[];
+  cymbal: boolean[];
+}
+
+export interface Drum2VoiceParams {
+  tone: number;
+  decay: number;
+  gain: number;
+  shape: number;
+}
+
+export type Drum2Voices = Record<Drum2VoiceId, Drum2VoiceParams>;
 
 export type SyncDivision = '1/1' | '1/2' | '1/4' | '1/8' | '1/16';
 export type NoteName = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B';

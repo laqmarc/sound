@@ -32,6 +32,7 @@ import ReverbNode from './nodes/ReverbNode';
 import ScopeNode from './nodes/ScopeNode';
 import SpectrogramNode from './nodes/SpectrogramNode';
 import DrumMachineNode from './nodes/DrumMachineNode';
+import Drum2Node from './nodes/Drum2Node';
 import ArpeggiatorNode from './nodes/ArpeggiatorNode';
 import Arp2Node from './nodes/Arp2Node';
 import Equalizer8Node from './nodes/Equalizer8Node';
@@ -262,7 +263,7 @@ function App() {
       setNodes(nextNodes);
 
       if (audioStartedRef.current) {
-        applyAudioNodeData(currentNode.type, id, nextData);
+        applyAudioNodeData(currentNode.type, id, nextData, patch);
       }
     },
     [],
@@ -439,6 +440,9 @@ function App() {
       ),
       drumMachine: (props: SoundNodeProps) => (
         <DrumMachineNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      drum2: (props: SoundNodeProps) => (
+        <Drum2Node {...props} onDataChange={handleNodeDataChange} />
       ),
       arpeggiator: (props: SoundNodeProps) => (
         <ArpeggiatorNode {...props} onDataChange={handleNodeDataChange} />
