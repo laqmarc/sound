@@ -6,6 +6,7 @@ import type { PatchPreset } from '../../presetLibrary';
 import { HeaderBrand } from './HeaderBrand';
 import { HeaderWorkspaceControls } from './HeaderWorkspaceControls';
 import { PresetLibraryModal } from './PresetLibraryModal';
+import './SoundLabHeader.css';
 
 interface SoundLabHeaderProps {
   patchPresets: PatchPreset[];
@@ -35,17 +36,17 @@ export function SoundLabHeader(props: SoundLabHeaderProps) {
 
   return (
     <>
-      <header className="px-4 sm:px-6 py-4 bg-black/40 backdrop-blur-xl border-b border-white/5 flex flex-wrap items-start gap-4 z-50">
-        <div className="flex shrink-0 flex-col gap-2">
+      <header className="sound-lab-header">
+        <div className="sound-lab-header__brand-column">
           <HeaderBrand onTestSound={props.onTestSound} />
           <button
             onClick={() => setIsPresetModalOpen(true)}
-            className="w-fit rounded-xl border border-sky-500/30 bg-sky-500/15 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-sky-300 transition-all hover:bg-sky-500/25"
+            className="sound-lab-header__presets-button"
           >
             Presets
           </button>
         </div>
-        
+
         <HeaderWorkspaceControls
           activeComponentTab={props.activeComponentTab}
           onSelectComponentTab={props.onSelectComponentTab}

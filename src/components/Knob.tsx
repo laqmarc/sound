@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import './Knob.css';
 
 interface KnobProps {
   value: number;
@@ -82,12 +83,12 @@ const Knob = ({
   const rotation = ((value - min) / (max - min)) * 270 - 135;
 
   return (
-    <div className="flex flex-col items-center gap-1 select-none nodrag">
-      {label && <label className="text-slate-400 text-[9px] uppercase pointer-events-none">{label}</label>}
+    <div className="knob nodrag">
+      {label && <label className="knob__label">{label}</label>}
 
       <div
         onPointerDown={handlePointerDown}
-        className={`relative touch-none ${isDragging ? 'cursor-ns-resize scale-105' : 'cursor-ns-resize'}`}
+        className={`knob__dial ${isDragging ? 'knob__dial--dragging' : ''}`}
         style={{ width: size, height: size }}
       >
         <svg width={size} height={size} viewBox="0 0 100 100">
@@ -119,16 +120,16 @@ const Knob = ({
         </svg>
 
         <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          className="knob__rotation"
           style={{ transform: `rotate(${rotation}deg)` }}
         >
-          <div className="w-3/4 h-3/4 bg-slate-700 rounded-full shadow-lg border border-slate-600 flex items-start justify-center pt-1">
-            <div className="w-1 h-3 bg-white rounded-full opacity-80" />
+          <div className="knob__body">
+            <div className="knob__indicator" />
           </div>
         </div>
       </div>
 
-      <div className="text-[10px] font-mono" style={{ color }}>
+      <div className="knob__value" style={{ color }}>
         {value.toFixed(value < 10 ? 2 : 0)}
         {unit}
       </div>

@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './OscillatorNode.css';
 
 const NOTES = {
   C: 0,
@@ -49,37 +51,27 @@ const OscillatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
   };
 
   return (
-    <div className="bg-slate-800 p-4 border border-slate-700 rounded-lg shadow-xl min-w-[220px]">
-      <div className="text-sky-400 font-bold mb-3 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-sky-400 rounded-full animate-pulse" />
-          Oscillator
+    <div className="node-chrome oscillator-node">
+      <div className="oscillator-node__header">
+        <div className="oscillator-node__title-row">
+          <div className="node-chrome__dot oscillator-node__dot" />
+          <div className="node-chrome__title oscillator-node__title">Oscillator</div>
         </div>
-        <div className="flex bg-slate-900 rounded p-0.5">
-          <button
-            onClick={() => setMode('note')}
-            className={`px-2 py-0.5 text-[9px] rounded ${mode === 'note' ? 'bg-sky-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
-          >
-            NOTE
-          </button>
-          <button
-            onClick={() => setMode('freq')}
-            className={`px-2 py-0.5 text-[9px] rounded ${mode === 'freq' ? 'bg-sky-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
-          >
-            FREQ
-          </button>
+        <div className="oscillator-node__mode-toggle">
+          <button type="button" onClick={() => setMode('note')} className={`oscillator-node__mode-button ${mode === 'note' ? 'oscillator-node__mode-button--active' : ''}`}>NOTE</button>
+          <button type="button" onClick={() => setMode('freq')} className={`oscillator-node__mode-button ${mode === 'freq' ? 'oscillator-node__mode-button--active' : ''}`}>FREQ</button>
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="oscillator-node__body">
         {mode === 'note' ? (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="oscillator-node__note-grid">
             <div>
-              <label className="text-slate-400 text-[9px] uppercase block mb-1">Nota</label>
+              <label className="oscillator-node__label">Nota</label>
               <select
                 value={note}
                 onChange={(event) => handleNoteChange(event.target.value as keyof typeof NOTES)}
-                className="bg-slate-900 text-white text-xs p-1.5 rounded border border-slate-700 w-full outline-none focus:border-sky-400"
+                className="oscillator-node__select"
               >
                 {Object.keys(NOTES).map((noteName) => (
                   <option key={noteName} value={noteName}>
@@ -89,11 +81,11 @@ const OscillatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
               </select>
             </div>
             <div>
-              <label className="text-slate-400 text-[9px] uppercase block mb-1">Octava</label>
+              <label className="oscillator-node__label">Octava</label>
               <select
                 value={octave}
                 onChange={(event) => handleOctaveChange(Number(event.target.value))}
-                className="bg-slate-900 text-white text-xs p-1.5 rounded border border-slate-700 w-full outline-none focus:border-sky-400"
+                className="oscillator-node__select"
               >
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((octaveValue) => (
                   <option key={octaveValue} value={octaveValue}>
@@ -102,12 +94,10 @@ const OscillatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
                 ))}
               </select>
             </div>
-            <div className="col-span-2 text-center py-1 bg-slate-900/50 rounded text-sky-400 text-xs font-mono">
-              {frequency} Hz
-            </div>
+            <div className="oscillator-node__freq-readout">{frequency} Hz</div>
           </div>
         ) : (
-          <div className="flex justify-center">
+          <div className="oscillator-node__knob">
             <Knob
               label="Frequency"
               min={20}
@@ -122,11 +112,11 @@ const OscillatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
         )}
 
         <div>
-          <label className="text-slate-400 text-[9px] uppercase block mb-1">Wave</label>
+          <label className="oscillator-node__label">Wave</label>
           <select
             value={waveType}
             onChange={(event) => onDataChange(id, { type: event.target.value as OscillatorType })}
-            className="bg-slate-900 text-white text-xs p-1.5 rounded border border-slate-700 w-full outline-none focus:border-sky-400"
+            className="oscillator-node__select"
           >
             <option value="sine">Sine</option>
             <option value="square">Square</option>
@@ -136,33 +126,13 @@ const OscillatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
         </div>
       </div>
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="mod"
-        className="!bg-sky-400 !w-3 !h-3 !border-2 !border-white hover:!scale-125 transition-transform"
-        style={{ top: '70%' }}
-      />
-      <div className="absolute left-[-30px] top-[65%] text-[8px] text-sky-400 font-bold uppercase pointer-events-none">
-        Mod
-      </div>
+      <Handle type="target" position={Position.Left} id="mod" className="node-handle--source node-handle--source-sky" style={{ top: '70%', width: '0.75rem', height: '0.75rem' }} />
+      <div className="oscillator-node__mod-label">Mod</div>
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="pitch"
-        className="!bg-lime-400 !w-3 !h-3 !border-2 !border-white hover:!scale-125 transition-transform"
-        style={{ top: '28%' }}
-      />
-      <div className="absolute left-[-38px] top-[23%] text-[8px] text-lime-400 font-bold uppercase pointer-events-none">
-        Pitch
-      </div>
+      <Handle type="target" position={Position.Left} id="pitch" className="node-handle--pitch" style={{ top: '28%' }} />
+      <div className="node-chrome__pitch-label node-chrome__pitch-label--lead">Pitch</div>
 
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!bg-sky-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
-      />
+      <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-sky" />
     </div>
   );
 };

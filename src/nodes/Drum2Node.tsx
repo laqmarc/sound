@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps, Drum2Pattern, Drum2VoiceId, Drum2Voices } from '../types';
+import './nodeChrome.css';
+import './Drum2Node.css';
 
 const channels: Array<{
   key: Drum2VoiceId;
   label: string;
   shortLabel: string;
-  color: string;
+  accent: string;
   glow: string;
   knobColor: string;
   accentLabel: string;
@@ -18,8 +20,8 @@ const channels: Array<{
     key: 'kick',
     label: 'Kick',
     shortLabel: 'K',
-    color: 'bg-cyan-300 border-cyan-200',
-    glow: 'shadow-[0_0_16px_rgba(103,232,249,0.55)]',
+    accent: '#67e8f9',
+    glow: 'rgba(103,232,249,0.55)',
     knobColor: '#67e8f9',
     accentLabel: 'Punch',
     toneRange: [30, 120, 1],
@@ -29,8 +31,8 @@ const channels: Array<{
     key: 'snare',
     label: 'Snare',
     shortLabel: 'S',
-    color: 'bg-rose-300 border-rose-200',
-    glow: 'shadow-[0_0_16px_rgba(253,164,175,0.55)]',
+    accent: '#fda4af',
+    glow: 'rgba(253,164,175,0.55)',
     knobColor: '#fda4af',
     accentLabel: 'Snap',
     toneRange: [120, 600, 1],
@@ -40,8 +42,8 @@ const channels: Array<{
     key: 'hihat',
     label: 'Hi-Hat',
     shortLabel: 'H',
-    color: 'bg-amber-300 border-amber-200',
-    glow: 'shadow-[0_0_16px_rgba(252,211,77,0.55)]',
+    accent: '#fcd34d',
+    glow: 'rgba(252,211,77,0.55)',
     knobColor: '#fcd34d',
     accentLabel: 'Grit',
     toneRange: [4000, 14000, 50],
@@ -51,8 +53,8 @@ const channels: Array<{
     key: 'tom',
     label: 'Tom',
     shortLabel: 'T',
-    color: 'bg-emerald-300 border-emerald-200',
-    glow: 'shadow-[0_0_16px_rgba(134,239,172,0.5)]',
+    accent: '#86efac',
+    glow: 'rgba(134,239,172,0.5)',
     knobColor: '#86efac',
     accentLabel: 'Bend',
     toneRange: [70, 320, 1],
@@ -62,8 +64,8 @@ const channels: Array<{
     key: 'fx',
     label: 'FX',
     shortLabel: 'FX',
-    color: 'bg-fuchsia-300 border-fuchsia-200',
-    glow: 'shadow-[0_0_16px_rgba(244,114,182,0.5)]',
+    accent: '#f9a8d4',
+    glow: 'rgba(244,114,182,0.5)',
     knobColor: '#f9a8d4',
     accentLabel: 'Scatter',
     toneRange: [300, 6000, 10],
@@ -73,8 +75,8 @@ const channels: Array<{
     key: 'cymbal',
     label: 'Cymbal',
     shortLabel: 'CY',
-    color: 'bg-indigo-300 border-indigo-200',
-    glow: 'shadow-[0_0_16px_rgba(165,180,252,0.52)]',
+    accent: '#a5b4fc',
+    glow: 'rgba(165,180,252,0.52)',
     knobColor: '#a5b4fc',
     accentLabel: 'Shimmer',
     toneRange: [2500, 12000, 50],
@@ -366,20 +368,20 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   };
 
   return (
-    <div className="bg-[linear-gradient(145deg,rgba(18,8,26,0.98),rgba(10,22,40,0.96))] backdrop-blur-xl border border-fuchsia-400/20 p-4 rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.45)] min-w-[1080px]">
-      <div className="flex items-start justify-between gap-4 mb-4">
+    <div className="node-chrome drum2-node">
+      <div className="drum2-node__header">
         <div>
-          <div className="text-[10px] font-black tracking-[0.32em] text-fuchsia-300 uppercase mb-1 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-fuchsia-300 shadow-[0_0_16px_rgba(244,114,182,0.9)] animate-pulse" />
+          <div className="node-chrome__title drum2-node__title">
+            <div className="node-chrome__dot drum2-node__dot" />
             DRUM2
           </div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">6 voices, 32-step mutant drum brain</p>
+          <p className="node-chrome__description">6 voices, 32-step mutant drum brain</p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="rounded-2xl border border-white/10 bg-black/25 px-3 py-2 min-w-[108px]">
-            <div className="text-[8px] uppercase tracking-[0.24em] text-white/35 mb-1">Active</div>
-            <div className="text-[10px] font-mono text-fuchsia-200">
+        <div className="drum2-node__header-controls">
+          <div className="drum2-node__status-card">
+            <div className="drum2-node__status-label">Active</div>
+            <div className="drum2-node__status-value">
               {currentStep + 1} / {length}
             </div>
           </div>
@@ -393,8 +395,8 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
             color="#f0abfc"
             size={56}
           />
-          <div className="rounded-2xl border border-white/10 bg-black/25 p-3 min-w-[220px]">
-            <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-2">Length</label>
+          <div className="drum2-node__length-card">
+            <label className="node-chrome__field-label">Length</label>
             <input
               type="range"
               min={4}
@@ -402,37 +404,36 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
               step={1}
               value={length}
               onChange={(event) => onDataChange(id, { drum2Length: Number(event.target.value) })}
-              className="w-full accent-fuchsia-300"
+              className="drum2-node__range"
             />
-            <div className="mt-2 text-[10px] font-mono text-fuchsia-200 text-center">{length} steps</div>
+            <div className="drum2-node__range-value">{length} steps</div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-[repeat(16,minmax(0,1fr))] gap-1 mb-4 rounded-2xl border border-white/10 bg-black/20 p-3">
+      <div className="drum2-node__indicator-grid">
         {Array.from({ length: 32 }, (_, stepIndex) => (
           <div
             key={`drum2-indicator-${stepIndex}`}
-            className={`h-3 rounded-full transition-all ${
-              stepIndex >= length
-                ? 'bg-white/[0.04]'
-                : currentStep === stepIndex
-                  ? 'bg-fuchsia-300 shadow-[0_0_12px_rgba(244,114,182,0.85)]'
-                  : stepIndex % 4 === 0
-                    ? 'bg-white/20'
-                    : 'bg-white/10'
-            }`}
+            className={[
+              'drum2-node__indicator',
+              stepIndex >= length ? 'drum2-node__indicator--outside' : '',
+              currentStep === stepIndex ? 'drum2-node__indicator--current' : '',
+              stepIndex < length && stepIndex % 4 === 0 && currentStep !== stepIndex ? 'drum2-node__indicator--quarter' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
           />
         ))}
       </div>
 
-      <div className="grid grid-cols-[1fr_auto] gap-2 items-end mb-4">
+      <div className="drum2-node__bank">
         <div>
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Pattern Bank</label>
+          <label className="node-chrome__field-label">Pattern Bank</label>
           <select
             value={selectedPreset}
             onChange={(event) => setSelectedPreset(Number(event.target.value))}
-            className="bg-slate-950/90 text-white text-xs p-2 rounded-xl border border-white/10 w-full outline-none focus:border-fuchsia-300"
+            className="node-chrome__select"
           >
             {drum2Presets.map((preset, index) => (
               <option key={preset.name} value={index}>
@@ -442,26 +443,31 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
           </select>
         </div>
         <button
+          type="button"
           onClick={() => applyPreset(selectedPreset)}
-          className="px-4 py-2 rounded-xl bg-fuchsia-300 text-black text-[10px] font-black uppercase tracking-[0.18em] hover:bg-fuchsia-200 transition-colors"
+          className="drum2-node__bank-button"
         >
           Load Preset
         </button>
       </div>
 
-      <div className="space-y-3">
+      <div className="drum2-node__lanes">
         {channels.map((channel) => {
           const voice = voices[channel.key];
+          const laneStyle = {
+            '--drum2-accent': channel.accent,
+            '--drum2-glow': channel.glow,
+          } as CSSProperties;
 
           return (
-            <section key={channel.key} className="rounded-[24px] border border-white/10 bg-black/20 p-3">
-              <div className="flex items-start justify-between gap-4 mb-3">
+            <section key={channel.key} className="drum2-node__lane" style={laneStyle}>
+              <div className="drum2-node__lane-header">
                 <div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.24em] text-white/70">{channel.label}</div>
-                  <div className="text-[8px] uppercase tracking-[0.22em] text-white/35">{channel.accentLabel} lane</div>
+                  <div className="drum2-node__lane-title">{channel.label}</div>
+                  <div className="drum2-node__lane-subtitle">{channel.accentLabel} lane</div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="drum2-node__lane-knobs">
                   <Knob
                     label="Tone"
                     min={channel.toneRange[0]}
@@ -509,22 +515,26 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-[repeat(16,minmax(0,1fr))] gap-1">
+              <div className="drum2-node__steps">
                 {pattern[channel.key].map((isActive, stepIndex) => {
                   const isCurrent = currentStep === stepIndex;
                   const isOutsideLength = stepIndex >= length;
 
                   return (
                     <button
+                      type="button"
                       key={`${channel.key}-${stepIndex}`}
                       onClick={() => toggleStep(channel.key, stepIndex)}
-                      className={`h-8 rounded-md border text-[9px] font-black transition-all ${
-                        isOutsideLength
-                          ? 'border-white/5 bg-white/[0.03] text-white/20'
-                          : isActive
-                            ? `${channel.color} text-black ${isCurrent ? channel.glow : 'shadow-[0_0_8px_rgba(255,255,255,0.08)]'}`
-                            : `bg-white/5 border-white/10 ${isCurrent ? 'bg-white/15 text-white/80 shadow-[0_0_12px_rgba(255,255,255,0.18)]' : 'text-white/35 hover:bg-white/10'}`
-                      } ${stepIndex % 4 === 0 ? 'ring-1 ring-white/10' : ''} ${isCurrent && !isOutsideLength ? 'scale-[1.03]' : ''}`}
+                      className={[
+                        'drum2-node__step-button',
+                        isOutsideLength ? 'drum2-node__step-button--outside' : '',
+                        isActive && !isOutsideLength ? 'drum2-node__step-button--active' : '',
+                        isCurrent && !isOutsideLength ? 'drum2-node__step-button--current' : '',
+                        !isActive && isCurrent && !isOutsideLength ? 'drum2-node__step-button--current-idle' : '',
+                        stepIndex % 4 === 0 && !isOutsideLength ? 'drum2-node__step-button--quarter' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
                     >
                       {stepIndex + 1}
                     </button>
@@ -536,12 +546,12 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         })}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-        <span className="text-[8px] uppercase tracking-[0.25em] text-white/35">Drum Bus Out</span>
+      <div className="node-chrome__footer">
+        <span className="node-chrome__footer-label">Drum Bus Out</span>
         <Handle
           type="source"
           position={Position.Right}
-          className="!bg-fuchsia-300 !w-4 !h-4 !border-2 !border-black"
+          className="node-handle--source node-handle--source-fuchsia"
         />
       </div>
     </div>

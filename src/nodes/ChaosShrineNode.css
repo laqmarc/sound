@@ -1,0 +1,281 @@
+.chaos-shrine-node {
+  --chaos-accent: var(--color-rose-soft);
+  --chaos-accent-soft: var(--color-rose-pale);
+  --chaos-fuchsia: var(--color-fuchsia-soft);
+  --chaos-cyan: var(--color-cyan-pale);
+  --chaos-lime: var(--color-lime-soft);
+  --chaos-amber: var(--color-yellow-soft);
+  --chaos-surface: var(--ui-surface-card);
+  --chaos-surface-strong: var(--ui-surface-black-mid);
+  --chaos-surface-input: var(--ui-surface-card-strong);
+  --chaos-button-active-rose: var(--ui-mix-rose-20);
+  --chaos-button-active-cyan: var(--ui-mix-sky-18);
+  --chaos-button-fuchsia: var(--ui-mix-fuchsia-16);
+  --chaos-step-active: color-mix(in srgb, var(--color-rose-strong) 24%, transparent);
+  --chaos-scene-cyan: var(--ui-mix-sky-14);
+  --chaos-scene-lime: var(--ui-mix-lime-14);
+  --chaos-scene-amber: var(--ui-mix-amber-14);
+  --chaos-scene-rose: var(--ui-mix-rose-14);
+  --chaos-scene-fuchsia: var(--ui-mix-fuchsia-14);
+  --chaos-surface-led: var(--ui-surface-black-strong);
+  --chaos-text-soft: var(--ui-text-soft);
+  --chaos-text-mid: var(--ui-text-mid);
+  --chaos-text-faint: var(--ui-text-faint);
+  --chaos-highlight-text: var(--color-rose-highlight);
+  --chaos-cyan-highlight: var(--color-cyan-highlight);
+  --chaos-bg: var(--gradient-surface-chaos);
+  --chaos-border: color-mix(in srgb, var(--chaos-accent) 20%, transparent);
+  --chaos-dot-glow: color-mix(in srgb, var(--chaos-accent) 95%, transparent);
+  --chaos-value-fuchsia: color-mix(in srgb, var(--chaos-fuchsia) 80%, transparent);
+  --chaos-value-rose: color-mix(in srgb, var(--chaos-accent-soft) 80%, transparent);
+  --chaos-select-border: color-mix(in srgb, var(--chaos-fuchsia) 30%, transparent);
+  --chaos-rose-border-strong: color-mix(in srgb, var(--chaos-accent) 40%, transparent);
+  --chaos-cyan-border-strong: color-mix(in srgb, var(--chaos-cyan) 40%, transparent);
+  --chaos-fuchsia-border-soft: color-mix(in srgb, var(--chaos-fuchsia) 25%, transparent);
+  --chaos-cyan-border-soft: color-mix(in srgb, var(--chaos-cyan) 25%, transparent);
+  --chaos-lime-border-soft: color-mix(in srgb, var(--chaos-lime) 25%, transparent);
+  --chaos-amber-border-soft: color-mix(in srgb, var(--chaos-amber) 25%, transparent);
+  --chaos-rose-border-soft: color-mix(in srgb, var(--chaos-accent) 25%, transparent);
+  --chaos-step-glow: color-mix(in srgb, var(--chaos-accent) 70%, transparent);
+  min-width: 540px;
+  border-color: var(--chaos-border);
+  border-radius: 30px;
+  background: var(--chaos-bg);
+  color: var(--ui-text-main);
+}
+
+.chaos-shrine-node__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.chaos-shrine-node__title {
+  color: var(--chaos-accent-soft);
+  letter-spacing: 0.34em;
+  margin-bottom: 0.25rem;
+}
+
+.chaos-shrine-node__dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  background: var(--chaos-accent);
+  box-shadow: 0 0 16px var(--chaos-dot-glow);
+}
+
+.chaos-shrine-node__description {
+  color: var(--chaos-text-soft);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.chaos-shrine-node__led-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.25rem;
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 22px;
+  background: var(--chaos-surface-led);
+  padding: 0.5rem;
+}
+
+.chaos-shrine-node__led {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 999px;
+  transition: all var(--transition-fast);
+}
+
+.chaos-shrine-node__knobs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.chaos-shrine-node__card {
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 22px;
+  background: var(--chaos-surface);
+  padding: 0.75rem;
+}
+
+.chaos-shrine-node__card--grid {
+  background: var(--chaos-surface-strong);
+}
+
+.chaos-shrine-node__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.chaos-shrine-node__card-title {
+  color: var(--chaos-text-mid);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.chaos-shrine-node__card-value {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.chaos-shrine-node__card-value--fuchsia {
+  color: var(--chaos-value-fuchsia);
+}
+
+.chaos-shrine-node__card-value--rose {
+  color: var(--chaos-value-rose);
+}
+
+.chaos-shrine-node__morph-grid {
+  display: grid;
+  grid-template-columns: 1fr 56px 1fr 80px;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chaos-shrine-node__to-label {
+  color: var(--chaos-text-faint);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.chaos-shrine-node__select {
+  border: 1px solid var(--chaos-select-border);
+  border-radius: 0.75rem;
+  background: var(--chaos-surface-input);
+  padding: 0.5rem;
+  color: var(--ui-text-main);
+  font-size: 12px;
+  outline: none;
+}
+
+.chaos-shrine-node__select:focus {
+  border-color: var(--chaos-fuchsia);
+}
+
+.chaos-shrine-node__toolbar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.chaos-shrine-node__button,
+.chaos-shrine-node__scene-button,
+.chaos-shrine-node__pattern-button {
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: all var(--transition-fast);
+}
+
+.chaos-shrine-node__button {
+  border: 1px solid var(--ui-border-soft);
+  background: var(--ui-surface-panel);
+  color: var(--ui-text-muted);
+}
+
+.chaos-shrine-node__button--active-rose {
+  border-color: var(--chaos-rose-border-strong);
+  background: var(--chaos-button-active-rose);
+  color: var(--chaos-highlight-text);
+}
+
+.chaos-shrine-node__button--active-cyan {
+  border-color: var(--chaos-cyan-border-strong);
+  background: var(--chaos-button-active-cyan);
+  color: var(--chaos-cyan-highlight);
+}
+
+.chaos-shrine-node__button--fuchsia {
+  border: 1px solid var(--chaos-fuchsia-border-soft);
+  background: var(--chaos-button-fuchsia);
+  color: var(--chaos-fuchsia);
+}
+
+.chaos-shrine-node__step-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.chaos-shrine-node__step {
+  height: 2.25rem;
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 0.75rem;
+  background: var(--ui-surface-panel);
+  color: var(--ui-text-dim);
+  font-size: 10px;
+  font-weight: 900;
+  transition: all var(--transition-fast);
+}
+
+.chaos-shrine-node__step--active {
+  border-color: var(--chaos-rose-border-strong);
+  background: var(--chaos-step-active);
+  color: var(--chaos-highlight-text);
+}
+
+.chaos-shrine-node__step--current {
+  transform: scale(1.05);
+  box-shadow: 0 0 18px var(--chaos-step-glow);
+}
+
+.chaos-shrine-node__pattern-grid,
+.chaos-shrine-node__scene-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.chaos-shrine-node__pattern-button--cyan,
+.chaos-shrine-node__scene-button--sky {
+  border: 1px solid var(--chaos-cyan-border-soft);
+  background: var(--chaos-scene-cyan);
+  color: var(--chaos-cyan);
+}
+
+.chaos-shrine-node__pattern-button--lime {
+  border: 1px solid var(--chaos-lime-border-soft);
+  background: var(--chaos-scene-lime);
+  color: var(--chaos-lime);
+}
+
+.chaos-shrine-node__pattern-button--amber,
+.chaos-shrine-node__scene-button--amber {
+  border: 1px solid var(--chaos-amber-border-soft);
+  background: var(--chaos-scene-amber);
+  color: var(--chaos-amber);
+}
+
+.chaos-shrine-node__pattern-button--rose,
+.chaos-shrine-node__scene-button--rose {
+  border: 1px solid var(--chaos-rose-border-soft);
+  background: var(--chaos-scene-rose);
+  color: var(--chaos-highlight-text);
+}
+
+.chaos-shrine-node__scene-button--fuchsia {
+  border: 1px solid var(--chaos-fuchsia-border-soft);
+  background: var(--chaos-scene-fuchsia);
+  color: var(--chaos-fuchsia);
+}

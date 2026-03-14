@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './LeadVoiceNode.css';
 
 const LeadVoiceNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const frequency = data.frequency ?? 330;
@@ -11,13 +13,13 @@ const LeadVoiceNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =
   const wave = (data.type as OscillatorType | undefined) ?? 'sawtooth';
 
   return (
-    <div className="bg-rose-950/80 backdrop-blur-xl border border-rose-400/20 p-4 rounded-2xl shadow-2xl min-w-[280px]">
-      <div className="text-[10px] font-black tracking-widest text-rose-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-rose-300 rounded-full animate-pulse" />
+    <div className="node-chrome lead-voice-node">
+      <div className="node-chrome__title lead-voice-node__title">
+        <div className="node-chrome__dot lead-voice-node__dot" />
         Lead Voice
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="node-chrome__grid-2">
         <Knob
           label="Pitch"
           min={20}
@@ -64,11 +66,11 @@ const LeadVoiceNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-4">
+      <div className="node-chrome__grid-2 node-chrome__grid-2--compact">
         <select
           value={wave}
           onChange={(event) => onDataChange(id, { type: event.target.value as OscillatorType })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-rose-400/20 outline-none focus:border-rose-300"
+          className="node-chrome__select"
         >
           <option value="sine">Sine</option>
           <option value="square">Square</option>
@@ -88,9 +90,9 @@ const LeadVoiceNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =
         />
       </div>
 
-      <Handle type="target" position={Position.Left} id="pitch" className="!bg-lime-400 !w-3 !h-3 !border-2 !border-white" style={{ top: '28%' }} />
-      <div className="absolute left-[-38px] top-[23%] text-[8px] text-lime-400 font-bold uppercase pointer-events-none">Pitch</div>
-      <Handle type="source" position={Position.Right} className="!bg-rose-300 !w-4 !h-4 !border-2 !border-black" />
+      <Handle type="target" position={Position.Left} id="pitch" className="node-handle--pitch" style={{ top: '28%' }} />
+      <div className="node-chrome__pitch-label node-chrome__pitch-label--lead">Pitch</div>
+      <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-rose" />
     </div>
   );
 };

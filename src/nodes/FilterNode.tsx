@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './FilterNode.css';
 
 const FilterNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const frequency = data.frequency ?? 1000;
@@ -8,14 +10,14 @@ const FilterNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const q = data.Q ?? 1;
 
   return (
-    <div className="bg-slate-800 p-4 border border-slate-700 rounded-lg shadow-xl min-w-[200px]">
-      <div className="text-purple-400 font-bold mb-4 flex items-center gap-2">
-        <div className="w-2 h-2 bg-purple-400 rounded-full" />
+    <div className="node-chrome filter-node">
+      <div className="node-chrome__title filter-node__title">
+        <div className="node-chrome__dot filter-node__dot" />
         Filtre
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="flex justify-around items-center">
+      <div className="filter-node__body">
+        <div className="filter-node__knobs">
           <Knob
             label="Freq Tall"
             min={20}
@@ -39,11 +41,11 @@ const FilterNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         </div>
 
         <div>
-          <label className="text-slate-400 text-[9px] uppercase block mb-1">Tipus</label>
+          <label className="filter-node__label">Tipus</label>
           <select
             value={filterType}
             onChange={(event) => onDataChange(id, { type: event.target.value as BiquadFilterType })}
-            className="bg-slate-900 text-white text-xs p-1.5 rounded border border-slate-700 w-full outline-none focus:border-purple-400"
+            className="filter-node__select"
           >
             <option value="lowpass">Pas Baix (Lowpass)</option>
             <option value="highpass">Pas Alt (Highpass)</option>
@@ -53,27 +55,17 @@ const FilterNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         </div>
       </div>
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="!bg-purple-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
-      />
+      <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-purple" />
       <Handle
         type="target"
         position={Position.Left}
         id="mod"
-        className="!bg-purple-400 !w-3 !h-3 !border-2 !border-white hover:!scale-125 transition-transform"
-        style={{ top: '70%' }}
+        className="node-handle--source node-handle--source-purple"
+        style={{ top: '70%', width: '0.75rem', height: '0.75rem' }}
       />
-      <div className="absolute left-[-30px] top-[65%] text-[8px] text-purple-400 font-bold uppercase pointer-events-none">
-        Mod
-      </div>
+      <div className="filter-node__mod-label">Mod</div>
 
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!bg-purple-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
-      />
+      <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-purple" />
     </div>
   );
 };

@@ -1,0 +1,36 @@
+.panner-node {
+  --panner-accent: #f472b6;
+  --panner-surface: rgba(0, 0, 0, 0.8);
+  --panner-border: rgba(255, 255, 255, 0.1);
+  --panner-labels: var(--ui-text-ghost);
+  min-width: 150px;
+  border-color: var(--panner-border);
+  background: var(--panner-surface);
+}
+
+.panner-node__title {
+  color: var(--panner-accent);
+  letter-spacing: 0.12em;
+}
+
+.panner-node__dot {
+  background: var(--panner-accent);
+}
+
+.panner-node__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.panner-node__labels {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding-inline: 0.5rem;
+  margin-top: 0.25rem;
+  color: var(--panner-labels);
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+}

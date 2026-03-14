@@ -7,6 +7,8 @@ import type {
   SoundNodeData,
   SyncDivision,
 } from '../types';
+import './nodeChrome.css';
+import './ChaosShrineNode.css';
 
 const syncDivisions: SyncDivision[] = ['1/1', '1/2', '1/4', '1/8', '1/16'];
 
@@ -291,21 +293,21 @@ const ChaosShrineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
   };
 
   return (
-    <div className="bg-[linear-gradient(145deg,rgba(16,6,16,0.98),rgba(62,10,26,0.96))] backdrop-blur-xl border border-rose-300/20 p-4 rounded-[30px] shadow-[0_24px_90px_rgba(0,0,0,0.52)] min-w-[540px] text-white">
-      <div className="mb-4 flex items-start justify-between gap-4">
+    <div className="node-chrome chaos-shrine-node">
+      <div className="chaos-shrine-node__header">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.34em] text-rose-200">
-            <div className="h-2.5 w-2.5 rounded-full bg-rose-300 shadow-[0_0_16px_rgba(253,164,175,0.95)] animate-pulse" />
+          <div className="node-chrome__title chaos-shrine-node__title">
+            <div className="node-chrome__dot chaos-shrine-node__dot" />
             Chaos Shrine
           </div>
-          <p className="text-[10px] uppercase tracking-[0.24em] text-white/45">Hyper Ritual Tone Engine</p>
+          <p className="chaos-shrine-node__description">Hyper Ritual Tone Engine</p>
         </div>
 
-        <div className="grid grid-cols-8 gap-1 rounded-[22px] border border-white/10 bg-black/30 p-2">
+        <div className="chaos-shrine-node__led-grid">
           {ledValues.map((value, index) => (
             <div
               key={`chaos-led-${index}`}
-              className="h-4 w-4 rounded-full border border-white/10 transition-all"
+              className="chaos-shrine-node__led"
               style={{
                 background: `radial-gradient(circle, rgba(254,215,170,${0.25 + value * 0.65}) 0%, rgba(251,113,133,${0.08 + value * 0.58}) 55%, rgba(17,24,39,0.2) 100%)`,
                 boxShadow:
@@ -319,7 +321,7 @@ const ChaosShrineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
         </div>
       </div>
 
-      <div className="mb-4 grid grid-cols-4 gap-3 nodrag">
+      <div className="chaos-shrine-node__knobs nodrag">
         <Knob label="Freq" min={30} max={1200} step={1} value={frequency} onChange={(value) => onDataChange(id, { frequency: value })} color="#fb7185" unit="Hz" size={52} />
         <Knob label="Mod" min={0.1} max={1200} step={0.1} value={modFrequency} onChange={(value) => onDataChange(id, { modFrequency: value })} color="#f97316" unit="Hz" size={52} />
         <Knob label="Index" min={0} max={900} step={1} value={modAmount} onChange={(value) => onDataChange(id, { modAmount: value })} color="#f59e0b" size={52} />
@@ -337,27 +339,27 @@ const ChaosShrineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
         <Knob label="Gain" min={0} max={1} step={0.01} value={gain} onChange={(value) => onDataChange(id, { gain: value })} color="#f43f5e" size={52} />
       </div>
 
-      <div className="mb-3 rounded-[22px] border border-white/10 bg-black/25 p-3 nodrag">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="text-[10px] font-black uppercase tracking-[0.22em] text-white/50">Scene Morph</div>
-          <div className="text-[9px] uppercase tracking-[0.2em] text-fuchsia-200/80">{Math.round(morph * 100)}%</div>
+      <div className="chaos-shrine-node__card nodrag">
+        <div className="chaos-shrine-node__card-header">
+          <div className="chaos-shrine-node__card-title">Scene Morph</div>
+          <div className="chaos-shrine-node__card-value chaos-shrine-node__card-value--fuchsia">{Math.round(morph * 100)}%</div>
         </div>
-        <div className="grid grid-cols-[1fr_56px_1fr_80px] items-center gap-2">
+        <div className="chaos-shrine-node__morph-grid">
           <select
             value={sceneA}
             onChange={(event) => applyMorphScenes(event.target.value as ShrineScene, sceneB, morph)}
-            className="rounded-xl border border-fuchsia-400/20 bg-black/40 p-2 text-xs outline-none focus:border-fuchsia-300"
+            className="chaos-shrine-node__select"
           >
             <option value="nebula">Scene A Nebula</option>
             <option value="razor">Scene A Razor</option>
             <option value="swarm">Scene A Swarm</option>
             <option value="ritual">Scene A Ritual</option>
           </select>
-          <div className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-white/40">to</div>
+          <div className="chaos-shrine-node__to-label">to</div>
           <select
             value={sceneB}
             onChange={(event) => applyMorphScenes(sceneA, event.target.value as ShrineScene, morph)}
-            className="rounded-xl border border-fuchsia-400/20 bg-black/40 p-2 text-xs outline-none focus:border-fuchsia-300"
+            className="chaos-shrine-node__select"
           >
             <option value="nebula">Scene B Nebula</option>
             <option value="razor">Scene B Razor</option>
@@ -377,27 +379,25 @@ const ChaosShrineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
         </div>
       </div>
 
-      <div className="mb-3 grid grid-cols-5 gap-2 nodrag">
+      <div className="chaos-shrine-node__toolbar nodrag">
         <button
+          type="button"
           onClick={() => onDataChange(id, { sync: !sync })}
-          className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] ${
-            sync ? 'border-rose-300/40 bg-rose-500/15 text-rose-100' : 'border-white/10 bg-white/5 text-white/55'
-          }`}
+          className={`chaos-shrine-node__button ${sync ? 'chaos-shrine-node__button--active-rose' : ''}`}
         >
           {sync ? 'Sync On' : 'Sync Off'}
         </button>
         <button
+          type="button"
           onClick={() => onDataChange(id, { freeze: !freeze })}
-          className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] ${
-            freeze ? 'border-cyan-300/40 bg-cyan-500/15 text-cyan-100' : 'border-white/10 bg-white/5 text-white/55'
-          }`}
+          className={`chaos-shrine-node__button ${freeze ? 'chaos-shrine-node__button--active-cyan' : ''}`}
         >
           {freeze ? 'Freeze On' : 'Freeze Off'}
         </button>
         <select
           value={syncDivision}
           onChange={(event) => onDataChange(id, { syncDivision: event.target.value as SyncDivision })}
-          className="rounded-xl border border-rose-400/20 bg-black/40 p-2 text-xs outline-none focus:border-rose-300"
+          className="chaos-shrine-node__select"
         >
           {syncDivisions.map((division) => (
             <option key={division} value={division}>
@@ -408,7 +408,7 @@ const ChaosShrineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
         <select
           value={carrierType}
           onChange={(event) => onDataChange(id, { type: event.target.value as OscillatorType })}
-          className="rounded-xl border border-rose-400/20 bg-black/40 p-2 text-xs outline-none focus:border-rose-300"
+          className="chaos-shrine-node__select"
         >
           <option value="sine">Core Sine</option>
           <option value="triangle">Core Triangle</option>
@@ -418,7 +418,7 @@ const ChaosShrineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
         <select
           value={shimmerType}
           onChange={(event) => onDataChange(id, { modType: event.target.value as OscillatorType })}
-          className="rounded-xl border border-rose-400/20 bg-black/40 p-2 text-xs outline-none focus:border-rose-300"
+          className="chaos-shrine-node__select"
         >
           <option value="sine">Shimmer Sine</option>
           <option value="triangle">Shimmer Triangle</option>
@@ -426,30 +426,30 @@ const ChaosShrineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
           <option value="square">Shimmer Square</option>
         </select>
         <button
+          type="button"
           onClick={randomizeAll}
-          className="rounded-xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-fuchsia-200"
+          className="chaos-shrine-node__button chaos-shrine-node__button--fuchsia"
         >
           Randomize
         </button>
       </div>
 
-      <div className="mb-3 rounded-[22px] border border-white/10 bg-black/28 p-3 nodrag">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="text-[10px] font-black uppercase tracking-[0.22em] text-white/50">Ritual Grid</div>
-          <div className="text-[9px] uppercase tracking-[0.22em] text-rose-200/80">
+      <div className="chaos-shrine-node__card chaos-shrine-node__card--grid nodrag">
+        <div className="chaos-shrine-node__card-header">
+          <div className="chaos-shrine-node__card-title">Ritual Grid</div>
+          <div className="chaos-shrine-node__card-value chaos-shrine-node__card-value--rose">
             {sync ? `Pulse ${syncDivision}` : 'Loose Pulse'}
           </div>
         </div>
-        <div className="grid grid-cols-8 gap-1.5">
+        <div className="chaos-shrine-node__step-grid">
           {steps.map((isHot, stepIndex) => {
             const isCurrent = currentSeqStep === stepIndex;
             return (
               <button
+                type="button"
                 key={`chaos-step-${stepIndex}`}
                 onClick={() => toggleStep(stepIndex)}
-                className={`h-9 rounded-xl border text-[10px] font-black transition-all ${
-                  isHot ? 'border-rose-300/40 bg-rose-500/18 text-rose-100' : 'border-white/10 bg-white/5 text-white/35'
-                } ${isCurrent ? 'scale-[1.05] shadow-[0_0_18px_rgba(251,113,133,0.7)]' : ''}`}
+                className={`chaos-shrine-node__step ${isHot ? 'chaos-shrine-node__step--active' : ''} ${isCurrent ? 'chaos-shrine-node__step--current' : ''}`}
               >
                 {stepIndex + 1}
               </button>
@@ -458,55 +458,63 @@ const ChaosShrineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
         </div>
       </div>
 
-      <div className="mb-3 grid grid-cols-4 gap-2 nodrag">
+      <div className="chaos-shrine-node__pattern-grid nodrag">
         <button
+          type="button"
           onClick={() => setPattern([true, false, false, true, false, true, false, false, true, false, false, true, false, true, false, false])}
-          className="rounded-xl border border-cyan-400/25 bg-cyan-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200"
+          className="chaos-shrine-node__pattern-button chaos-shrine-node__pattern-button--cyan"
         >
           Sparse
         </button>
         <button
+          type="button"
           onClick={() => setPattern([true, true, false, false, true, false, true, false, false, true, true, false, true, false, false, true])}
-          className="rounded-xl border border-lime-400/25 bg-lime-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-lime-200"
+          className="chaos-shrine-node__pattern-button chaos-shrine-node__pattern-button--lime"
         >
           Snake
         </button>
         <button
+          type="button"
           onClick={() => setPattern([true, false, true, true, true, false, false, true, true, true, false, true, false, true, true, false])}
-          className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200"
+          className="chaos-shrine-node__pattern-button chaos-shrine-node__pattern-button--amber"
         >
           Rave
         </button>
         <button
+          type="button"
           onClick={() => setPattern(Array.from({ length: 16 }, () => true))}
-          className="rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-rose-200"
+          className="chaos-shrine-node__pattern-button chaos-shrine-node__pattern-button--rose"
         >
           Wall
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-2 nodrag">
+      <div className="chaos-shrine-node__scene-grid nodrag">
         <button
+          type="button"
           onClick={() => applyScene({ sceneA: 'nebula', sceneB, morph: 0, ...scenePresets.nebula })}
-          className="rounded-xl border border-sky-400/25 bg-sky-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200"
+          className="chaos-shrine-node__scene-button chaos-shrine-node__scene-button--sky"
         >
           Nebula
         </button>
         <button
+          type="button"
           onClick={() => applyScene({ sceneA: 'razor', sceneB, morph: 0, ...scenePresets.razor })}
-          className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200"
+          className="chaos-shrine-node__scene-button chaos-shrine-node__scene-button--amber"
         >
           Razor
         </button>
         <button
+          type="button"
           onClick={() => applyScene({ sceneA: 'swarm', sceneB, morph: 0, ...scenePresets.swarm })}
-          className="rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-rose-100"
+          className="chaos-shrine-node__scene-button chaos-shrine-node__scene-button--rose"
         >
           Swarm
         </button>
         <button
+          type="button"
           onClick={() => applyScene({ sceneA: 'ritual', sceneB, morph: 0, ...scenePresets.ritual })}
-          className="rounded-xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-fuchsia-200"
+          className="chaos-shrine-node__scene-button chaos-shrine-node__scene-button--fuchsia"
         >
           Ritual
         </button>
@@ -516,15 +524,15 @@ const ChaosShrineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
         type="target"
         position={Position.Left}
         id="pitch"
-        className="!h-3 !w-3 !border-2 !border-white !bg-lime-400"
+        className="node-handle--pitch"
         style={{ top: '26%' }}
       />
-      <div className="pointer-events-none absolute left-[-38px] top-[21%] text-[8px] font-bold uppercase text-lime-400">Pitch</div>
+      <div className="node-chrome__pitch-label" style={{ top: '21%' }}>Pitch</div>
 
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-4 !w-4 !border-2 !border-black !bg-rose-300"
+        className="node-handle--source node-handle--source-rose"
       />
     </div>
   );

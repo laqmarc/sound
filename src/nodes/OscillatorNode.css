@@ -1,0 +1,115 @@
+.oscillator-node {
+  --osc-surface: var(--color-slate-ink);
+  --osc-surface-input: var(--ui-surface-input);
+  --osc-border: var(--color-slate-panel);
+  --osc-accent: var(--color-sky);
+  --osc-accent-strong: #0284c7;
+  --osc-text-label: #94a3b8;
+  --osc-text-soft: var(--color-slate);
+  min-width: 220px;
+  border-color: var(--osc-border);
+  background: var(--osc-surface);
+}
+
+.oscillator-node__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.oscillator-node__title {
+  color: var(--osc-accent);
+  margin-bottom: 0;
+}
+
+.oscillator-node__dot {
+  background: var(--osc-accent);
+}
+
+.oscillator-node__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.oscillator-node__mode-toggle {
+  display: flex;
+  border-radius: 0.375rem;
+  background: var(--osc-surface-input);
+  padding: 0.125rem;
+}
+
+.oscillator-node__mode-button {
+  border-radius: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  color: var(--osc-text-soft);
+  font-size: 9px;
+}
+
+.oscillator-node__mode-button--active {
+  background: var(--osc-accent-strong);
+  color: var(--color-white);
+}
+
+.oscillator-node__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.oscillator-node__note-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.oscillator-node__label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--osc-text-label);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.oscillator-node__select {
+  width: 100%;
+  border: 1px solid var(--osc-border);
+  border-radius: 0.375rem;
+  background: var(--osc-surface-input);
+  padding: 0.375rem;
+  color: var(--color-white);
+  font-size: 12px;
+  outline: none;
+}
+
+.oscillator-node__select:focus {
+  border-color: var(--osc-accent);
+}
+
+.oscillator-node__freq-readout {
+  grid-column: span 2;
+  border-radius: 0.375rem;
+  background: rgba(15, 23, 42, 0.5);
+  padding: 0.25rem 0;
+  color: var(--osc-accent);
+  text-align: center;
+  font-family: var(--font-family-mono);
+  font-size: 12px;
+}
+
+.oscillator-node__knob {
+  display: flex;
+  justify-content: center;
+}
+
+.oscillator-node__mod-label {
+  position: absolute;
+  top: 65%;
+  left: -30px;
+  color: var(--osc-accent);
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  pointer-events: none;
+}

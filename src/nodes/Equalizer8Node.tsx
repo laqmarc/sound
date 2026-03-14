@@ -1,5 +1,7 @@
 import { Handle, Position } from 'reactflow';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './Equalizer8Node.css';
 
 const bandLabels = ['60', '170', '310', '600', '1k', '3k', '6k', '12k'];
 
@@ -21,16 +23,16 @@ const Equalizer8Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
   };
 
   return (
-    <div className="bg-slate-950/90 backdrop-blur-xl border border-cyan-400/20 p-4 rounded-2xl shadow-2xl min-w-[420px]">
-      <div className="text-[10px] font-black tracking-widest text-cyan-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-cyan-300 rounded-full animate-pulse" />
+    <div className="node-chrome equalizer8-node">
+      <div className="node-chrome__title">
+        <div className="node-chrome__dot" />
         Equalizer 8-Band
       </div>
 
-      <div className="flex items-end justify-between gap-2 h-[210px]">
+      <div className="equalizer8-node__bands">
         {bands.map((band, index) => (
-          <div key={`eq-band-${bandLabels[index]}`} className="flex flex-col items-center gap-2 flex-1">
-            <div className="text-[9px] font-mono text-cyan-200">{band > 0 ? `+${band}` : band}dB</div>
+          <div key={`eq-band-${bandLabels[index]}`} className="equalizer8-node__band">
+            <div className="equalizer8-node__value">{band > 0 ? `+${band}` : band}dB</div>
             <input
               type="range"
               min={-24}
@@ -39,28 +41,20 @@ const Equalizer8Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
               value={band}
               onMouseDown={stopDragPropagation}
               onChange={(event) => updateBand(index, Number(event.target.value))}
-              className="nodrag h-[140px] w-4 accent-cyan-300 [writing-mode:bt-lr] [-webkit-appearance:slider-vertical]"
+              className="equalizer8-node__slider nodrag"
             />
-            <div className="text-[9px] uppercase tracking-widest text-white/45">{bandLabels[index]}</div>
+            <div className="equalizer8-node__band-label">{bandLabels[index]}</div>
           </div>
         ))}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-        <span className="text-[8px] uppercase tracking-[0.25em] text-white/35">Tone Shape</span>
-        <div className="flex items-center gap-4">
-          <span className="text-[8px] uppercase tracking-[0.2em] text-cyan-200/60">In</span>
-          <Handle
-            type="target"
-            position={Position.Left}
-            className="!bg-cyan-300 !w-4 !h-4 !border-2 !border-black"
-          />
-          <span className="text-[8px] uppercase tracking-[0.2em] text-cyan-200/60">Out</span>
-          <Handle
-            type="source"
-            position={Position.Right}
-            className="!bg-cyan-300 !w-4 !h-4 !border-2 !border-black"
-          />
+      <div className="node-chrome__footer">
+        <span className="node-chrome__footer-label">Tone Shape</span>
+        <div className="equalizer8-node__handles">
+          <span className="equalizer8-node__io-label">In</span>
+          <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-cyan" />
+          <span className="equalizer8-node__io-label">Out</span>
+          <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-cyan" />
         </div>
       </div>
     </div>

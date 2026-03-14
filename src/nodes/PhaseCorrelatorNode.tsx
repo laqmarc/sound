@@ -1,7 +1,10 @@
+import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import { getStereoAnalysers } from '../AudioEngine';
 import type { SoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './DisplayNode.css';
 
 const PhaseCorrelatorNode = ({ id }: SoundNodeProps) => {
   const requestRef = useRef<number | null>(null);
@@ -50,36 +53,31 @@ const PhaseCorrelatorNode = ({ id }: SoundNodeProps) => {
     correlation < -0.2 ? 'Danger Mono' : correlation < 0.35 ? 'Wide Weird' : correlation < 0.8 ? 'Open' : 'Mono Safe';
 
   return (
-    <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-2xl min-w-[240px]">
-      <div className="text-[10px] font-black tracking-widest text-rose-300 uppercase mb-3 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-rose-300 rounded-full animate-pulse" />
+    <div
+      className="node-chrome display-node"
+      style={{ '--display-width': '240px', '--display-accent': '#fda4af' } as CSSProperties}
+    >
+      <div className="node-chrome__title">
+        <div className="node-chrome__dot" />
         Fase Mutant
       </div>
 
-      <div className="bg-black rounded-xl border border-white/5 p-3">
-        <div className="relative h-4 rounded-full bg-gradient-to-r from-rose-500/30 via-white/10 to-emerald-500/30">
-          <div className="absolute inset-y-0 left-1/2 w-px bg-white/20" />
+      <div className="display-node__panel">
+        <div className="display-node__meter display-node__meter--phase">
+          <div className="display-node__meter-center" />
           <div
-            className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)]"
+            className="display-node__meter-marker"
             style={{ left: `calc(${markerLeft} - 2px)` }}
           />
         </div>
-        <div className="flex justify-between mt-3 text-[10px] uppercase tracking-[0.2em] text-white/45">
+        <div className="display-node__row">
           <span>{status}</span>
-          <span className="font-mono text-rose-300">{correlation.toFixed(2)}</span>
+          <span className="display-node__value">{correlation.toFixed(2)}</span>
         </div>
       </div>
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="!bg-rose-300 !w-3 !h-3 !border-2 !border-black"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!bg-rose-300 !w-3 !h-3 !border-2 !border-black"
-      />
+      <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-rose node-handle--small" />
+      <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-rose node-handle--small" />
     </div>
   );
 };

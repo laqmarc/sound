@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './SubOscNode.css';
 
 const SubOscNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const frequency = data.frequency ?? 110;
@@ -9,13 +11,13 @@ const SubOscNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const waveType = (data.type as OscillatorType | undefined) ?? 'square';
 
   return (
-    <div className="bg-blue-950/80 backdrop-blur-xl border border-blue-400/20 p-4 rounded-2xl shadow-2xl min-w-[240px]">
-      <div className="text-[10px] font-black tracking-widest text-blue-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-blue-300 rounded-full animate-pulse" />
+    <div className="node-chrome sub-osc-node">
+      <div className="node-chrome__title sub-osc-node__title">
+        <div className="node-chrome__dot sub-osc-node__dot" />
         Sub Osc
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="node-chrome__grid-2">
         <Knob
           label="Base"
           min={20}
@@ -40,11 +42,11 @@ const SubOscNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="node-chrome__grid-2 node-chrome__grid-2--compact">
         <select
           value={subOctave}
           onChange={(event) => onDataChange(id, { subOctave: Number(event.target.value) })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-blue-400/20 outline-none focus:border-blue-300"
+          className="node-chrome__select"
         >
           <option value={1}>-1 Oct</option>
           <option value={2}>-2 Oct</option>
@@ -52,7 +54,7 @@ const SubOscNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         <select
           value={waveType}
           onChange={(event) => onDataChange(id, { type: event.target.value as OscillatorType })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-blue-400/20 outline-none focus:border-blue-300"
+          className="node-chrome__select"
         >
           <option value="square">Square</option>
           <option value="sine">Sine</option>
@@ -65,17 +67,17 @@ const SubOscNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         type="target"
         position={Position.Left}
         id="pitch"
-        className="!bg-lime-400 !w-3 !h-3 !border-2 !border-white"
+        className="node-handle--pitch"
         style={{ top: '30%' }}
       />
-      <div className="absolute left-[-38px] top-[25%] text-[8px] text-lime-400 font-bold uppercase pointer-events-none">
+      <div className="node-chrome__pitch-label node-chrome__pitch-label--sub">
         Pitch
       </div>
 
       <Handle
         type="source"
         position={Position.Right}
-        className="!bg-blue-300 !w-4 !h-4 !border-2 !border-black"
+        className="node-handle--source node-handle--source-blue"
       />
     </div>
   );

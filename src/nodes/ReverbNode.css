@@ -1,0 +1,51 @@
+.reverb-node {
+  --reverb-accent: var(--color-indigo-pale);
+  --reverb-accent-soft: var(--color-indigo-mist);
+  --reverb-accent-glow: var(--color-indigo-glow);
+  --reverb-border: color-mix(in srgb, var(--color-indigo-soft) 20%, transparent);
+  --reverb-surface: var(--gradient-surface-reverb);
+  --reverb-surface-card: var(--ui-surface-card);
+  --reverb-shadow: var(--shadow-node);
+  min-width: 270px;
+  border-color: var(--reverb-border);
+  border-radius: 24px;
+  background: var(--reverb-surface);
+  box-shadow: var(--reverb-shadow);
+}
+
+.reverb-node__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.reverb-node__title {
+  color: var(--reverb-accent);
+  letter-spacing: 0.28em;
+  margin-bottom: 0.25rem;
+}
+
+.reverb-node__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--reverb-accent);
+  box-shadow: 0 0 14px var(--reverb-accent-glow);
+}
+
+.reverb-node__badge {
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 0.75rem;
+  background: var(--reverb-surface-card);
+  padding: 0.25rem 0.5rem;
+  color: var(--reverb-accent-soft);
+  font-family: var(--font-family-mono);
+  font-size: 10px;
+}
+
+.reverb-node__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}

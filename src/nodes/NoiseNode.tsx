@@ -1,19 +1,20 @@
 import { Handle, Position } from 'reactflow';
+import './nodeChrome.css';
+import './NoiseNode.css';
 
 const NoiseNode = () => {
   return (
-    <div className="bg-slate-800 p-4 border border-slate-700 rounded-lg shadow-xl min-w-[150px]">
-      <div className="text-slate-400 font-bold mb-3 flex items-center gap-2">
-        <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse" />
+    <div className="node-chrome noise-node">
+      <div className="node-chrome__title">
+        <div className="node-chrome__dot" />
         Soroll (Noise)
       </div>
-      <p className="text-[10px] text-slate-500 italic">Soroll blanc pur</p>
+      <p className="noise-node__description">Soroll blanc pur</p>
 
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!bg-slate-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
-      />
+      <div className="node-chrome__footer">
+        <span className="node-chrome__footer-label">Pure Noise</span>
+        <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-slate" />
+      </div>
     </div>
   );
 };

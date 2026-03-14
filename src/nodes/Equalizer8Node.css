@@ -1,0 +1,62 @@
+.equalizer8-node {
+  --equalizer8-accent: var(--color-cyan-soft);
+  --equalizer8-accent-soft: #a5f3fc;
+  --equalizer8-accent-faint: rgba(165, 243, 252, 0.6);
+  --equalizer8-border: rgba(34, 211, 238, 0.2);
+  --equalizer8-surface: rgba(2, 6, 23, 0.9);
+  --equalizer8-band-label: rgba(255, 255, 255, 0.45);
+  --node-accent: var(--equalizer8-accent);
+  min-width: 420px;
+  border-color: var(--equalizer8-border);
+  background: var(--equalizer8-surface);
+}
+
+.equalizer8-node__bands {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  height: 210px;
+}
+
+.equalizer8-node__band {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.equalizer8-node__value {
+  color: var(--equalizer8-accent-soft);
+  font-family: var(--font-family-mono);
+  font-size: 9px;
+}
+
+.equalizer8-node__slider {
+  width: 1rem;
+  height: 140px;
+  accent-color: var(--equalizer8-accent);
+  writing-mode: bt-lr;
+  -webkit-appearance: slider-vertical;
+}
+
+.equalizer8-node__band-label {
+  color: var(--equalizer8-band-label);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.equalizer8-node__handles {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.equalizer8-node__io-label {
+  color: var(--equalizer8-accent-faint);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}

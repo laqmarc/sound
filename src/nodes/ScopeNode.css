@@ -1,0 +1,32 @@
+.scope-node {
+  --scope-accent: var(--color-sky);
+  --scope-surface: rgba(0, 0, 0, 0.8);
+  --scope-border: rgba(255, 255, 255, 0.1);
+  --scope-screen-border: rgba(255, 255, 255, 0.05);
+  --scope-screen: var(--color-ink);
+  min-width: 220px;
+  border-color: var(--scope-border);
+  background: var(--scope-surface);
+}
+
+.scope-node__title {
+  color: var(--scope-accent);
+  letter-spacing: 0.12em;
+}
+
+.scope-node__dot {
+  background: var(--scope-accent);
+}
+
+.scope-node__screen {
+  overflow: hidden;
+  border: 1px solid var(--scope-screen-border);
+  border-radius: 0.75rem;
+  background: var(--scope-screen);
+}
+
+.scope-node__canvas {
+  display: block;
+  width: 100%;
+  height: 100px;
+}

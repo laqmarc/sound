@@ -1,0 +1,32 @@
+.gain-node {
+  --gain-border: var(--ui-border-strong);
+  --gain-surface: var(--ui-surface-panel-strong);
+  --gain-accent: #10b981;
+  min-width: 150px;
+  border-color: var(--gain-border);
+  background: var(--gain-surface);
+}
+
+.gain-node__title {
+  color: var(--gain-accent);
+}
+
+.gain-node__dot {
+  background: var(--gain-accent);
+}
+
+.gain-node__knob {
+  display: flex;
+  justify-content: center;
+}
+
+.gain-node__mod-label {
+  position: absolute;
+  top: 65%;
+  left: -30px;
+  color: var(--gain-accent);
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  pointer-events: none;
+}

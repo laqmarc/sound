@@ -1,0 +1,152 @@
+.drum-machine-node {
+  --drum-machine-accent: var(--color-rose);
+  --drum-machine-accent-soft: var(--color-rose-soft);
+  --drum-machine-accent-glow: var(--color-rose-glow);
+  --drum-machine-surface: var(--ui-surface-panel);
+  --drum-machine-surface-strong: var(--ui-border-soft);
+  --drum-machine-surface-current: rgba(244, 63, 94, 0.1);
+  --drum-machine-text-faint: var(--ui-text-ghost);
+  --drum-machine-text-soft: var(--ui-text-dim);
+  --drum-machine-text-mid: var(--ui-text-muted);
+  --drum-machine-text-strong: var(--ui-text-strong);
+  --drum-machine-current-idle-shadow: rgba(255, 255, 255, 0.18);
+  --drum-machine-active-shadow: rgba(255, 255, 255, 0.08);
+  --drum-machine-surface-idle-current: rgba(255, 255, 255, 0.15);
+  --drum-machine-border: var(--ui-border-soft);
+  --drum-machine-step-quarter: inset 0 0 0 1px var(--ui-border-soft);
+  --drum-machine-bg: var(--ui-surface-black-deep);
+  min-width: 760px;
+  border-color: var(--drum-machine-border);
+  background: var(--drum-machine-bg);
+}
+
+.drum-machine-node__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.drum-machine-node__title {
+  color: var(--drum-machine-accent);
+  letter-spacing: 0.12em;
+  margin-bottom: 0.25rem;
+}
+
+.drum-machine-node__dot {
+  background: var(--drum-machine-accent);
+}
+
+.drum-machine-node__header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.drum-machine-node__indicator-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.25rem;
+  border: 1px solid var(--drum-machine-border);
+  border-radius: 0.5rem;
+  background: var(--drum-machine-surface);
+  padding: 0.5rem 0.75rem;
+}
+
+.drum-machine-node__indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: var(--drum-machine-surface-strong);
+  transition: all 0.2s ease;
+}
+
+.drum-machine-node__indicator--current {
+  background: var(--drum-machine-accent);
+  box-shadow: 0 0 14px var(--drum-machine-accent-glow);
+  transform: scale(1.1);
+}
+
+.drum-machine-node__labels {
+  display: grid;
+  grid-template-columns: 72px repeat(16, minmax(0, 1fr));
+  gap: 0.25rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.drum-machine-node__step-label {
+  border-radius: 0.375rem;
+  padding: 0.25rem 0;
+  color: var(--drum-machine-text-faint);
+  font-size: 9px;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.drum-machine-node__step-label--quarter {
+  box-shadow: var(--drum-machine-step-quarter);
+}
+
+.drum-machine-node__step-label--current {
+  background: var(--drum-machine-surface-current);
+  color: var(--drum-machine-accent-soft);
+}
+
+.drum-machine-node__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.drum-machine-node__row {
+  display: grid;
+  grid-template-columns: 72px repeat(16, minmax(0, 1fr));
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.drum-machine-node__row-label {
+  color: var(--drum-machine-text-mid);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.drum-machine-node__step {
+  height: 2.25rem;
+  border: 1px solid var(--drum-machine-border);
+  border-radius: 0.375rem;
+  background: var(--drum-machine-surface);
+  color: var(--drum-machine-text-soft);
+  font-size: 9px;
+  font-weight: 900;
+  transition: all 0.2s ease;
+}
+
+.drum-machine-node__step:hover {
+  background: var(--drum-machine-surface-strong);
+}
+
+.drum-machine-node__step--quarter {
+  box-shadow: var(--drum-machine-step-quarter);
+}
+
+.drum-machine-node__step--current {
+  transform: scale(1.03);
+}
+
+.drum-machine-node__step--current-idle {
+  background: var(--drum-machine-surface-idle-current);
+  color: var(--drum-machine-text-strong);
+  box-shadow: 0 0 14px var(--drum-machine-current-idle-shadow);
+}
+
+.drum-machine-node__step--active {
+  color: var(--color-ink);
+  box-shadow: 0 0 10px var(--drum-machine-active-shadow);
+}

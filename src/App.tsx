@@ -14,6 +14,7 @@ import ReactFlow, {
   type NodeTypes,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import './App.css';
 import DestinationNode from './nodes/DestinationNode';
 import DelayNode from './nodes/DelayNode';
 import DistortionNode from './nodes/DistortionNode';
@@ -966,7 +967,7 @@ function App() {
   );
 
   return (
-    <div className="w-full h-full flex flex-col bg-black text-white selection:bg-sky-500/30">
+    <div className="app-shell">
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
         <defs>
           <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -1007,14 +1008,14 @@ function App() {
         onTestSound={testSound}
       />
 
-      <div className="flex-1 min-h-0 flex">
-        <aside className="w-52 sm:w-56 lg:w-60 shrink-0 border-r border-white/10 bg-black/35 backdrop-blur-xl p-4 flex flex-col gap-4 overflow-y-auto">
-          <section className="bg-white/5 rounded-2xl border border-white/10 p-3 flex flex-col gap-3 min-h-[inherit]">
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-[10px] uppercase tracking-[0.24em] text-white/40">Components</div>
-              <div className="text-[10px] text-white/30">{visibleAddNodeButtons.length}</div>
+      <div className="app-shell__body">
+        <aside className="app-shell__sidebar">
+          <section className="app-shell__sidebar-panel">
+            <div className="app-shell__sidebar-header">
+              <div className="app-shell__sidebar-title">Components</div>
+              <div className="app-shell__sidebar-count">{visibleAddNodeButtons.length}</div>
             </div>
-            <nav className="flex flex-col gap-2 min-w-0">
+            <nav className="app-shell__sidebar-nav">
               {visibleAddNodeButtons.map((button) => (
                 <button
                   key={button.type}
@@ -1022,7 +1023,7 @@ function App() {
                     event.stopPropagation();
                     addNode(button.type);
                   }}
-                  className={`w-full px-4 py-2.5 rounded-xl text-left text-[11px] font-black uppercase tracking-tighter border ${button.color} hover:bg-white/10 hover:translate-x-1 transition-all active:scale-[0.98] shadow-lg`}
+                  className={`app-shell__sidebar-button ${button.color}`}
                 >
                   + {button.label}
                 </button>
@@ -1031,7 +1032,7 @@ function App() {
           </section>
         </aside>
 
-        <main className="flex-1 min-w-0 relative">
+        <main className="app-shell__main">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -1044,10 +1045,10 @@ function App() {
             nodeTypes={nodeTypes}
             proOptions={{ hideAttribution: true }}
             fitView
-            className="bg-black"
+            className="app-shell__flow"
           >
             <Background color="#111" gap={20} />
-            <Controls className="glass-panel !bg-transparent !border-white/10" />
+            <Controls className="glass-panel app-flow-controls" />
           </ReactFlow>
 
           

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import type { ArpMode, ArpScale, ArpStep, ControllableSoundNodeProps, NoteName, SyncDivision } from '../types';
+import './nodeChrome.css';
+import './ArpeggiatorNode.css';
 
 const noteOptions: NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const divisionOptions: SyncDivision[] = ['1/1', '1/2', '1/4', '1/8', '1/16'];
@@ -108,23 +110,23 @@ const ArpeggiatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
   };
 
   return (
-    <div className="bg-black/85 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl min-w-[760px]">
-      <div className="flex items-center justify-between gap-4 mb-4">
+    <div className="node-chrome arpeggiator-node">
+      <div className="arpeggiator-node__header">
         <div>
-          <div className="text-[10px] font-black tracking-widest text-lime-400 uppercase mb-1 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-lime-400 rounded-full animate-pulse" />
+          <div className="node-chrome__title arpeggiator-node__title">
+            <div className="node-chrome__dot arpeggiator-node__dot" />
             Arpeggiator
           </div>
-          <p className="text-[10px] text-white/40 uppercase tracking-[0.2em]">Connect to Oscillator Pitch</p>
+          <p className="node-chrome__description">Connect to Oscillator Pitch</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 min-w-[360px]">
+        <div className="node-chrome__grid-3">
           <div>
-            <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Division</label>
+            <label className="node-chrome__field-label">Division</label>
             <select
               value={syncDivision}
               onChange={(event) => onDataChange(id, { syncDivision: event.target.value as SyncDivision })}
-              className="bg-slate-900 text-white text-xs p-1.5 rounded border border-slate-700 w-full outline-none focus:border-lime-400"
+              className="node-chrome__select"
             >
               {divisionOptions.map((division) => (
                 <option key={division} value={division}>
@@ -134,11 +136,11 @@ const ArpeggiatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
             </select>
           </div>
           <div>
-            <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Mode</label>
+            <label className="node-chrome__field-label">Mode</label>
             <select
               value={arpMode}
               onChange={(event) => onDataChange(id, { arpMode: event.target.value as ArpMode })}
-              className="bg-slate-900 text-white text-xs p-1.5 rounded border border-slate-700 w-full outline-none focus:border-lime-400"
+              className="node-chrome__select"
             >
               {modeOptions.map((mode) => (
                 <option key={mode} value={mode}>
@@ -148,11 +150,11 @@ const ArpeggiatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
             </select>
           </div>
           <div>
-            <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Scale</label>
+            <label className="node-chrome__field-label">Scale</label>
             <select
               value={arpScale}
               onChange={(event) => onDataChange(id, { arpScale: event.target.value as ArpScale })}
-              className="bg-slate-900 text-white text-xs p-1.5 rounded border border-slate-700 w-full outline-none focus:border-lime-400"
+              className="node-chrome__select"
             >
               {scaleOptions.map((scale) => (
                 <option key={scale} value={scale}>
@@ -164,13 +166,13 @@ const ArpeggiatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
         </div>
       </div>
 
-      <div className="grid grid-cols-[1fr_auto] gap-2 items-end mb-4">
+      <div className="arpeggiator-node__bank">
         <div>
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Preset Bank</label>
+          <label className="node-chrome__field-label">Preset Bank</label>
           <select
             value={selectedPreset}
             onChange={(event) => setSelectedPreset(Number(event.target.value))}
-            className="bg-slate-900 text-white text-xs p-1.5 rounded border border-slate-700 w-full outline-none focus:border-lime-400"
+            className="node-chrome__select"
           >
             {arpPresets.map((preset, index) => (
               <option key={preset.name} value={index}>
@@ -181,31 +183,27 @@ const ArpeggiatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
         </div>
         <button
           onClick={() => applyPreset(selectedPreset)}
-          className="px-4 py-2 rounded-lg bg-lime-400 text-black text-[10px] font-black uppercase tracking-[0.18em] hover:bg-lime-300 transition-colors"
+          className="arpeggiator-node__button"
         >
           Load Preset
         </button>
       </div>
 
-      <div className="grid grid-cols-8 gap-2">
+      <div className="node-chrome__grid-8">
         {steps.map((step, index) => {
           const isActive = activeStep === index;
 
           return (
             <div
               key={`arp-step-${index}`}
-              className={`rounded-xl border p-2 transition-all ${
-                isActive
-                  ? 'border-lime-400 bg-lime-500/10 shadow-[0_0_16px_rgba(132,204,22,0.3)]'
-                  : 'border-white/10 bg-white/5'
-              }`}
+              className={`node-chrome__step-card ${isActive ? 'node-chrome__step-card--active' : ''}`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-[9px] font-black uppercase tracking-widest text-white/55">{index + 1}</div>
+              <div className="node-chrome__step-row">
+                <div className="node-chrome__step-index">{index + 1}</div>
                 <button
                   onClick={() => updateStep(index, { enabled: !step.enabled })}
-                  className={`text-[8px] uppercase font-black px-2 py-1 rounded ${
-                    step.enabled ? 'bg-lime-400 text-black' : 'bg-white/10 text-white/45'
+                  className={`node-chrome__step-toggle ${
+                    step.enabled ? 'node-chrome__step-toggle--on' : 'node-chrome__step-toggle--off'
                   }`}
                 >
                   {step.enabled ? 'On' : 'Rest'}
@@ -215,7 +213,8 @@ const ArpeggiatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
               <select
                 value={step.note}
                 onChange={(event) => updateStep(index, { note: event.target.value as NoteName })}
-                className="bg-slate-900 text-white text-[11px] p-1 rounded border border-slate-700 w-full outline-none mb-2 focus:border-lime-400"
+                className="node-chrome__select"
+                style={{ marginBottom: '0.5rem' }}
               >
                 {noteOptions.map((note) => (
                   <option key={note} value={note}>
@@ -226,7 +225,7 @@ const ArpeggiatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
               <select
                 value={step.octave}
                 onChange={(event) => updateStep(index, { octave: Number(event.target.value) })}
-                className="bg-slate-900 text-white text-[11px] p-1 rounded border border-slate-700 w-full outline-none focus:border-lime-400"
+                className="node-chrome__select"
               >
                 {[2, 3, 4, 5, 6].map((octave) => (
                   <option key={octave} value={octave}>
@@ -239,12 +238,12 @@ const ArpeggiatorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
         })}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-        <span className="text-[8px] uppercase tracking-[0.25em] text-white/35">Pitch Out</span>
+      <div className="node-chrome__footer">
+        <span className="node-chrome__footer-label">Pitch Out</span>
         <Handle
           type="source"
           position={Position.Right}
-          className="!bg-lime-400 !w-4 !h-4 !border-2 !border-black"
+          className="node-handle--source node-handle--source-lime"
         />
       </div>
     </div>

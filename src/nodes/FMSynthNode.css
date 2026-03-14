@@ -1,0 +1,11 @@
+.fm-synth-node {
+  --fm-synth-accent: var(--color-teal-soft);
+  --fm-synth-border: rgba(45, 212, 191, 0.2);
+  --fm-synth-surface: rgba(19, 78, 74, 0.8);
+  --node-accent: var(--fm-synth-accent);
+  min-width: 280px;
+  border-color: var(--fm-synth-border);
+  background: var(--fm-synth-surface);
+  --node-select-border: var(--fm-synth-border);
+  --node-select-focus: var(--fm-synth-accent);
+}

@@ -1,0 +1,56 @@
+.arpeggiator-node {
+  --arpeggiator-accent: #a3e635;
+  --arpeggiator-accent-soft: #bef264;
+  --arpeggiator-surface: rgba(0, 0, 0, 0.85);
+  --arpeggiator-select-border: #334155;
+  min-width: 47.5rem;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--arpeggiator-surface);
+}
+
+.arpeggiator-node__title {
+  color: var(--arpeggiator-accent);
+}
+
+.arpeggiator-node__dot {
+  background: var(--arpeggiator-accent);
+}
+
+.arpeggiator-node,
+.arpeggiator-node .node-chrome__select {
+  --node-accent: var(--arpeggiator-accent);
+  --node-select-border: var(--arpeggiator-select-border);
+  --node-select-focus: var(--arpeggiator-accent);
+}
+
+.arpeggiator-node__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.arpeggiator-node__bank {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.arpeggiator-node__button {
+  border-radius: 0.5rem;
+  background: var(--arpeggiator-accent);
+  padding: 0.5rem 1rem;
+  color: var(--color-ink);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: background 0.2s ease;
+}
+
+.arpeggiator-node__button:hover {
+  background: var(--arpeggiator-accent-soft);
+}

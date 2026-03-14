@@ -1,0 +1,57 @@
+.looper-node {
+  --looper-accent: var(--color-lime-bright);
+  --looper-border: rgba(163, 230, 53, 0.2);
+  --looper-surface: rgba(54, 83, 20, 0.8);
+  --looper-action-surface: var(--ui-surface-panel);
+  --looper-action-text: var(--ui-text-mid);
+  --node-accent: var(--looper-accent);
+  min-width: 270px;
+  border-color: var(--looper-border);
+  background: var(--looper-surface);
+  --node-select-border: var(--looper-border);
+  --node-select-focus: var(--looper-accent);
+}
+
+.looper-node__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.looper-node__action {
+  flex: 1 1 0%;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0;
+  background: var(--looper-action-surface);
+  color: var(--looper-action-text);
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.looper-node__action:hover {
+  color: var(--color-white);
+}
+
+.looper-node__action--active {
+  background: var(--looper-accent);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-button);
+}
+
+.looper-node__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.looper-node__division {
+  grid-column: span 2;
+}
+
+.looper-node__footer-handles {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

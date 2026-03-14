@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ChordType, ControllableSoundNodeProps, NoteName, SyncDivision } from '../types';
+import './nodeChrome.css';
+import './ChordGeneratorNode.css';
 
 const notes: NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const chords: ChordType[] = ['major', 'minor', 'sus2', 'sus4', 'dim'];
@@ -26,17 +28,17 @@ const ChordSeqNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
   };
 
   return (
-    <div className="bg-indigo-950/80 backdrop-blur-xl border border-indigo-400/20 p-4 rounded-2xl shadow-2xl min-w-[320px]">
-      <div className="text-[10px] font-black tracking-widest text-indigo-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-indigo-300 rounded-full animate-pulse" />
+    <div className="node-chrome chord-seq-node">
+      <div className="node-chrome__title">
+        <div className="node-chrome__dot" />
         Chord Seq
       </div>
 
-      <div className="grid grid-cols-4 gap-2">
+      <div className="chord-seq-node__controls">
         <select
           value={note}
           onChange={(event) => onDataChange(id, { note: event.target.value as NoteName })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-indigo-400/20 outline-none focus:border-indigo-300"
+          className="node-chrome__select"
         >
           {notes.map((value) => (
             <option key={value} value={value}>
@@ -47,7 +49,7 @@ const ChordSeqNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         <select
           value={octave}
           onChange={(event) => onDataChange(id, { octave: Number(event.target.value) })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-indigo-400/20 outline-none focus:border-indigo-300"
+          className="node-chrome__select"
         >
           {[2, 3, 4, 5].map((value) => (
             <option key={value} value={value}>
@@ -58,7 +60,7 @@ const ChordSeqNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         <select
           value={chordType}
           onChange={(event) => onDataChange(id, { chordType: event.target.value as ChordType })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-indigo-400/20 outline-none focus:border-indigo-300"
+          className="node-chrome__select"
         >
           {chords.map((value) => (
             <option key={value} value={value}>
@@ -69,7 +71,7 @@ const ChordSeqNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         <select
           value={syncDivision}
           onChange={(event) => onDataChange(id, { syncDivision: event.target.value as SyncDivision })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-indigo-400/20 outline-none focus:border-indigo-300"
+          className="node-chrome__select"
         >
           {divisions.map((value) => (
             <option key={value} value={value}>
@@ -79,7 +81,7 @@ const ChordSeqNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         </select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mt-4">
+      <div className="node-chrome__grid-2 chord-seq-node__knobs">
         <Knob
           label="Spread"
           min={0}
@@ -104,18 +106,15 @@ const ChordSeqNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-8 gap-1">
+      <div className="chord-seq-node__steps">
         {Array.from({ length: 16 }, (_, index) => {
           const active = steps[index] ?? false;
           return (
             <button
+              type="button"
               key={index}
               onClick={() => toggleStep(index)}
-              className={`h-8 rounded-md border text-[9px] font-bold transition-all ${
-                active
-                  ? 'bg-indigo-300 text-black border-indigo-200 shadow-[0_0_12px_rgba(165,180,252,0.45)]'
-                  : 'bg-black/20 text-white/35 border-white/10 hover:border-indigo-300/40'
-              }`}
+              className={`chord-seq-node__step ${active ? 'chord-seq-node__step--active' : ''}`}
             >
               {index + 1}
             </button>
@@ -123,7 +122,10 @@ const ChordSeqNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         })}
       </div>
 
-      <Handle type="source" position={Position.Right} className="!bg-indigo-300 !w-4 !h-4 !border-2 !border-black" />
+      <div className="node-chrome__footer">
+        <span className="node-chrome__footer-label">Chord Seq Out</span>
+        <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-indigo" />
+      </div>
     </div>
   );
 };

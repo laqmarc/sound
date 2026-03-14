@@ -1,0 +1,18 @@
+.dual-osc-node {
+  --dual-osc-accent: var(--color-cyan-soft);
+  --dual-osc-border: rgba(34, 211, 238, 0.2);
+  --dual-osc-surface: rgba(8, 47, 73, 0.8);
+  --node-accent: var(--dual-osc-accent);
+  min-width: 290px;
+  border-color: var(--dual-osc-border);
+  background: var(--dual-osc-surface);
+  --node-select-border: var(--dual-osc-border);
+  --node-select-focus: var(--dual-osc-accent);
+}
+
+.dual-osc-node__select-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 1rem;
+}

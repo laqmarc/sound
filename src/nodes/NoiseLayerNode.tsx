@@ -1,6 +1,9 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './ThreeKnobFxNode.css';
+import './NoiseLayerNode.css';
 
 const NoiseLayerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const tone = data.tone ?? 2800;
@@ -9,13 +12,13 @@ const NoiseLayerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
   const filterType = (data.type as BiquadFilterType | undefined) ?? 'lowpass';
 
   return (
-    <div className="bg-stone-900/85 backdrop-blur-xl border border-stone-400/20 p-4 rounded-2xl shadow-2xl min-w-[250px]">
-      <div className="text-[10px] font-black tracking-widest text-stone-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-stone-300 rounded-full animate-pulse" />
+    <div className="node-chrome three-knob-fx-node noise-layer-node">
+      <div className="node-chrome__title three-knob-fx-node__title">
+        <div className="node-chrome__dot three-knob-fx-node__dot" />
         Noise Layer
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="three-knob-fx-node__grid">
         <Knob
           label="Tone"
           min={100}
@@ -51,23 +54,22 @@ const NoiseLayerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
         />
       </div>
 
-      <select
-        value={filterType}
-        onChange={(event) => onDataChange(id, { type: event.target.value as BiquadFilterType })}
-        className="bg-slate-900 text-white text-xs p-1.5 rounded border border-stone-400/20 w-full outline-none focus:border-stone-300"
-      >
-        <option value="lowpass">Lowpass</option>
-        <option value="bandpass">Bandpass</option>
-        <option value="highpass">Highpass</option>
-      </select>
+      <div className="noise-layer-node__select-wrap">
+        <label className="node-chrome__field-label">Filter</label>
+        <select
+          value={filterType}
+          onChange={(event) => onDataChange(id, { type: event.target.value as BiquadFilterType })}
+          className="node-chrome__select"
+        >
+          <option value="lowpass">Lowpass</option>
+          <option value="bandpass">Bandpass</option>
+          <option value="highpass">Highpass</option>
+        </select>
+      </div>
 
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-        <span className="text-[8px] uppercase tracking-[0.25em] text-white/35">Air Layer</span>
-        <Handle
-          type="source"
-          position={Position.Right}
-          className="!bg-stone-300 !w-4 !h-4 !border-2 !border-black"
-        />
+      <div className="node-chrome__footer">
+        <span className="three-knob-fx-node__footer-label">Air Layer</span>
+        <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-stone" />
       </div>
     </div>
   );

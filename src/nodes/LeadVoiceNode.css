@@ -1,0 +1,23 @@
+.lead-voice-node {
+  --lead-voice-accent: #fda4af;
+  --lead-voice-border: rgba(251, 113, 133, 0.2);
+  --lead-voice-surface: rgba(76, 5, 25, 0.8);
+  min-width: 17.5rem;
+  border-color: var(--lead-voice-border);
+  background: var(--lead-voice-surface);
+}
+
+.lead-voice-node__title {
+  color: var(--lead-voice-accent);
+}
+
+.lead-voice-node__dot {
+  background: var(--lead-voice-accent);
+}
+
+.lead-voice-node,
+.lead-voice-node .node-chrome__select {
+  --node-accent: var(--lead-voice-accent);
+  --node-select-border: var(--lead-voice-border);
+  --node-select-focus: var(--lead-voice-accent);
+}

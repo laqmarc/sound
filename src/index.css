@@ -1,19 +1,9 @@
-@import "tailwindcss";
-
-@theme {
-  --color-brand-bg: #050505;
-  --color-node-bg: rgba(15, 15, 20, 0.85);
-  --color-node-border: rgba(255, 255, 255, 0.1);
-  --color-accent-blue: #00d2ff;
-  --color-accent-purple: #9d50bb;
-  --color-accent-green: #38ef7d;
-  --color-accent-rose: #f43f5e;
-}
+@import './styles/tokens.css';
 
 body {
   margin: 0;
   background-color: var(--color-brand-bg);
-  color: #e2e8f0;
+  color: var(--color-brand-fg);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow: hidden;
   height: 100vh;
@@ -26,9 +16,9 @@ body {
 }
 
 .react-flow__background {
-  background-color: #050505;
+  background-color: var(--color-brand-bg);
   background-image: 
-    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+    radial-gradient(var(--ui-surface-panel) 1px, transparent 0);
   background-size: 40px 40px;
 }
 
@@ -39,25 +29,25 @@ body {
 }
 
 .react-flow__node.selected {
-  box-shadow: 0 0 0 2px var(--color-accent-blue), 0 0 20px rgba(0, 210, 255, 0.3);
+  box-shadow: var(--shadow-brand-ring);
 }
 
 .react-flow__handle {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid #050505;
-  background: white;
+  border: 2px solid var(--color-brand-bg);
+  background: var(--color-white);
   transition: all 0.2s ease;
 }
 
 .react-flow__handle:hover {
   transform: scale(1.4);
-  box-shadow: 0 0 15px white;
+  box-shadow: 0 0 15px var(--color-white);
 }
 
 .react-flow__connection-path {
-  stroke: rgba(255, 255, 255, 0.4);
+  stroke: var(--ui-text-faint);
   stroke-width: 2;
   stroke-dasharray: 5;
   animation: dashdraw 0.5s linear infinite;
@@ -82,15 +72,20 @@ body {
 
 /* Glassmorphism utility */
 .glass-panel {
-  background: rgba(15, 15, 20, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  background: var(--ui-surface-panel-strong);
+  backdrop-filter: var(--blur-panel);
+  border: 1px solid var(--ui-border-soft);
+  box-shadow: var(--shadow-panel);
+}
+
+.app-flow-controls {
+  background: transparent;
+  border-color: var(--ui-border-soft);
 }
 
 .react-flow__controls-button svg {
-  fill: #000 !important;
-  stroke: #000 !important;
+  fill: var(--color-ink) !important;
+  stroke: var(--color-ink) !important;
 }
 
 .no-scrollbar::-webkit-scrollbar {

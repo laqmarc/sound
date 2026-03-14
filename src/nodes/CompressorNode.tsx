@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './CompressorNode.css';
 
 const CompressorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const threshold = data.threshold ?? -24;
@@ -11,13 +13,13 @@ const CompressorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
   const makeup = data.makeup ?? 1;
 
   return (
-    <div className="bg-emerald-950/80 backdrop-blur-xl border border-emerald-400/20 p-4 rounded-2xl shadow-2xl min-w-[280px]">
-      <div className="text-[10px] font-black tracking-widest text-emerald-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-emerald-300 rounded-full animate-pulse" />
+    <div className="node-chrome compressor-node">
+      <div className="node-chrome__title compressor-node__title">
+        <div className="node-chrome__dot compressor-node__dot" />
         Compressor
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="compressor-node__grid">
         <Knob
           label="Thresh"
           min={-60}
@@ -86,18 +88,18 @@ const CompressorNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
         />
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-        <span className="text-[8px] uppercase tracking-[0.25em] text-white/35">Dynamics</span>
-        <div className="flex items-center gap-4">
+      <div className="node-chrome__footer">
+        <span className="node-chrome__footer-label">Dynamics</span>
+        <div className="compressor-node__handles">
           <Handle
             type="target"
             position={Position.Left}
-            className="!bg-emerald-300 !w-4 !h-4 !border-2 !border-black"
+            className="node-handle--source node-handle--source-emerald"
           />
           <Handle
             type="source"
             position={Position.Right}
-            className="!bg-emerald-300 !w-4 !h-4 !border-2 !border-black"
+            className="node-handle--source node-handle--source-emerald"
           />
         </div>
       </div>

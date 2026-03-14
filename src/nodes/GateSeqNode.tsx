@@ -1,5 +1,7 @@
 import { Handle, Position } from 'reactflow';
 import type { ControllableSoundNodeProps, SyncDivision } from '../types';
+import './nodeChrome.css';
+import './GateSeqNode.css';
 
 const divisions: SyncDivision[] = ['1/4', '1/8', '1/16'];
 
@@ -20,18 +22,18 @@ const GateSeqNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => 
   };
 
   return (
-    <div className="bg-amber-950/80 backdrop-blur-xl border border-amber-400/20 p-4 rounded-2xl shadow-2xl min-w-[300px]">
-      <div className="text-[10px] font-black tracking-widest text-amber-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-amber-300 rounded-full animate-pulse" />
+    <div className="node-chrome gate-seq-node">
+      <div className="node-chrome__title">
+        <div className="node-chrome__dot" />
         Gate Seq
       </div>
 
       <div>
-        <label className="text-slate-400 text-[9px] uppercase block mb-1">Clock</label>
+        <label className="node-chrome__field-label">Clock</label>
         <select
           value={syncDivision}
           onChange={(event) => onDataChange(id, { syncDivision: event.target.value as SyncDivision })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-amber-400/20 w-full outline-none focus:border-amber-300"
+          className="node-chrome__select"
         >
           {divisions.map((division) => (
             <option key={division} value={division}>
@@ -41,18 +43,15 @@ const GateSeqNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => 
         </select>
       </div>
 
-      <div className="mt-4 grid grid-cols-8 gap-1">
+      <div className="gate-seq-node__steps">
         {Array.from({ length: 16 }, (_, index) => {
           const active = steps[index] ?? false;
           return (
             <button
+              type="button"
               key={index}
               onClick={() => toggleStep(index)}
-              className={`h-8 rounded-md border text-[9px] font-bold transition-all ${
-                active
-                  ? 'bg-amber-300 text-black border-amber-200 shadow-[0_0_12px_rgba(252,211,77,0.45)]'
-                  : 'bg-black/20 text-white/35 border-white/10 hover:border-amber-300/40'
-              }`}
+              className={`gate-seq-node__step ${active ? 'gate-seq-node__step--active' : ''}`}
             >
               {index + 1}
             </button>
@@ -60,12 +59,12 @@ const GateSeqNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => 
         })}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Handle type="target" position={Position.Left} className="!bg-amber-300 !w-4 !h-4 !border-2 !border-black" />
-          <span className="text-[8px] uppercase tracking-[0.25em] text-white/35">Chop Audio</span>
+      <div className="node-chrome__footer">
+        <div className="gate-seq-node__footer-left">
+          <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-amber" />
+          <span className="node-chrome__footer-label">Chop Audio</span>
         </div>
-        <Handle type="source" position={Position.Right} className="!bg-amber-300 !w-4 !h-4 !border-2 !border-black" />
+        <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-amber" />
       </div>
     </div>
   );

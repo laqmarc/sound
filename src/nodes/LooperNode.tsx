@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps, SyncDivision } from '../types';
+import './nodeChrome.css';
+import './LooperNode.css';
 
 const divisions: SyncDivision[] = ['1/1', '1/2', '1/4', '1/8', '1/16'];
 
@@ -13,39 +15,37 @@ const LooperNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const syncDivision = data.syncDivision ?? '1/4';
 
   return (
-    <div className="bg-lime-950/80 backdrop-blur-xl border border-lime-400/20 p-4 rounded-2xl shadow-2xl min-w-[270px]">
-      <div className="text-[10px] font-black tracking-widest text-lime-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-lime-300 rounded-full animate-pulse" />
+    <div className="node-chrome looper-node">
+      <div className="node-chrome__title">
+        <div className="node-chrome__dot" />
         Looper
       </div>
 
-      <div className="flex gap-2 mb-4">
+      <div className="looper-node__actions">
         <button
+          type="button"
           onClick={() => onDataChange(id, { sync: !sync })}
-          className={`flex-1 text-[8px] py-2 rounded-md transition-all font-bold uppercase ${
-            sync ? 'bg-lime-300 text-black shadow-lg' : 'bg-white/5 text-white/50 hover:text-white'
-          }`}
+          className={`looper-node__action ${sync ? 'looper-node__action--active' : ''}`}
         >
           {sync ? 'Sync' : 'Free'}
         </button>
         <button
+          type="button"
           onClick={() => onDataChange(id, { freeze: !freeze })}
-          className={`flex-1 text-[8px] py-2 rounded-md transition-all font-bold uppercase ${
-            freeze ? 'bg-lime-400 text-black shadow-lg' : 'bg-white/5 text-white/50 hover:text-white'
-          }`}
+          className={`looper-node__action ${freeze ? 'looper-node__action--active' : ''}`}
         >
           {freeze ? 'Frozen' : 'Record'}
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="looper-node__grid">
         {sync ? (
-          <div className="col-span-2">
-            <label className="text-slate-400 text-[9px] uppercase block mb-1">Loop Size</label>
+          <div className="looper-node__division">
+            <label className="node-chrome__field-label">Loop Size</label>
             <select
               value={syncDivision}
               onChange={(event) => onDataChange(id, { syncDivision: event.target.value as SyncDivision })}
-              className="bg-slate-900 text-white text-xs p-1.5 rounded border border-lime-400/20 w-full outline-none focus:border-lime-300"
+              className="node-chrome__select"
             >
               {divisions.map((division) => (
                 <option key={division} value={division}>
@@ -91,19 +91,11 @@ const LooperNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         />
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-        <span className="text-[8px] uppercase tracking-[0.25em] text-white/35">Capture Loop</span>
-        <div className="flex items-center gap-4">
-          <Handle
-            type="target"
-            position={Position.Left}
-            className="!bg-lime-300 !w-4 !h-4 !border-2 !border-black"
-          />
-          <Handle
-            type="source"
-            position={Position.Right}
-            className="!bg-lime-300 !w-4 !h-4 !border-2 !border-black"
-          />
+      <div className="node-chrome__footer">
+        <span className="node-chrome__footer-label">Capture Loop</span>
+        <div className="looper-node__footer-handles">
+          <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-lime" />
+          <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-lime" />
         </div>
       </div>
     </div>

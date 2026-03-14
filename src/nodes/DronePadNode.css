@@ -1,0 +1,23 @@
+.drone-pad-node {
+  --drone-pad-accent: var(--color-green-soft);
+  --drone-pad-border: rgba(52, 211, 153, 0.2);
+  --drone-pad-surface: rgba(6, 78, 59, 0.8);
+  --node-accent: var(--drone-pad-accent);
+  min-width: 280px;
+  border-color: var(--drone-pad-border);
+  background: var(--drone-pad-surface);
+  --node-select-border: var(--drone-pad-border);
+  --node-select-focus: var(--drone-pad-accent);
+}
+
+.drone-pad-node__top-grid,
+.drone-pad-node__bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.drone-pad-node__bottom-grid {
+  margin-top: 1rem;
+  align-items: end;
+}

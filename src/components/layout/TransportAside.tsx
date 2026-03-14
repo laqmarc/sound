@@ -1,6 +1,7 @@
 import { Volume2, VolumeX } from 'lucide-react';
 
 import Knob from '../Knob';
+import './TransportAside.css';
 
 interface TransportState {
   isPlaying: boolean;
@@ -29,32 +30,32 @@ export function TransportAside({
   onResetCanvas,
 }: TransportAsideProps) {
   return (
-    <aside className="hidden lg:flex w-52 xl:w-56 shrink-0 border-l border-white/10 bg-black/35 backdrop-blur-xl p-4 flex-col gap-4 overflow-y-auto">
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-col gap-4">
+    <aside className="transport-aside">
+      <section className="transport-aside__panel">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.24em] text-white/40 mb-3">Transport</div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="transport-aside__title">Transport</div>
+          <div className="transport-aside__steps">
             {Array.from({ length: 16 }, (_, step) => (
               <div
                 key={`transport-step-${step}`}
-                className={`h-6 rounded-xl transition-all ${
+                className={`transport-aside__step ${
                   transport.step % 16 === step && transport.isPlaying
-                    ? 'bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.85)]'
-                    : 'bg-white/10'
-                } ${step % 4 === 0 ? 'ring-1 ring-white/10' : ''}`}
+                    ? 'transport-aside__step--active'
+                    : ''
+                } ${step % 4 === 0 ? 'transport-aside__step--accent' : ''}`}
               />
             ))}
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-center">
-          <div className="text-[9px] uppercase tracking-[0.22em] text-white/35 mb-1">State</div>
-          <div className="text-[10px] uppercase tracking-[0.25em] text-white/75">
+        <div className="transport-aside__state">
+          <div className="transport-aside__state-label">State</div>
+          <div className="transport-aside__state-value">
             {transport.isPlaying ? 'Running' : 'Stopped'}
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-4">
+        <div className="transport-aside__controls">
           <Knob
             label="BPM"
             min={60}
@@ -66,8 +67,8 @@ export function TransportAside({
             size={54}
           />
 
-          <div className="w-full rounded-2xl border border-white/10 bg-black/25 p-3">
-            <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-3">Swing</label>
+          <div className="transport-aside__swing">
+            <label className="transport-aside__swing-label">Swing</label>
             <input
               type="range"
               min={0}
@@ -75,9 +76,9 @@ export function TransportAside({
               step={0.01}
               value={transport.swing}
               onChange={(event) => onSetTransportSwing(Number(event.target.value))}
-              className="w-full accent-rose-400"
+              className="transport-aside__swing-range"
             />
-            <div className="text-[10px] text-white/55 mt-2 font-mono text-center">
+            <div className="transport-aside__swing-value">
               {Math.round(transport.swing * 100)}%
             </div>
           </div>
@@ -85,33 +86,33 @@ export function TransportAside({
       </section>
 
       {!audioStarted ? (
-        <div className="flex flex-col gap-3">
+        <div className="transport-aside__actions">
           <button
             onClick={onStartAudio}
-            className="w-full bg-emerald-500 hover:bg-emerald-400 text-black px-4 py-3 rounded-2xl font-black text-xs tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95"
+            className="transport-aside__button transport-aside__button--start"
           >
-            <Volume2 className="w-4 h-4" />
+            <Volume2 className="transport-aside__icon" />
             START ENGINE
           </button>
           <button
             onClick={onResetCanvas}
-            className="w-full bg-white/5 hover:bg-white/10 text-white/70 border border-white/10 px-4 py-3 rounded-2xl font-black text-xs tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95"
+            className="transport-aside__button transport-aside__button--reset"
           >
             RESET
           </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="transport-aside__actions">
           <button
             onClick={onStopAudio}
-            className="w-full bg-white/5 hover:bg-rose-500/20 hover:text-rose-500 text-white/60 border border-white/10 px-4 py-3 rounded-2xl font-black text-xs tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95"
+            className="transport-aside__button transport-aside__button--stop"
           >
-            <VolumeX className="w-4 h-4" />
+            <VolumeX className="transport-aside__icon" />
             STOP
           </button>
           <button
             onClick={onResetCanvas}
-            className="w-full bg-white/5 hover:bg-white/10 text-white/70 border border-white/10 px-4 py-3 rounded-2xl font-black text-xs tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95"
+            className="transport-aside__button transport-aside__button--reset"
           >
             RESET
           </button>

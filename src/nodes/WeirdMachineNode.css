@@ -1,0 +1,206 @@
+.weird-machine-node {
+  --weird-accent: var(--color-fuchsia-soft);
+  --weird-accent-rose: var(--color-fuchsia-rose);
+  --weird-accent-cyan: var(--color-cyan-pale);
+  --weird-accent-amber: var(--color-yellow-soft);
+  --weird-accent-soft: var(--color-fuchsia-mist);
+  --weird-surface: var(--ui-surface-card);
+  --weird-surface-strong: var(--ui-surface-card-strong);
+  --weird-active-rose: color-mix(in srgb, var(--weird-accent-rose) 20%, transparent);
+  --weird-step-rose: color-mix(in srgb, var(--weird-accent-rose) 26%, transparent);
+  --weird-mood-cyan: var(--ui-mix-sky-14);
+  --weird-mood-amber: var(--ui-mix-amber-14);
+  --weird-mood-rose: var(--ui-mix-rose-14);
+  --weird-text-soft: var(--ui-text-soft);
+  --weird-beast-text: var(--color-rose-pale);
+  --weird-bg: var(--gradient-surface-weird);
+  --weird-border: color-mix(in srgb, var(--weird-accent) 20%, transparent);
+  --weird-dot-glow: color-mix(in srgb, var(--weird-accent-rose) 95%, transparent);
+  --weird-toggle-border: color-mix(in srgb, var(--weird-accent-rose) 40%, transparent);
+  --weird-select-border: color-mix(in srgb, var(--weird-accent) 20%, transparent);
+  --weird-mode-text: color-mix(in srgb, var(--weird-accent) 80%, transparent);
+  --weird-step-border: color-mix(in srgb, var(--weird-accent-rose) 40%, transparent);
+  --weird-step-glow: color-mix(in srgb, var(--weird-accent-rose) 65%, transparent);
+  --weird-glass-border: color-mix(in srgb, var(--weird-accent-cyan) 25%, transparent);
+  --weird-grit-border: color-mix(in srgb, var(--weird-accent-amber) 25%, transparent);
+  --weird-beast-border: color-mix(in srgb, var(--weird-accent-rose) 25%, transparent);
+  min-width: 430px;
+  border-color: var(--weird-border);
+  border-radius: 28px;
+  background: var(--weird-bg);
+}
+
+.weird-machine-node__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.weird-machine-node__title {
+  color: var(--weird-accent);
+  letter-spacing: 0.3em;
+  margin-bottom: 0.25rem;
+}
+
+.weird-machine-node__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--weird-accent);
+  box-shadow: 0 0 14px var(--weird-dot-glow);
+}
+
+.weird-machine-node__leds {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.25rem;
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 1rem;
+  background: var(--weird-surface);
+  padding: 0.5rem;
+}
+
+.weird-machine-node__led {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 999px;
+  transition: all var(--transition-fast);
+}
+
+.weird-machine-node__knobs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.weird-machine-node__controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.weird-machine-node__toggle,
+.weird-machine-node__mood-button,
+.weird-machine-node__sequence {
+  border: 1px solid var(--ui-border-soft);
+  background: var(--weird-surface);
+}
+
+.weird-machine-node__toggle,
+.weird-machine-node__mood-button {
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.weird-machine-node__toggle {
+  color: var(--ui-text-muted);
+}
+
+.weird-machine-node__toggle--active {
+  border-color: var(--weird-toggle-border);
+  background: var(--weird-active-rose);
+  color: var(--weird-accent);
+}
+
+.weird-machine-node__select {
+  width: 100%;
+  border: 1px solid var(--weird-select-border);
+  border-radius: 0.75rem;
+  background: var(--weird-surface-strong);
+  padding: 0.5rem;
+  color: var(--ui-text-main);
+  font-size: 12px;
+  outline: none;
+}
+
+.weird-machine-node__select:focus {
+  border-color: var(--weird-accent);
+}
+
+.weird-machine-node__sequence {
+  margin-bottom: 0.75rem;
+  border-radius: 1rem;
+  padding: 0.75rem;
+}
+
+.weird-machine-node__sequence-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.weird-machine-node__sequence-title {
+  color: var(--weird-text-soft);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.weird-machine-node__sequence-mode {
+  color: var(--weird-mode-text);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.weird-machine-node__steps {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.weird-machine-node__step {
+  height: 2.5rem;
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 0.75rem;
+  background: var(--ui-surface-panel);
+  color: var(--ui-text-dim);
+  font-size: 10px;
+  font-weight: 900;
+  transition: all var(--transition-fast);
+}
+
+.weird-machine-node__step--on {
+  border-color: var(--weird-step-border);
+  background: var(--weird-step-rose);
+  color: var(--weird-accent-soft);
+}
+
+.weird-machine-node__step--current {
+  box-shadow: 0 0 18px var(--weird-step-glow);
+  transform: scale(1.04);
+}
+
+.weird-machine-node__moods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.weird-machine-node__mood-button--glass {
+  border-color: var(--weird-glass-border);
+  background: var(--weird-mood-cyan);
+  color: var(--weird-accent-cyan);
+}
+
+.weird-machine-node__mood-button--grit {
+  border-color: var(--weird-grit-border);
+  background: var(--weird-mood-amber);
+  color: var(--weird-accent-amber);
+}
+
+.weird-machine-node__mood-button--beast {
+  border-color: var(--weird-beast-border);
+  background: var(--weird-mood-rose);
+  color: var(--weird-beast-text);
+}

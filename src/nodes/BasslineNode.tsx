@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps, NoteName, SyncDivision } from '../types';
+import './nodeChrome.css';
+import './BasslineNode.css';
 
 const notes: NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const divisions: SyncDivision[] = ['1/4', '1/8', '1/16'];
@@ -24,17 +26,17 @@ const BasslineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
   };
 
   return (
-    <div className="bg-green-950/80 backdrop-blur-xl border border-green-400/20 p-4 rounded-2xl shadow-2xl min-w-[320px]">
-      <div className="text-[10px] font-black tracking-widest text-green-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse" />
+    <div className="node-chrome bassline-node">
+      <div className="node-chrome__title bassline-node__title">
+        <div className="node-chrome__dot bassline-node__dot" />
         Bassline
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="bassline-node__top-grid">
         <select
           value={note}
           onChange={(event) => onDataChange(id, { note: event.target.value as NoteName })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-green-400/20 outline-none focus:border-green-300"
+          className="bassline-node__select"
         >
           {notes.map((value) => (
             <option key={value} value={value}>
@@ -45,7 +47,7 @@ const BasslineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         <select
           value={octave}
           onChange={(event) => onDataChange(id, { octave: Number(event.target.value) })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-green-400/20 outline-none focus:border-green-300"
+          className="bassline-node__select"
         >
           {[1, 2, 3, 4].map((value) => (
             <option key={value} value={value}>
@@ -56,7 +58,7 @@ const BasslineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         <select
           value={syncDivision}
           onChange={(event) => onDataChange(id, { syncDivision: event.target.value as SyncDivision })}
-          className="bg-slate-900 text-white text-xs p-1.5 rounded border border-green-400/20 outline-none focus:border-green-300"
+          className="bassline-node__select"
         >
           {divisions.map((value) => (
             <option key={value} value={value}>
@@ -66,7 +68,7 @@ const BasslineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         </select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mt-4">
+      <div className="bassline-node__knobs">
         <Knob
           label="Tone"
           min={120}
@@ -91,18 +93,15 @@ const BasslineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-8 gap-1">
+      <div className="bassline-node__steps">
         {Array.from({ length: 16 }, (_, index) => {
           const active = steps[index] ?? false;
           return (
             <button
+              type="button"
               key={index}
               onClick={() => toggleStep(index)}
-              className={`h-8 rounded-md border text-[9px] font-bold transition-all ${
-                active
-                  ? 'bg-green-300 text-black border-green-200 shadow-[0_0_12px_rgba(134,239,172,0.45)]'
-                  : 'bg-black/20 text-white/35 border-white/10 hover:border-green-300/40'
-              }`}
+              className={`bassline-node__step ${active ? 'bassline-node__step--active' : ''}`}
             >
               {index + 1}
             </button>
@@ -110,7 +109,7 @@ const BasslineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         })}
       </div>
 
-      <Handle type="source" position={Position.Right} className="!bg-green-300 !w-4 !h-4 !border-2 !border-black" />
+      <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-green" />
     </div>
   );
 };

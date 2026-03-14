@@ -1,0 +1,16 @@
+.noise-node {
+  --noise-accent: var(--ui-text-label);
+  --noise-border: rgba(100, 116, 139, 0.4);
+  --noise-surface: var(--ui-surface-panel-strong);
+  --noise-description: #64748b;
+  --node-accent: var(--noise-accent);
+  min-width: 150px;
+  border-color: var(--noise-border);
+  background: var(--noise-surface);
+}
+
+.noise-node__description {
+  color: var(--noise-description);
+  font-size: 10px;
+  font-style: italic;
+}

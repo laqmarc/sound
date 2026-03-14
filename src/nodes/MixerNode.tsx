@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps, SoundNodeData } from '../types';
+import './nodeChrome.css';
+import './MixerNode.css';
 
 const mixerChannels = [
   {
@@ -41,21 +43,19 @@ const readBoolean = (data: SoundNodeData, key: keyof SoundNodeData, fallback: bo
 
 const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   return (
-    <div className="min-w-[520px] rounded-[26px] border border-emerald-400/15 bg-[linear-gradient(145deg,rgba(8,18,16,0.98),rgba(8,24,20,0.94))] p-4 shadow-[0_20px_70px_rgba(0,0,0,0.35)]">
-      <div className="mb-4 flex items-center justify-between gap-4">
+    <div className="node-chrome mixer-node">
+      <div className="mixer-node__header">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-300">
-            <div className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_14px_rgba(52,211,153,0.9)]" />
+          <div className="node-chrome__title mixer-node__title">
+            <div className="node-chrome__dot mixer-node__dot" />
             4 Channel Mixer
           </div>
-          <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">Vol, 3-band EQ, pan and mute</p>
+          <p className="node-chrome__description">Vol, 3-band EQ, pan and mute</p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-black/25 px-2 py-1 text-[10px] font-mono text-emerald-200">
-          EQ + Pan
-        </div>
+        <div className="mixer-node__badge">EQ + Pan</div>
       </div>
 
-      <div className="grid grid-cols-4 gap-3 nodrag">
+      <div className="mixer-node__channels nodrag">
         {mixerChannels.map((channel) => {
           const gainKey = channel.key as keyof SoundNodeData;
           const lowKey = `${channel.key}_low` as keyof SoundNodeData;
@@ -72,36 +72,33 @@ const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
           const mute = readBoolean(data, muteKey, false);
 
           return (
-            <div key={channel.key} className="relative rounded-[22px] border border-white/10 bg-black/25 p-3">
+            <div key={channel.key} className="mixer-node__channel">
               <Handle
                 type="target"
                 position={Position.Left}
                 id={channel.key}
-                style={{ top: '50%', left: '-12px' }}
-                className="!h-3 !w-3 !border-2 !border-black"
+                style={{ top: '50%', left: '-12px', background: channel.color }}
+                className="mixer-node__target"
               />
 
-              <div className="mb-2 flex items-center justify-between">
-                <div className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: channel.color }}>
+              <div className="mixer-node__channel-top">
+                <div className="mixer-node__channel-label" style={{ color: channel.color }}>
                   {channel.label}
                 </div>
                 <button
+                  type="button"
                   onClick={() => onDataChange(id, { [muteKey]: !mute })}
-                  className={`rounded-lg border px-2 py-1 text-[9px] font-black uppercase tracking-[0.14em] ${
-                    mute
-                      ? 'border-rose-400/30 bg-rose-500/15 text-rose-200'
-                      : 'border-white/10 bg-white/5 text-white/45'
-                  }`}
+                  className={`mixer-node__mute-button ${mute ? 'mixer-node__mute-button--active' : ''}`}
                 >
                   {mute ? 'Muted' : 'Mute'}
                 </button>
               </div>
 
-              <div className="mb-2 h-3 text-[8px] font-bold uppercase text-white/30">
+              <div className="mixer-node__channel-name">
                 {typeof labelValue === 'string' ? labelValue : ''}
               </div>
 
-              <div className="mb-3 flex justify-center">
+              <div className="mixer-node__volume">
                 <Knob
                   label="Vol"
                   min={0}
@@ -114,7 +111,7 @@ const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="mixer-node__eq-grid">
                 <Knob
                   label="Low"
                   min={-18}
@@ -161,7 +158,7 @@ const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
               </div>
 
               <div
-                className="mt-3 h-1.5 rounded-full transition-all"
+                className="mixer-node__meter"
                 style={{
                   background: mute
                     ? 'rgba(244,63,94,0.6)'
@@ -173,12 +170,12 @@ const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         })}
       </div>
 
-      <div className="mt-4 border-t border-white/5 pt-4 flex items-center justify-between">
-        <span className="text-[8px] font-bold uppercase tracking-[0.18em] text-white/30">Master Out</span>
+      <div className="node-chrome__footer">
+        <span className="node-chrome__footer-label">Master Out</span>
         <Handle
           type="source"
           position={Position.Right}
-          className="!h-4 !w-4 !border-2 !border-black !bg-white"
+          className="node-handle--source node-handle--source-white"
         />
       </div>
     </div>

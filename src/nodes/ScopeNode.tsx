@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { Handle, Position } from 'reactflow';
 import { getAnalyser } from '../AudioEngine';
 import type { SoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './ScopeNode.css';
 
 const ScopeNode = ({ id }: SoundNodeProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -68,26 +70,18 @@ const ScopeNode = ({ id }: SoundNodeProps) => {
   }, [id]);
 
   return (
-    <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-2xl min-w-[220px]">
-      <div className="text-[10px] font-black tracking-widest text-sky-400 uppercase mb-3 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse" />
+    <div className="node-chrome scope-node">
+      <div className="node-chrome__title scope-node__title">
+        <div className="node-chrome__dot scope-node__dot" />
         Oscilloscope
       </div>
 
-      <div className="bg-black rounded-xl border border-white/5 overflow-hidden">
-        <canvas ref={canvasRef} width={200} height={100} className="w-full h-[100px] block" />
+      <div className="scope-node__screen">
+        <canvas ref={canvasRef} width={200} height={100} className="scope-node__canvas" />
       </div>
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="!bg-sky-400 !w-3 !h-3 !border-2 !border-black"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!bg-sky-400 !w-3 !h-3 !border-2 !border-black"
-      />
+      <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-sky" style={{ width: '0.75rem', height: '0.75rem' }} />
+      <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-sky" style={{ width: '0.75rem', height: '0.75rem' }} />
     </div>
   );
 };

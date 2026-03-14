@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ChordType, ControllableSoundNodeProps, NoteName } from '../types';
+import './nodeChrome.css';
+import './DronePadNode.css';
 
 const notes: NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const chordTypes: ChordType[] = ['major', 'minor', 'sus2', 'sus4', 'dim'];
@@ -14,19 +16,19 @@ const DronePadNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
   const wave = (data.type as OscillatorType | undefined) ?? 'sawtooth';
 
   return (
-    <div className="bg-emerald-950/80 backdrop-blur-xl border border-emerald-400/20 p-4 rounded-2xl shadow-2xl min-w-[280px]">
-      <div className="text-[10px] font-black tracking-widest text-emerald-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-emerald-300 rounded-full animate-pulse" />
+    <div className="node-chrome drone-pad-node">
+      <div className="node-chrome__title">
+        <div className="node-chrome__dot" />
         Drone Pad
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="drone-pad-node__top-grid">
         <div>
-          <label className="text-slate-400 text-[9px] uppercase block mb-1">Root</label>
+          <label className="node-chrome__field-label">Root</label>
           <select
             value={note}
             onChange={(event) => onDataChange(id, { note: event.target.value as NoteName })}
-            className="bg-slate-900 text-white text-xs p-1.5 rounded border border-emerald-400/20 w-full outline-none focus:border-emerald-300"
+            className="node-chrome__select"
           >
             {notes.map((noteName) => (
               <option key={noteName} value={noteName}>
@@ -36,11 +38,11 @@ const DronePadNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
           </select>
         </div>
         <div>
-          <label className="text-slate-400 text-[9px] uppercase block mb-1">Oct</label>
+          <label className="node-chrome__field-label">Oct</label>
           <select
             value={octave}
             onChange={(event) => onDataChange(id, { octave: Number(event.target.value) })}
-            className="bg-slate-900 text-white text-xs p-1.5 rounded border border-emerald-400/20 w-full outline-none focus:border-emerald-300"
+            className="node-chrome__select"
           >
             {[1, 2, 3, 4, 5, 6].map((value) => (
               <option key={value} value={value}>
@@ -50,11 +52,11 @@ const DronePadNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
           </select>
         </div>
         <div>
-          <label className="text-slate-400 text-[9px] uppercase block mb-1">Chord</label>
+          <label className="node-chrome__field-label">Chord</label>
           <select
             value={chordType}
             onChange={(event) => onDataChange(id, { chordType: event.target.value as ChordType })}
-            className="bg-slate-900 text-white text-xs p-1.5 rounded border border-emerald-400/20 w-full outline-none focus:border-emerald-300"
+            className="node-chrome__select"
           >
             {chordTypes.map((value) => (
               <option key={value} value={value}>
@@ -65,7 +67,7 @@ const DronePadNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mt-4">
+      <div className="drone-pad-node__bottom-grid">
         <Knob
           label="Spread"
           min={0}
@@ -89,11 +91,11 @@ const DronePadNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
           size={50}
         />
         <div>
-          <label className="text-slate-400 text-[9px] uppercase block mb-1">Wave</label>
+          <label className="node-chrome__field-label">Wave</label>
           <select
             value={wave}
             onChange={(event) => onDataChange(id, { type: event.target.value as OscillatorType })}
-            className="bg-slate-900 text-white text-xs p-1.5 rounded border border-emerald-400/20 w-full outline-none focus:border-emerald-300"
+            className="node-chrome__select"
           >
             <option value="sine">Sine</option>
             <option value="square">Square</option>
@@ -103,7 +105,10 @@ const DronePadNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) =>
         </div>
       </div>
 
-      <Handle type="source" position={Position.Right} className="!bg-emerald-300 !w-4 !h-4 !border-2 !border-black" />
+      <div className="node-chrome__footer">
+        <span className="node-chrome__footer-label">Pad Out</span>
+        <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-emerald" />
+      </div>
     </div>
   );
 };

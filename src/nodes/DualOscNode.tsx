@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './DualOscNode.css';
 
 const DualOscNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const frequency = data.frequency ?? 220;
@@ -11,13 +13,13 @@ const DualOscNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => 
   const waveB = data.modType ?? 'square';
 
   return (
-    <div className="bg-cyan-950/80 backdrop-blur-xl border border-cyan-400/20 p-4 rounded-2xl shadow-2xl min-w-[290px]">
-      <div className="text-[10px] font-black tracking-widest text-cyan-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-cyan-300 rounded-full animate-pulse" />
+    <div className="node-chrome dual-osc-node">
+      <div className="node-chrome__title">
+        <div className="node-chrome__dot" />
         Dual Osc
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="node-chrome__grid-2">
         <Knob
           label="Pitch"
           min={20}
@@ -64,13 +66,13 @@ const DualOscNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => 
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-4">
+      <div className="dual-osc-node__select-grid">
         <div>
-          <label className="text-slate-400 text-[9px] uppercase block mb-1">Osc A</label>
+          <label className="node-chrome__field-label">Osc A</label>
           <select
             value={waveA}
             onChange={(event) => onDataChange(id, { type: event.target.value as OscillatorType })}
-            className="bg-slate-900 text-white text-xs p-1.5 rounded border border-cyan-400/20 w-full outline-none focus:border-cyan-300"
+            className="node-chrome__select"
           >
             <option value="sine">Sine</option>
             <option value="square">Square</option>
@@ -79,11 +81,11 @@ const DualOscNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => 
           </select>
         </div>
         <div>
-          <label className="text-slate-400 text-[9px] uppercase block mb-1">Osc B</label>
+          <label className="node-chrome__field-label">Osc B</label>
           <select
             value={waveB}
             onChange={(event) => onDataChange(id, { modType: event.target.value as OscillatorType })}
-            className="bg-slate-900 text-white text-xs p-1.5 rounded border border-cyan-400/20 w-full outline-none focus:border-cyan-300"
+            className="node-chrome__select"
           >
             <option value="sine">Sine</option>
             <option value="square">Square</option>
@@ -93,22 +95,9 @@ const DualOscNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => 
         </div>
       </div>
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="pitch"
-        className="!bg-lime-400 !w-3 !h-3 !border-2 !border-white"
-        style={{ top: '30%' }}
-      />
-      <div className="absolute left-[-38px] top-[25%] text-[8px] text-lime-400 font-bold uppercase pointer-events-none">
-        Pitch
-      </div>
-
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!bg-cyan-300 !w-4 !h-4 !border-2 !border-black"
-      />
+      <Handle type="target" position={Position.Left} id="pitch" className="node-handle--pitch" style={{ top: '30%' }} />
+      <div className="node-chrome__pitch-label node-chrome__pitch-label--osc">Pitch</div>
+      <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-cyan" />
     </div>
   );
 };

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps, SoundNodeData, SyncDivision } from '../types';
+import './nodeChrome.css';
+import './WeirdMachineNode.css';
 
 const syncDivisions: SyncDivision[] = ['1/1', '1/2', '1/4', '1/8', '1/16'];
 
@@ -85,21 +87,21 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
   };
 
   return (
-    <div className="bg-[linear-gradient(145deg,rgba(12,8,24,0.96),rgba(38,10,24,0.94))] backdrop-blur-xl border border-fuchsia-400/20 p-4 rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.45)] min-w-[430px]">
-      <div className="flex items-start justify-between gap-4 mb-4">
+    <div className="node-chrome weird-machine-node">
+      <div className="weird-machine-node__header">
         <div>
-          <div className="text-[10px] font-black tracking-[0.3em] text-fuchsia-300 uppercase mb-1 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-fuchsia-300 shadow-[0_0_14px_rgba(244,114,182,0.95)] animate-pulse" />
+          <div className="node-chrome__title weird-machine-node__title">
+            <div className="node-chrome__dot weird-machine-node__dot" />
             Mutant Box
           </div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Strange Sound Reactor</p>
+          <p className="node-chrome__description">Strange Sound Reactor</p>
         </div>
 
-        <div className="grid grid-cols-4 gap-1 rounded-2xl border border-white/10 bg-black/25 p-2">
+        <div className="weird-machine-node__leds">
           {ledValues.map((value, index) => (
             <div
               key={`led-${index}`}
-              className="h-5 w-5 rounded-full border border-white/10 transition-all"
+              className="weird-machine-node__led"
               style={{
                 background: `radial-gradient(circle, rgba(250,204,21,${0.35 + value * 0.55}) 0%, rgba(244,114,182,${0.1 + value * 0.55}) 55%, rgba(15,23,42,0.3) 100%)`,
                 boxShadow:
@@ -113,7 +115,7 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-4 nodrag">
+      <div className="weird-machine-node__knobs nodrag">
         <Knob label="Freq" min={40} max={1200} step={1} value={frequency} onChange={(value) => onDataChange(id, { frequency: value })} color="#f472b6" unit="Hz" size={52} />
         <Knob label="Mod" min={0.1} max={1200} step={0.1} value={modFrequency} onChange={(value) => onDataChange(id, { modFrequency: value })} color="#fb7185" unit="Hz" size={52} />
         <Knob label="Index" min={0} max={800} step={1} value={modAmount} onChange={(value) => onDataChange(id, { modAmount: value })} color="#f59e0b" size={52} />
@@ -127,21 +129,18 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
         <Knob label="Gain" min={0} max={1} step={0.01} value={gain} onChange={(value) => onDataChange(id, { gain: value })} color="#f43f5e" size={52} />
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mb-3 nodrag">
+      <div className="weird-machine-node__controls nodrag">
         <button
+          type="button"
           onClick={() => onDataChange(id, { sync: !sync })}
-          className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] ${
-            sync
-              ? 'border-fuchsia-300/40 bg-fuchsia-500/15 text-fuchsia-200'
-              : 'border-white/10 bg-white/5 text-white/55'
-          }`}
+          className={`weird-machine-node__toggle ${sync ? 'weird-machine-node__toggle--active' : ''}`}
         >
           {sync ? 'Sync On' : 'Sync Off'}
         </button>
         <select
           value={syncDivision}
           onChange={(event) => onDataChange(id, { syncDivision: event.target.value as SyncDivision })}
-          className="bg-black/40 text-white text-xs p-2 rounded-xl border border-fuchsia-400/20 outline-none focus:border-fuchsia-300"
+          className="weird-machine-node__select"
         >
           {syncDivisions.map((division) => (
             <option key={division} value={division}>
@@ -152,7 +151,7 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
         <select
           value={carrierType}
           onChange={(event) => onDataChange(id, { type: event.target.value as OscillatorType })}
-          className="bg-black/40 text-white text-xs p-2 rounded-xl border border-fuchsia-400/20 outline-none focus:border-fuchsia-300"
+          className="weird-machine-node__select"
         >
           <option value="sine">Carrier Sine</option>
           <option value="triangle">Carrier Triangle</option>
@@ -162,7 +161,7 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
         <select
           value={modType}
           onChange={(event) => onDataChange(id, { modType: event.target.value as OscillatorType })}
-          className="bg-black/40 text-white text-xs p-2 rounded-xl border border-fuchsia-400/20 outline-none focus:border-fuchsia-300"
+          className="weird-machine-node__select"
         >
           <option value="sine">Harmonic Sine</option>
           <option value="triangle">Harmonic Triangle</option>
@@ -171,25 +170,28 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
         </select>
       </div>
 
-      <div className="mb-3 rounded-2xl border border-white/10 bg-black/25 p-3 nodrag">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/45">Mutant Steps</div>
-          <div className="text-[9px] uppercase tracking-[0.2em] text-fuchsia-300/80">
+      <div className="weird-machine-node__sequence nodrag">
+        <div className="weird-machine-node__sequence-head">
+          <div className="weird-machine-node__sequence-title">Mutant Steps</div>
+          <div className="weird-machine-node__sequence-mode">
             {sync ? `Sync ${syncDivision}` : 'Free Reactor'}
           </div>
         </div>
-        <div className="grid grid-cols-8 gap-1">
+        <div className="weird-machine-node__steps">
           {steps.map((isHot, stepIndex) => {
             const isCurrent = currentSeqStep === stepIndex;
             return (
               <button
+                type="button"
                 key={`mut-step-${stepIndex}`}
                 onClick={() => toggleStep(stepIndex)}
-                className={`h-10 rounded-xl border text-[10px] font-black transition-all ${
-                  isHot
-                    ? 'border-fuchsia-300/40 bg-fuchsia-500/20 text-fuchsia-100'
-                    : 'border-white/10 bg-white/5 text-white/35'
-                } ${isCurrent ? 'shadow-[0_0_18px_rgba(244,114,182,0.65)] scale-[1.04]' : ''}`}
+                className={[
+                  'weird-machine-node__step',
+                  isHot ? 'weird-machine-node__step--on' : '',
+                  isCurrent ? 'weird-machine-node__step--current' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
               >
                 {stepIndex + 1}
               </button>
@@ -198,8 +200,9 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 nodrag">
+      <div className="weird-machine-node__moods nodrag">
         <button
+          type="button"
           onClick={() =>
             applyMood({
               frequency: 320,
@@ -217,11 +220,12 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
               steps: [true, false, false, true, false, false, true, false],
             })
           }
-          className="rounded-xl border border-cyan-400/25 bg-cyan-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200"
+          className="weird-machine-node__mood-button weird-machine-node__mood-button--glass"
         >
           Glass
         </button>
         <button
+          type="button"
           onClick={() =>
             applyMood({
               frequency: 140,
@@ -239,11 +243,12 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
               steps: [true, true, false, true, false, true, false, true],
             })
           }
-          className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-200"
+          className="weird-machine-node__mood-button weird-machine-node__mood-button--grit"
         >
           Grit
         </button>
         <button
+          type="button"
           onClick={() =>
             applyMood({
               frequency: 82,
@@ -262,7 +267,7 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
               steps: [true, false, true, true, false, true, true, false],
             })
           }
-          className="rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-rose-200"
+          className="weird-machine-node__mood-button weird-machine-node__mood-button--beast"
         >
           Beast
         </button>
@@ -272,17 +277,15 @@ const WeirdMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps
         type="target"
         position={Position.Left}
         id="pitch"
-        className="!bg-lime-400 !w-3 !h-3 !border-2 !border-white"
+        className="node-handle--pitch"
         style={{ top: '28%' }}
       />
-      <div className="absolute left-[-38px] top-[23%] text-[8px] text-lime-400 font-bold uppercase pointer-events-none">
-        Pitch
-      </div>
+      <div className="node-chrome__pitch-label node-chrome__pitch-label--lead">Pitch</div>
 
       <Handle
         type="source"
         position={Position.Right}
-        className="!bg-fuchsia-300 !w-4 !h-4 !border-2 !border-black"
+        className="node-handle--source node-handle--source-fuchsia"
       />
     </div>
   );

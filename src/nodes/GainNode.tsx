@@ -1,18 +1,20 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './GainNode.css';
 
 const GainNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const gain = data.gain ?? 0.5;
 
   return (
-    <div className="bg-slate-800 p-4 border border-slate-700 rounded-lg shadow-xl min-w-[150px]">
-      <div className="text-emerald-400 font-bold mb-4 flex items-center gap-2">
-        <div className="w-2 h-2 bg-emerald-400 rounded-full" />
+    <div className="node-chrome gain-node">
+      <div className="node-chrome__title gain-node__title">
+        <div className="node-chrome__dot gain-node__dot" />
         Gain
       </div>
 
-      <div className="flex justify-center">
+      <div className="gain-node__knob">
         <Knob
           label="Volum"
           min={0}
@@ -26,27 +28,17 @@ const GainNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         />
       </div>
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="!bg-emerald-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
-      />
+      <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-emerald" />
       <Handle
         type="target"
         position={Position.Left}
         id="mod"
-        className="!bg-emerald-400 !w-3 !h-3 !border-2 !border-white hover:!scale-125 transition-transform"
-        style={{ top: '70%' }}
+        className="node-handle--source node-handle--source-emerald"
+        style={{ top: '70%', width: '0.75rem', height: '0.75rem' }}
       />
-      <div className="absolute left-[-30px] top-[65%] text-[8px] text-emerald-400 font-bold uppercase pointer-events-none">
-        Mod
-      </div>
+      <div className="gain-node__mod-label">Mod</div>
 
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!bg-emerald-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
-      />
+      <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-emerald" />
     </div>
   );
 };

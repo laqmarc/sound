@@ -1,0 +1,47 @@
+.sound-lab-header {
+  --sound-header-sky-border: var(--ui-mix-sky-30);
+  --sound-header-sky-surface: var(--ui-mix-sky-15);
+  --sound-header-sky-surface-hover: var(--ui-mix-sky-25);
+  --sound-header-sky-text: var(--color-sky-soft);
+  --sound-header-inline-padding: 1.5rem;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--ui-border-subtle);
+  background: var(--ui-surface-card-strong);
+  padding: var(--space-4);
+  backdrop-filter: var(--blur-node);
+}
+
+.sound-lab-header__brand-column {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sound-lab-header__presets-button {
+  width: fit-content;
+  border: 1px solid var(--sound-header-sky-border);
+  border-radius: var(--radius-md);
+  background: var(--sound-header-sky-surface);
+  padding: 0.625rem 1rem;
+  color: var(--sound-header-sky-text);
+  font-size: var(--font-size-sm);
+  font-weight: 900;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  transition: all var(--transition-fast);
+}
+
+.sound-lab-header__presets-button:hover {
+  background: var(--sound-header-sky-surface-hover);
+}
+
+@media (min-width: 640px) {
+  .sound-lab-header {
+    padding-inline: var(--sound-header-inline-padding);
+  }
+}

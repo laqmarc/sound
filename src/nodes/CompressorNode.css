@@ -1,0 +1,29 @@
+.compressor-node {
+  --compressor-accent: var(--color-green-soft);
+  --compressor-border: rgba(52, 211, 153, 0.2);
+  --compressor-surface: rgba(6, 78, 59, 0.8);
+  min-width: 280px;
+  border-color: var(--compressor-border);
+  background: var(--compressor-surface);
+}
+
+.compressor-node__title {
+  color: var(--compressor-accent);
+  letter-spacing: 0.12em;
+}
+
+.compressor-node__dot {
+  background: var(--compressor-accent);
+}
+
+.compressor-node__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.compressor-node__handles {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

@@ -1,0 +1,65 @@
+.filter-node {
+  --filter-border: var(--ui-border-strong);
+  --filter-surface: var(--ui-surface-panel-strong);
+  --filter-surface-input: var(--ui-surface-input);
+  --filter-accent: #c084fc;
+  --filter-focus: var(--color-purple);
+  --filter-text-label: var(--ui-text-label);
+  min-width: 200px;
+  border-color: var(--filter-border);
+  background: var(--filter-surface);
+}
+
+.filter-node__title {
+  color: var(--filter-accent);
+}
+
+.filter-node__dot {
+  background: var(--filter-accent);
+}
+
+.filter-node__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.filter-node__knobs {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.filter-node__label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--filter-text-label);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.filter-node__select {
+  width: 100%;
+  border: 1px solid var(--filter-border);
+  border-radius: 0.375rem;
+  background: var(--filter-surface-input);
+  padding: 0.375rem;
+  color: var(--color-white);
+  font-size: 12px;
+  outline: none;
+}
+
+.filter-node__select:focus {
+  border-color: var(--filter-focus);
+}
+
+.filter-node__mod-label {
+  position: absolute;
+  top: 65%;
+  left: -30px;
+  color: var(--filter-focus);
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  pointer-events: none;
+}

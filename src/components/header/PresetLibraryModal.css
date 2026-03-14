@@ -1,0 +1,286 @@
+.preset-library-modal {
+  --preset-modal-overlay: var(--ui-surface-overlay);
+  --preset-modal-surface: var(--gradient-surface-modal);
+  --preset-modal-shadow: var(--shadow-modal);
+  --preset-modal-sky: var(--color-sky-soft);
+  --preset-modal-emerald: var(--color-emerald-soft);
+  --preset-modal-emerald-strong: var(--color-emerald);
+  --preset-modal-amber: var(--color-yellow-soft);
+  --preset-modal-rose: var(--color-red-soft);
+  --preset-modal-border: var(--ui-border-soft);
+  --preset-modal-surface-soft: var(--ui-surface-panel);
+  --preset-modal-surface-soft-hover: var(--ui-border-soft);
+  --preset-modal-text-soft: var(--ui-text-mid);
+  --preset-modal-text-muted: var(--ui-text-body);
+  --preset-modal-text-body: var(--ui-text-body);
+  --preset-modal-text-strong: var(--ui-text-strong);
+  --preset-modal-field-surface: var(--ui-surface-field);
+  --preset-modal-details-surface: var(--ui-surface-field-soft);
+  --preset-modal-hint-surface: var(--ui-surface-black-soft);
+  --preset-modal-section-sky-border: color-mix(in srgb, var(--color-sky) 45%, transparent);
+  --preset-modal-section-sky-surface: color-mix(in srgb, var(--color-sky) 16%, transparent);
+  --preset-modal-section-emerald-border: color-mix(in srgb, var(--color-emerald) 45%, transparent);
+  --preset-modal-section-emerald-surface: color-mix(in srgb, var(--color-emerald) 16%, transparent);
+  --preset-modal-button-sky-border: color-mix(in srgb, var(--color-sky) 70%, transparent);
+  --preset-modal-button-sky-surface: color-mix(in srgb, var(--color-sky) 32%, transparent);
+  --preset-modal-button-sky-surface-hover: color-mix(in srgb, var(--color-sky) 44%, transparent);
+  --preset-modal-button-emerald-border: color-mix(in srgb, var(--color-emerald) 70%, transparent);
+  --preset-modal-button-emerald-surface: color-mix(in srgb, var(--color-emerald) 32%, transparent);
+  --preset-modal-button-emerald-surface-hover: color-mix(in srgb, var(--color-emerald) 44%, transparent);
+  --preset-modal-button-amber-border: color-mix(in srgb, var(--color-amber) 65%, transparent);
+  --preset-modal-button-amber-surface: color-mix(in srgb, var(--color-amber) 28%, transparent);
+  --preset-modal-button-amber-surface-hover: color-mix(in srgb, var(--color-amber) 40%, transparent);
+  --preset-modal-button-rose-border: color-mix(in srgb, var(--color-rose-strong) 45%, transparent);
+  --preset-modal-button-rose-surface: var(--ui-mix-rose-20);
+  --preset-modal-button-rose-surface-hover: color-mix(in srgb, var(--color-rose-strong) 35%, transparent);
+  --preset-modal-backdrop: var(--blur-modal);
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--preset-modal-overlay);
+  backdrop-filter: var(--preset-modal-backdrop);
+}
+
+.preset-library-modal__card {
+  width: 100%;
+  max-width: 56rem;
+  max-height: 85vh;
+  overflow-y: auto;
+  border: 1px solid var(--preset-modal-border);
+  border-radius: 1.75rem;
+  background: var(--preset-modal-surface);
+  padding: 1.25rem;
+  box-shadow: var(--preset-modal-shadow);
+}
+
+.preset-library-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.preset-library-modal__eyebrow {
+  color: var(--preset-modal-sky);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.preset-library-modal__description {
+  margin-top: 0.25rem;
+  color: var(--preset-modal-text-soft);
+  font-size: 0.875rem;
+}
+
+.preset-library-modal__close {
+  border: 1px solid var(--preset-modal-border);
+  border-radius: 0.75rem;
+  background: var(--preset-modal-surface-soft);
+  padding: 0.5rem 0.75rem;
+  color: var(--preset-modal-text-muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: all var(--transition-fast);
+}
+
+.preset-library-modal__close:hover {
+  background: var(--preset-modal-surface-soft-hover);
+  color: var(--ui-text-main);
+}
+
+.preset-library-modal__grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.preset-library-modal__section {
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.preset-library-modal__section--presets {
+  border: 1px solid var(--preset-modal-section-sky-border);
+  background: var(--preset-modal-section-sky-surface);
+}
+
+.preset-library-modal__section--saved {
+  border: 1px solid var(--preset-modal-section-emerald-border);
+  background: var(--preset-modal-section-emerald-surface);
+}
+
+.preset-library-modal__section-title {
+  margin-bottom: 0.75rem;
+  color: var(--preset-modal-text-soft);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.preset-library-modal__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.preset-library-modal__field,
+.preset-library-modal__textarea {
+  width: 100%;
+  border: 1px solid var(--preset-modal-border);
+  border-radius: 0.75rem;
+  background: var(--preset-modal-field-surface);
+  padding: 0.75rem;
+  color: var(--ui-text-main);
+  font-size: 0.75rem;
+  outline: none;
+}
+
+.preset-library-modal__field:focus {
+  border-color: var(--preset-modal-sky);
+}
+
+.preset-library-modal__field--saved:focus {
+  border-color: var(--preset-modal-emerald-strong);
+}
+
+.preset-library-modal__actions {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.preset-library-modal__button {
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: all var(--transition-fast);
+}
+
+.preset-library-modal__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.preset-library-modal__button--load {
+  border: 1px solid var(--preset-modal-button-sky-border);
+  background: var(--preset-modal-button-sky-surface);
+  color: var(--preset-modal-sky);
+}
+
+.preset-library-modal__button--load:hover {
+  background: var(--preset-modal-button-sky-surface-hover);
+}
+
+.preset-library-modal__button--save {
+  border: 1px solid var(--preset-modal-button-emerald-border);
+  background: var(--preset-modal-button-emerald-surface);
+  color: var(--preset-modal-emerald);
+}
+
+.preset-library-modal__button--save:hover {
+  background: var(--preset-modal-button-emerald-surface-hover);
+}
+
+.preset-library-modal__button--export {
+  border: 1px solid var(--preset-modal-button-amber-border);
+  background: var(--preset-modal-button-amber-surface);
+  color: var(--preset-modal-amber);
+}
+
+.preset-library-modal__button--export:hover {
+  background: var(--preset-modal-button-amber-surface-hover);
+}
+
+.preset-library-modal__button--ghost {
+  border: 1px solid var(--preset-modal-border);
+  background: var(--preset-modal-surface-soft);
+  color: var(--preset-modal-text-body);
+}
+
+.preset-library-modal__button--ghost:hover {
+  background: var(--preset-modal-surface-soft-hover);
+}
+
+.preset-library-modal__button--danger {
+  border: 1px solid var(--preset-modal-button-rose-border);
+  background: var(--preset-modal-button-rose-surface);
+  color: var(--preset-modal-rose);
+}
+
+.preset-library-modal__button--danger:hover {
+  background: var(--preset-modal-button-rose-surface-hover);
+}
+
+.preset-library-modal__hint,
+.preset-library-modal__export {
+  border: 1px solid var(--preset-modal-border);
+  border-radius: 0.75rem;
+  background: var(--preset-modal-hint-surface);
+  padding: 0.75rem;
+  color: var(--preset-modal-text-soft);
+  font-size: 11px;
+}
+
+.preset-library-modal__export {
+  margin-top: 1rem;
+  border-radius: 1rem;
+}
+
+.preset-library-modal__feedback {
+  margin-bottom: 0.75rem;
+  color: var(--preset-modal-amber);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.preset-library-modal__details {
+  border: 1px solid var(--preset-modal-border);
+  border-radius: 0.75rem;
+  background: var(--preset-modal-details-surface);
+}
+
+.preset-library-modal__summary {
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  color: var(--preset-modal-text-muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.preset-library-modal__details-body {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.preset-library-modal__textarea {
+  margin-top: 0.5rem;
+  min-height: 12rem;
+  resize: vertical;
+  font-family: var(--font-family-mono);
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--preset-modal-text-strong);
+}
+
+@media (min-width: 640px) {
+  .preset-library-modal__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .preset-library-modal__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}

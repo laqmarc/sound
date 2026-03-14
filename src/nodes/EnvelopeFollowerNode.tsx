@@ -1,6 +1,9 @@
+import type { CSSProperties } from 'react';
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './ThreeKnobFxNode.css';
 
 const EnvelopeFollowerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const attack = data.attack ?? 0.03;
@@ -8,13 +11,23 @@ const EnvelopeFollowerNode = ({ id, data, onDataChange }: ControllableSoundNodeP
   const gain = data.gain ?? 200;
 
   return (
-    <div className="bg-cyan-950/80 backdrop-blur-xl border border-cyan-400/20 p-4 rounded-2xl shadow-2xl min-w-[250px]">
-      <div className="text-[10px] font-black tracking-widest text-cyan-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-cyan-300 rounded-full animate-pulse" />
+    <div
+      className="node-chrome three-knob-fx-node"
+      style={
+        {
+          '--three-knob-width': '250px',
+          '--three-knob-accent': '#67e8f9',
+          '--three-knob-bg': 'rgba(8, 47, 73, 0.8)',
+          '--three-knob-border': 'rgba(34, 211, 238, 0.2)',
+        } as CSSProperties
+      }
+    >
+      <div className="node-chrome__title three-knob-fx-node__title">
+        <div className="node-chrome__dot three-knob-fx-node__dot" />
         Env Follow
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="three-knob-fx-node__grid">
         <Knob
           label="Attack"
           min={0.001}
@@ -50,12 +63,12 @@ const EnvelopeFollowerNode = ({ id, data, onDataChange }: ControllableSoundNodeP
         />
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Handle type="target" position={Position.Left} className="!bg-cyan-300 !w-4 !h-4 !border-2 !border-black" />
-          <span className="text-[8px] uppercase tracking-[0.25em] text-white/35">Audio In</span>
+      <div className="node-chrome__footer">
+        <div className="three-knob-fx-node__handles">
+          <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-cyan" />
+          <span className="three-knob-fx-node__footer-label">Audio In</span>
         </div>
-        <Handle type="source" position={Position.Right} className="!bg-cyan-300 !w-4 !h-4 !border-2 !border-black" />
+        <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-cyan" />
       </div>
     </div>
   );

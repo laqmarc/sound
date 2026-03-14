@@ -1,0 +1,15 @@
+.noise-layer-node {
+  --noise-layer-accent: var(--color-stone-soft);
+  --noise-layer-border: rgba(168, 162, 158, 0.2);
+  --noise-layer-surface: rgba(28, 25, 23, 0.85);
+  --node-accent: var(--noise-layer-accent);
+  min-width: 250px;
+  border-color: var(--noise-layer-border);
+  background: var(--noise-layer-surface);
+  --node-select-border: var(--noise-layer-border);
+  --node-select-focus: var(--noise-layer-accent);
+}
+
+.noise-layer-node__select-wrap {
+  margin-top: 1rem;
+}

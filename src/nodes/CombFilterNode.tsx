@@ -1,6 +1,9 @@
+import type { CSSProperties } from 'react';
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './ThreeKnobFxNode.css';
 
 const CombFilterNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const delay = data.delay ?? 0.015;
@@ -8,13 +11,23 @@ const CombFilterNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
   const mix = data.mix ?? 0.7;
 
   return (
-    <div className="bg-fuchsia-950/80 backdrop-blur-xl border border-fuchsia-400/20 p-4 rounded-2xl shadow-2xl min-w-[250px]">
-      <div className="text-[10px] font-black tracking-widest text-fuchsia-300 uppercase mb-4 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-fuchsia-300 rounded-full animate-pulse" />
+    <div
+      className="node-chrome three-knob-fx-node"
+      style={
+        {
+          '--three-knob-width': '250px',
+          '--three-knob-accent': '#f0abfc',
+          '--three-knob-bg': 'rgba(74, 4, 78, 0.8)',
+          '--three-knob-border': 'rgba(232, 121, 249, 0.2)',
+        } as CSSProperties
+      }
+    >
+      <div className="node-chrome__title three-knob-fx-node__title">
+        <div className="node-chrome__dot three-knob-fx-node__dot" />
         Comb Filter
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="three-knob-fx-node__grid">
         <Knob
           label="Delay"
           min={0.001}
@@ -50,11 +63,11 @@ const CombFilterNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) 
         />
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-        <span className="text-[8px] uppercase tracking-[0.25em] text-white/35">Resonant Teeth</span>
-        <div className="flex items-center gap-4">
-          <Handle type="target" position={Position.Left} className="!bg-fuchsia-300 !w-4 !h-4 !border-2 !border-black" />
-          <Handle type="source" position={Position.Right} className="!bg-fuchsia-300 !w-4 !h-4 !border-2 !border-black" />
+      <div className="node-chrome__footer">
+        <span className="three-knob-fx-node__footer-label">Resonant Teeth</span>
+        <div className="three-knob-fx-node__handles">
+          <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-fuchsia" />
+          <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-fuchsia" />
         </div>
       </div>
     </div>

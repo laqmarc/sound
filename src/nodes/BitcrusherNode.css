@@ -1,0 +1,29 @@
+.bitcrusher-node {
+  --bitcrusher-accent: var(--color-orange-soft);
+  --bitcrusher-border: rgba(251, 146, 60, 0.2);
+  --bitcrusher-surface: rgba(124, 45, 18, 0.8);
+  min-width: 240px;
+  border-color: var(--bitcrusher-border);
+  background: var(--bitcrusher-surface);
+}
+
+.bitcrusher-node__title {
+  color: var(--bitcrusher-accent);
+  letter-spacing: 0.12em;
+}
+
+.bitcrusher-node__dot {
+  background: var(--bitcrusher-accent);
+}
+
+.bitcrusher-node__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.bitcrusher-node__handles {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

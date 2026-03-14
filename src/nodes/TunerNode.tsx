@@ -1,7 +1,10 @@
+import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import { getAnalyser } from '../AudioEngine';
 import type { SoundNodeProps } from '../types';
+import './nodeChrome.css';
+import './DisplayNode.css';
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
 
@@ -76,39 +79,34 @@ const TunerNode = ({ id }: SoundNodeProps) => {
   const cents = frequency && targetFrequency ? Math.round(1200 * Math.log2(frequency / targetFrequency)) : 0;
 
   return (
-    <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-2xl min-w-[220px]">
-      <div className="text-[10px] font-black tracking-widest text-indigo-300 uppercase mb-3 flex items-center gap-2">
-        <div className="w-1.5 h-1.5 bg-indigo-300 rounded-full animate-pulse" />
+    <div
+      className="node-chrome display-node"
+      style={{ '--display-width': '220px', '--display-accent': '#a5b4fc' } as CSSProperties}
+    >
+      <div className="node-chrome__title">
+        <div className="node-chrome__dot" />
         Oracle Pitch
       </div>
 
-      <div className="bg-black rounded-xl border border-white/5 p-4 text-center">
-        <div className="text-4xl font-black tracking-tight text-indigo-300">
+      <div className="display-node__panel">
+        <div className="display-node__big-value">
           {note}
           {octave !== null ? octave : ''}
         </div>
-        <div className="mt-2 text-[11px] uppercase tracking-[0.2em] text-white/45">
+        <div className="display-node__subvalue">
           {frequency ? `${frequency.toFixed(1)} Hz` : 'No Signal'}
         </div>
-        <div className="mt-3 h-2 rounded-full bg-white/5 overflow-hidden">
+        <div className="display-node__meter display-node__meter--dark" style={{ height: '0.5rem', marginTop: '0.75rem' }}>
           <div
-            className="h-full bg-gradient-to-r from-rose-400 via-white to-emerald-400 transition-all"
+            className="display-node__meter-fill display-node__meter-fill--tuner"
             style={{ width: `${Math.min(100, Math.abs(cents) * 2.5)}%`, marginLeft: cents >= 0 ? '50%' : `${50 - Math.min(50, Math.abs(cents) * 2.5)}%` }}
           />
         </div>
-        <div className="mt-2 text-[10px] font-mono text-white/55">{frequency ? `${cents > 0 ? '+' : ''}${cents} ct` : '--'}</div>
+        <div className="display-node__cents">{frequency ? `${cents > 0 ? '+' : ''}${cents} ct` : '--'}</div>
       </div>
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="!bg-indigo-300 !w-3 !h-3 !border-2 !border-black"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!bg-indigo-300 !w-3 !h-3 !border-2 !border-black"
-      />
+      <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-indigo node-handle--small" />
+      <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-indigo node-handle--small" />
     </div>
   );
 };

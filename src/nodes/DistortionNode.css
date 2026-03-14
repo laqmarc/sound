@@ -1,0 +1,21 @@
+.distortion-node {
+  --distortion-border: var(--ui-border-strong);
+  --distortion-surface: var(--ui-surface-panel-strong);
+  --distortion-accent: #f97316;
+  min-width: 150px;
+  border-color: var(--distortion-border);
+  background: var(--distortion-surface);
+}
+
+.distortion-node__title {
+  color: var(--distortion-accent);
+}
+
+.distortion-node__dot {
+  background: var(--distortion-accent);
+}
+
+.distortion-node__knob {
+  display: flex;
+  justify-content: center;
+}

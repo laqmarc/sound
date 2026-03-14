@@ -1,6 +1,8 @@
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps, SyncDivision } from '../types';
+import './nodeChrome.css';
+import './DelayNode.css';
 
 const divisions: SyncDivision[] = ['1/1', '1/2', '1/4', '1/8', '1/16'];
 
@@ -10,26 +12,24 @@ const DelayNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const syncDivision = data.syncDivision ?? '1/8';
 
   return (
-    <div className="bg-slate-800 p-4 border border-slate-700 rounded-lg shadow-xl min-w-[190px]">
-      <div className="text-amber-400 font-bold mb-4 flex items-center gap-2">
-        <div className="w-2 h-2 bg-amber-400 rounded-full" />
+    <div className="node-chrome delay-node">
+      <div className="node-chrome__title delay-node__title">
+        <div className="node-chrome__dot delay-node__dot" />
         Eco (Delay)
       </div>
 
-      <div className="flex bg-slate-900 rounded p-0.5 mb-4">
+      <div className="delay-node__mode-toggle">
         <button
+          type="button"
           onClick={() => onDataChange(id, { sync: false })}
-          className={`flex-1 px-2 py-1 text-[9px] rounded font-bold uppercase ${
-            !sync ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white'
-          }`}
+          className={`delay-node__mode-button ${!sync ? 'delay-node__mode-button--active' : ''}`}
         >
           Free
         </button>
         <button
+          type="button"
           onClick={() => onDataChange(id, { sync: true })}
-          className={`flex-1 px-2 py-1 text-[9px] rounded font-bold uppercase ${
-            sync ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white'
-          }`}
+          className={`delay-node__mode-button ${sync ? 'delay-node__mode-button--active' : ''}`}
         >
           Sync
         </button>
@@ -37,11 +37,11 @@ const DelayNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
 
       {sync ? (
         <div>
-          <label className="text-slate-400 text-[9px] uppercase block mb-1">Division</label>
+          <label className="delay-node__label">Division</label>
           <select
             value={syncDivision}
             onChange={(event) => onDataChange(id, { syncDivision: event.target.value as SyncDivision })}
-            className="bg-slate-900 text-white text-xs p-1.5 rounded border border-slate-700 w-full outline-none focus:border-amber-400"
+            className="delay-node__select"
           >
             {divisions.map((division) => (
               <option key={division} value={division}>
@@ -51,7 +51,7 @@ const DelayNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
           </select>
         </div>
       ) : (
-        <div className="flex justify-center">
+        <div className="delay-node__knob">
           <Knob
             label="Temps Eco"
             min={0}
@@ -66,16 +66,8 @@ const DelayNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         </div>
       )}
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        className="!bg-amber-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!bg-amber-400 !w-4 !h-4 !border-2 !border-white hover:!scale-125 transition-transform"
-      />
+      <Handle type="target" position={Position.Left} className="node-handle--source node-handle--source-amber" />
+      <Handle type="source" position={Position.Right} className="node-handle--source node-handle--source-amber" />
     </div>
   );
 };

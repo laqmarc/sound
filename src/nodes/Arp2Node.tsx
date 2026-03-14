@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import type { ArpMode, ArpScale, ArpStep, ControllableSoundNodeProps, NoteName, SyncDivision } from '../types';
+import './nodeChrome.css';
+import './Arp2Node.css';
 
 const noteOptions: NoteName[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const divisionOptions: SyncDivision[] = ['1/1', '1/2', '1/4', '1/8', '1/16'];
@@ -155,30 +157,30 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   };
 
   return (
-    <div className="bg-[linear-gradient(145deg,rgba(6,14,22,0.98),rgba(7,28,34,0.95))] backdrop-blur-xl border border-cyan-400/20 p-4 rounded-[28px] shadow-[0_20px_80px_rgba(0,0,0,0.45)] min-w-[980px]">
-      <div className="flex items-start justify-between gap-4 mb-4">
+    <div className="node-chrome arp2-node">
+      <div className="arp2-node__header">
         <div>
-          <div className="text-[10px] font-black tracking-[0.32em] text-cyan-300 uppercase mb-1 flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${stepTriggered ? 'bg-cyan-300 shadow-[0_0_16px_rgba(103,232,249,0.95)]' : 'bg-white/15'}`} />
+          <div className="node-chrome__title arp2-node__title">
+            <div className={`node-chrome__dot arp2-node__dot ${stepTriggered ? '' : 'arp2-node__dot--idle'}`} />
             ARP2
           </div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Pitch sequencer mutant amb 16 steps i macro controls</p>
+          <p className="node-chrome__description">Pitch sequencer mutant amb 16 steps i macro controls</p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/25 px-3 py-2 text-right">
-          <div className="text-[8px] uppercase tracking-[0.24em] text-white/35 mb-1">Active</div>
-          <div className="text-[10px] font-mono text-cyan-200">
+        <div className="arp2-node__status-card">
+          <div className="arp2-node__status-label">Active</div>
+          <div className="arp2-node__status-value">
             {activeStep + 1} / {arpLength}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="arp2-node__control-grid">
         <div>
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Division</label>
+          <label className="node-chrome__field-label">Division</label>
           <select
             value={syncDivision}
             onChange={(event) => onDataChange(id, { syncDivision: event.target.value as SyncDivision })}
-            className="bg-slate-950/90 text-white text-xs p-2 rounded-xl border border-white/10 w-full outline-none focus:border-cyan-300"
+            className="node-chrome__select"
           >
             {divisionOptions.map((division) => (
               <option key={division} value={division}>
@@ -188,11 +190,11 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
           </select>
         </div>
         <div>
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Mode</label>
+          <label className="node-chrome__field-label">Mode</label>
           <select
             value={arpMode}
             onChange={(event) => onDataChange(id, { arpMode: event.target.value as ArpMode })}
-            className="bg-slate-950/90 text-white text-xs p-2 rounded-xl border border-white/10 w-full outline-none focus:border-cyan-300"
+            className="node-chrome__select"
           >
             {modeOptions.map((mode) => (
               <option key={mode} value={mode}>
@@ -202,11 +204,11 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
           </select>
         </div>
         <div>
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Scale</label>
+          <label className="node-chrome__field-label">Scale</label>
           <select
             value={arpScale}
             onChange={(event) => onDataChange(id, { arpScale: event.target.value as ArpScale })}
-            className="bg-slate-950/90 text-white text-xs p-2 rounded-xl border border-white/10 w-full outline-none focus:border-cyan-300"
+            className="node-chrome__select"
           >
             {scaleOptions.map((scale) => (
               <option key={scale} value={scale}>
@@ -216,8 +218,8 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
           </select>
         </div>
         <div>
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Length</label>
-          <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-2">
+          <label className="node-chrome__field-label">Length</label>
+          <div className="arp2-node__range-card">
             <input
               type="range"
               min={1}
@@ -225,16 +227,16 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
               step={1}
               value={arpLength}
               onChange={(event) => onDataChange(id, { arpLength: Number(event.target.value) })}
-              className="w-full accent-cyan-300"
+              className="arp2-node__range"
             />
-            <div className="mt-1 text-[10px] font-mono text-cyan-200 text-center">{arpLength} steps</div>
+            <div className="arp2-node__range-value">{arpLength} steps</div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-3 mb-4">
-        <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-2">Octaves</label>
+      <div className="arp2-node__macro-grid">
+        <div className="arp2-node__range-card">
+          <label className="node-chrome__field-label">Octaves</label>
           <input
             type="range"
             min={1}
@@ -242,12 +244,12 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
             step={1}
             value={octaveSpan}
             onChange={(event) => onDataChange(id, { arpOctaveSpan: Number(event.target.value) })}
-            className="w-full accent-cyan-300"
+            className="arp2-node__range"
           />
-          <div className="mt-2 text-[10px] font-mono text-cyan-200 text-center">{octaveSpan}</div>
+          <div className="arp2-node__range-value">{octaveSpan}</div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-2">Transpose</label>
+        <div className="arp2-node__range-card">
+          <label className="node-chrome__field-label">Transpose</label>
           <input
             type="range"
             min={-24}
@@ -255,12 +257,12 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
             step={1}
             value={transpose}
             onChange={(event) => onDataChange(id, { arpTranspose: Number(event.target.value) })}
-            className="w-full accent-cyan-300"
+            className="arp2-node__range"
           />
-          <div className="mt-2 text-[10px] font-mono text-cyan-200 text-center">{transpose > 0 ? `+${transpose}` : transpose} st</div>
+          <div className="arp2-node__range-value">{transpose > 0 ? `+${transpose}` : transpose} st</div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-2">Chance</label>
+        <div className="arp2-node__range-card">
+          <label className="node-chrome__field-label">Chance</label>
           <input
             type="range"
             min={0}
@@ -268,12 +270,12 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
             step={1}
             value={chance}
             onChange={(event) => onDataChange(id, { arpChance: Number(event.target.value) })}
-            className="w-full accent-cyan-300"
+            className="arp2-node__range"
           />
-          <div className="mt-2 text-[10px] font-mono text-cyan-200 text-center">{chance}%</div>
+          <div className="arp2-node__range-value">{chance}%</div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-2">Ratchet</label>
+        <div className="arp2-node__range-card">
+          <label className="node-chrome__field-label">Ratchet</label>
           <input
             type="range"
             min={1}
@@ -281,19 +283,19 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
             step={1}
             value={ratchet}
             onChange={(event) => onDataChange(id, { arpRatchet: Number(event.target.value) })}
-            className="w-full accent-cyan-300"
+            className="arp2-node__range"
           />
-          <div className="mt-2 text-[10px] font-mono text-cyan-200 text-center">x{ratchet}</div>
+          <div className="arp2-node__range-value">x{ratchet}</div>
         </div>
       </div>
 
-      <div className="grid grid-cols-[1fr_auto] gap-2 items-end mb-4">
+      <div className="arp2-node__bank">
         <div>
-          <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 block mb-1">Mutation Bank</label>
+          <label className="node-chrome__field-label">Mutation Bank</label>
           <select
             value={selectedPreset}
             onChange={(event) => setSelectedPreset(Number(event.target.value))}
-            className="bg-slate-950/90 text-white text-xs p-2 rounded-xl border border-white/10 w-full outline-none focus:border-cyan-300"
+            className="node-chrome__select"
           >
             {arp2Presets.map((preset, index) => (
               <option key={preset.name} value={index}>
@@ -303,14 +305,15 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
           </select>
         </div>
         <button
+          type="button"
           onClick={() => applyPreset(selectedPreset)}
-          className="px-4 py-2 rounded-xl bg-cyan-300 text-black text-[10px] font-black uppercase tracking-[0.18em] hover:bg-cyan-200 transition-colors"
+          className="arp2-node__button"
         >
           Load Shape
         </button>
       </div>
 
-      <div className="grid grid-cols-8 gap-2">
+      <div className="node-chrome__grid-8">
         {steps.map((step, index) => {
           const isActive = activeStep === index;
           const isOutsideLength = index >= arpLength;
@@ -318,22 +321,22 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
           return (
             <div
               key={`arp2-step-${index}`}
-              className={`rounded-xl border p-2 transition-all ${
-                isOutsideLength
-                  ? 'border-white/5 bg-white/[0.03] opacity-40'
-                  : isActive
-                    ? stepTriggered
-                      ? 'border-cyan-300 bg-cyan-500/15 shadow-[0_0_18px_rgba(34,211,238,0.35)]'
-                      : 'border-amber-300 bg-amber-500/10 shadow-[0_0_14px_rgba(251,191,36,0.18)]'
-                    : 'border-white/10 bg-white/5'
-              }`}
+              className={[
+                'node-chrome__step-card',
+                isOutsideLength ? 'arp2-node__step-card--outside' : '',
+                isActive && stepTriggered ? 'node-chrome__step-card--active' : '',
+                isActive && !stepTriggered ? 'arp2-node__step-card--muted-active' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
             >
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-[9px] font-black uppercase tracking-widest text-white/55">{index + 1}</div>
+              <div className="node-chrome__step-row">
+                <div className="node-chrome__step-index">{index + 1}</div>
                 <button
+                  type="button"
                   onClick={() => updateStep(index, { enabled: !step.enabled })}
-                  className={`text-[8px] uppercase font-black px-2 py-1 rounded ${
-                    step.enabled ? 'bg-cyan-300 text-black' : 'bg-white/10 text-white/45'
+                  className={`node-chrome__step-toggle ${
+                    step.enabled ? 'node-chrome__step-toggle--on' : 'node-chrome__step-toggle--off'
                   }`}
                 >
                   {step.enabled ? 'On' : 'Rest'}
@@ -343,7 +346,7 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
               <select
                 value={step.note}
                 onChange={(event) => updateStep(index, { note: event.target.value as NoteName })}
-                className="bg-slate-900 text-white text-[11px] p-1 rounded border border-slate-700 w-full outline-none mb-2 focus:border-cyan-300"
+                className="node-chrome__select arp2-node__step-select"
               >
                 {noteOptions.map((note) => (
                   <option key={note} value={note}>
@@ -354,7 +357,7 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
               <select
                 value={step.octave}
                 onChange={(event) => updateStep(index, { octave: Number(event.target.value) })}
-                className="bg-slate-900 text-white text-[11px] p-1 rounded border border-slate-700 w-full outline-none focus:border-cyan-300"
+                className="node-chrome__select"
               >
                 {[2, 3, 4, 5, 6].map((octave) => (
                   <option key={octave} value={octave}>
@@ -367,12 +370,12 @@ const Arp2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         })}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-        <span className="text-[8px] uppercase tracking-[0.25em] text-white/35">Pitch Out</span>
+      <div className="node-chrome__footer">
+        <span className="node-chrome__footer-label">Pitch Out</span>
         <Handle
           type="source"
           position={Position.Right}
-          className="!bg-cyan-300 !w-4 !h-4 !border-2 !border-black"
+          className="node-handle--source node-handle--source-cyan"
         />
       </div>
     </div>
