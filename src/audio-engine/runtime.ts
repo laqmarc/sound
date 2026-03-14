@@ -21,6 +21,7 @@ export const arpeggiators = new Map<string, ArpeggiatorState>();
 export const arpeggiatorTargets = new Map<string, Set<string>>();
 export const equalizers = new Map<string, EqualizerState>();
 export const reverbs = new Map<string, ReverbState>();
+export const mixers = new Map<string, MixerState>();
 export const phasers = new Map<string, PhaserState>();
 export const compressors = new Map<string, CompressorState>();
 export const choruses = new Map<string, ChorusState>();
@@ -112,6 +113,20 @@ export interface ReverbState {
   preDelay: DelayNode;
   tone: BiquadFilterNode;
   convolver: ConvolverNode;
+}
+
+export interface MixerChannelState {
+  input: GainNode;
+  low: BiquadFilterNode;
+  mid: BiquadFilterNode;
+  high: BiquadFilterNode;
+  pan: StereoPannerNode;
+  gain: GainNode;
+}
+
+export interface MixerState {
+  output: GainNode;
+  channels: MixerChannelState[];
 }
 
 export interface PhaserState {
@@ -609,6 +624,8 @@ export interface TransportState {
   isPlaying: boolean;
   step: number;
   timerId: number | null;
+  nextStepTime: number;
+  uiTimerIds: number[];
 }
 
 export const transportState: TransportState = {
@@ -617,6 +634,8 @@ export const transportState: TransportState = {
   isPlaying: false,
   step: 0,
   timerId: null,
+  nextStepTime: 0,
+  uiTimerIds: [],
 };
 
 export const defaultDrumPattern = (): DrumPattern => ({
@@ -890,8 +909,8 @@ export const buildFoldbackCurve = (drive: number, threshold: number) => {
   return curve;
 };
 
-export const triggerKick = (ctx: AudioContext, destination: AudioNode) => {
-  triggerKickVoice(ctx, destination, 48, 0.22, 1);
+export const triggerKick = (ctx: AudioContext, destination: AudioNode, startTime = ctx.currentTime) => {
+  triggerKickVoice(ctx, destination, 48, 0.22, 1, startTime);
 };
 
 export const triggerKickVoice = (
@@ -900,25 +919,26 @@ export const triggerKickVoice = (
   tone: number,
   decay: number,
   level: number,
+  startTime = ctx.currentTime,
 ) => {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
 
   osc.type = 'sine';
-  osc.frequency.setValueAtTime(Math.max(tone * 3, tone + 90), ctx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(Math.max(22, tone), ctx.currentTime + Math.max(0.04, decay));
+  osc.frequency.setValueAtTime(Math.max(tone * 3, tone + 90), startTime);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(22, tone), startTime + Math.max(0.04, decay));
 
-  gain.gain.setValueAtTime(Math.max(0.001, level), ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + Math.max(0.05, decay));
+  gain.gain.setValueAtTime(Math.max(0.001, level), startTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + Math.max(0.05, decay));
 
   osc.connect(gain);
   gain.connect(destination);
-  osc.start();
-  osc.stop(ctx.currentTime + Math.max(0.08, decay + 0.04));
+  osc.start(startTime);
+  osc.stop(startTime + Math.max(0.08, decay + 0.04));
 };
 
-export const triggerSnare = (ctx: AudioContext, destination: AudioNode) => {
-  triggerSnareVoice(ctx, destination, 180, 0.12, 0.8);
+export const triggerSnare = (ctx: AudioContext, destination: AudioNode, startTime = ctx.currentTime) => {
+  triggerSnareVoice(ctx, destination, 180, 0.12, 0.8, startTime);
 };
 
 export const triggerSnareVoice = (
@@ -927,25 +947,26 @@ export const triggerSnareVoice = (
   toneFrequency: number,
   decay: number,
   level: number,
+  startTime = ctx.currentTime,
 ) => {
   const noise = ctx.createBufferSource();
   noise.buffer = getNoiseBuffer(ctx);
 
   const noiseFilter = ctx.createBiquadFilter();
   noiseFilter.type = 'highpass';
-  noiseFilter.frequency.setValueAtTime(1800, ctx.currentTime);
+  noiseFilter.frequency.setValueAtTime(1800, startTime);
 
   const noiseGain = ctx.createGain();
-  noiseGain.gain.setValueAtTime(Math.max(0.001, level), ctx.currentTime);
-  noiseGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + Math.max(0.04, decay));
+  noiseGain.gain.setValueAtTime(Math.max(0.001, level), startTime);
+  noiseGain.gain.exponentialRampToValueAtTime(0.01, startTime + Math.max(0.04, decay));
 
   const tone = ctx.createOscillator();
   tone.type = 'triangle';
-  tone.frequency.setValueAtTime(Math.max(80, toneFrequency), ctx.currentTime);
+  tone.frequency.setValueAtTime(Math.max(80, toneFrequency), startTime);
 
   const toneGain = ctx.createGain();
-  toneGain.gain.setValueAtTime(Math.max(0.001, level * 0.6), ctx.currentTime);
-  toneGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + Math.max(0.03, decay * 0.8));
+  toneGain.gain.setValueAtTime(Math.max(0.001, level * 0.6), startTime);
+  toneGain.gain.exponentialRampToValueAtTime(0.01, startTime + Math.max(0.03, decay * 0.8));
 
   noise.connect(noiseFilter);
   noiseFilter.connect(noiseGain);
@@ -954,14 +975,14 @@ export const triggerSnareVoice = (
   tone.connect(toneGain);
   toneGain.connect(destination);
 
-  noise.start();
-  noise.stop(ctx.currentTime + Math.max(0.08, decay + 0.06));
-  tone.start();
-  tone.stop(ctx.currentTime + Math.max(0.06, decay));
+  noise.start(startTime);
+  noise.stop(startTime + Math.max(0.08, decay + 0.06));
+  tone.start(startTime);
+  tone.stop(startTime + Math.max(0.06, decay));
 };
 
-export const triggerHiHat = (ctx: AudioContext, destination: AudioNode) => {
-  triggerHiHatVoice(ctx, destination, 10000, 0.05, 0.45);
+export const triggerHiHat = (ctx: AudioContext, destination: AudioNode, startTime = ctx.currentTime) => {
+  triggerHiHatVoice(ctx, destination, 10000, 0.05, 0.45, startTime);
 };
 
 export const triggerHiHatVoice = (
@@ -970,30 +991,31 @@ export const triggerHiHatVoice = (
   toneFrequency: number,
   decay: number,
   level: number,
+  startTime = ctx.currentTime,
 ) => {
   const noise = ctx.createBufferSource();
   noise.buffer = getNoiseBuffer(ctx);
 
   const bandpass = ctx.createBiquadFilter();
   bandpass.type = 'bandpass';
-  bandpass.frequency.setValueAtTime(Math.max(3000, toneFrequency), ctx.currentTime);
-  bandpass.Q.setValueAtTime(0.8, ctx.currentTime);
+  bandpass.frequency.setValueAtTime(Math.max(3000, toneFrequency), startTime);
+  bandpass.Q.setValueAtTime(0.8, startTime);
 
   const highpass = ctx.createBiquadFilter();
   highpass.type = 'highpass';
-  highpass.frequency.setValueAtTime(Math.max(2000, toneFrequency * 0.7), ctx.currentTime);
+  highpass.frequency.setValueAtTime(Math.max(2000, toneFrequency * 0.7), startTime);
 
   const gain = ctx.createGain();
-  gain.gain.setValueAtTime(Math.max(0.001, level), ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + Math.max(0.02, decay));
+  gain.gain.setValueAtTime(Math.max(0.001, level), startTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, startTime + Math.max(0.02, decay));
 
   noise.connect(bandpass);
   bandpass.connect(highpass);
   highpass.connect(gain);
   gain.connect(destination);
 
-  noise.start();
-  noise.stop(ctx.currentTime + Math.max(0.03, decay + 0.02));
+  noise.start(startTime);
+  noise.stop(startTime + Math.max(0.03, decay + 0.02));
 };
 
 export const triggerBasslineVoice = (
@@ -1002,25 +1024,26 @@ export const triggerBasslineVoice = (
   frequency: number,
   tone: number,
   level: number,
+  startTime = ctx.currentTime,
 ) => {
   const oscillator = ctx.createOscillator();
   const filter = ctx.createBiquadFilter();
   const gain = ctx.createGain();
 
   oscillator.type = 'sawtooth';
-  oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(Math.max(30, frequency * 0.985), ctx.currentTime + 0.12);
+  oscillator.frequency.setValueAtTime(frequency, startTime);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(30, frequency * 0.985), startTime + 0.12);
   filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(Math.max(120, tone), ctx.currentTime);
-  filter.Q.setValueAtTime(1.2, ctx.currentTime);
-  gain.gain.setValueAtTime(Math.max(0.001, level), ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+  filter.frequency.setValueAtTime(Math.max(120, tone), startTime);
+  filter.Q.setValueAtTime(1.2, startTime);
+  gain.gain.setValueAtTime(Math.max(0.001, level), startTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.18);
 
   oscillator.connect(filter);
   filter.connect(gain);
   gain.connect(destination);
-  oscillator.start();
-  oscillator.stop(ctx.currentTime + 0.22);
+  oscillator.start(startTime);
+  oscillator.stop(startTime + 0.22);
 };
 
 export const triggerChordSequenceVoice = (
@@ -1031,24 +1054,25 @@ export const triggerChordSequenceVoice = (
   spread: number,
   level: number,
   durationSeconds: number,
+  startTime = ctx.currentTime,
 ) => {
   const gain = ctx.createGain();
   const filter = ctx.createBiquadFilter();
   const oscillators = CHORD_INTERVALS[chordType].map((interval, index) => {
     const oscillator = ctx.createOscillator();
     oscillator.type = 'triangle';
-    oscillator.frequency.setValueAtTime(rootFrequency * Math.pow(2, interval / 12), ctx.currentTime);
-    oscillator.detune.setValueAtTime((index - 1) * spread, ctx.currentTime);
+    oscillator.frequency.setValueAtTime(rootFrequency * Math.pow(2, interval / 12), startTime);
+    oscillator.detune.setValueAtTime((index - 1) * spread, startTime);
     oscillator.connect(filter);
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + durationSeconds + 0.04);
+    oscillator.start(startTime);
+    oscillator.stop(startTime + durationSeconds + 0.04);
     return oscillator;
   });
 
   filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(2800, ctx.currentTime);
-  gain.gain.setValueAtTime(Math.max(0.001, level), ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationSeconds);
+  filter.frequency.setValueAtTime(2800, startTime);
+  gain.gain.setValueAtTime(Math.max(0.001, level), startTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + durationSeconds);
   filter.connect(gain);
   gain.connect(destination);
 

@@ -40,6 +40,7 @@ type UpdateNodeParam = (
   id: string,
   param: AudioParamName,
   value: AudioParamValue,
+  atTime?: number,
 ) => void;
 
 type ApplyAudioNodeData = (
@@ -87,24 +88,50 @@ export const clearTransportTimer = () => {
     window.clearTimeout(transportState.timerId);
     transportState.timerId = null;
   }
+
+  transportState.uiTimerIds.forEach((timerId) => window.clearTimeout(timerId));
+  transportState.uiTimerIds = [];
 };
 
-const getNextTransportIntervalMs = () => {
-  const baseMs = getSyncedDurationSeconds('1/16', transportState.bpm) * 1000;
+const SCHEDULER_LOOKAHEAD_MS = 25;
+const SCHEDULE_AHEAD_SECONDS = 0.12;
+
+const getStepDurationSeconds = (step: number) => {
+  const baseSeconds = getSyncedDurationSeconds('1/16', transportState.bpm);
   const swingAmount = transportState.swing;
-  const isEvenStep = transportState.step % 2 === 0;
+  const isEvenStep = step % 2 === 0;
 
-  return baseMs * (isEvenStep ? 1 + swingAmount : 1 - swingAmount);
+  return baseSeconds * (isEvenStep ? 1 + swingAmount : 1 - swingAmount);
 };
 
-const tickTransport = (callbacks: TransportCallbacks) => {
+const queueTransportUiEvent = (name: string, detail: Record<string, unknown>, scheduledTime: number) => {
+  const ctx = audioContext;
+  if (!ctx) {
+    return;
+  }
+
+  const delayMs = Math.max(0, (scheduledTime - ctx.currentTime) * 1000);
+  const timerId = window.setTimeout(() => {
+    if (!transportState.isPlaying && name !== 'transport-stop') {
+      return;
+    }
+    dispatchTransportEvent(name, detail);
+    transportState.uiTimerIds = transportState.uiTimerIds.filter((currentId) => currentId !== timerId);
+  }, delayMs);
+
+  transportState.uiTimerIds.push(timerId);
+};
+
+const scheduleTransportStep = (
+  callbacks: TransportCallbacks,
+  step: number,
+  scheduledTime: number,
+) => {
   const { updateNodeParam } = callbacks;
   const ctx = audioContext;
   if (!ctx || ctx.state !== 'running') {
     return;
   }
-
-  const step = transportState.step % 16;
 
   arpeggiators.forEach((arpeggiator) => {
     if (!shouldTriggerOnTransportStep(step, arpeggiator.syncDivision)) {
@@ -128,16 +155,16 @@ const tickTransport = (callbacks: TransportCallbacks) => {
       const quantizedNote = quantizeNoteToScale(arpStep.note, arpeggiator.scale);
       const frequency = noteToFrequency(quantizedNote, arpStep.octave);
       targets.forEach((targetId) => {
-        updateNodeParam(targetId, 'frequency', frequency);
+        updateNodeParam(targetId, 'frequency', frequency, scheduledTime);
       });
     }
 
-    dispatchTransportEvent('arpeggiator-step', {
+    queueTransportUiEvent('arpeggiator-step', {
       id: arpeggiator.id,
       stepIndex: stepPosition,
       note: arpStep ? quantizeNoteToScale(arpStep.note, arpeggiator.scale) : undefined,
       octave: arpStep?.octave,
-    });
+    }, scheduledTime);
 
     if (arpeggiator.mode !== 'random') {
       arpeggiator.stepIndex = (arpeggiator.stepIndex + 1) % playableSteps.length;
@@ -146,33 +173,33 @@ const tickTransport = (callbacks: TransportCallbacks) => {
 
   drumMachines.forEach((drumMachine) => {
     if (drumMachine.pattern.kick[step]) {
-      triggerKick(ctx, drumMachine.output);
+      triggerKick(ctx, drumMachine.output, scheduledTime);
     }
 
     if (drumMachine.pattern.snare[step]) {
-      triggerSnare(ctx, drumMachine.output);
+      triggerSnare(ctx, drumMachine.output, scheduledTime);
     }
 
     if (drumMachine.pattern.hihat[step]) {
-      triggerHiHat(ctx, drumMachine.output);
+      triggerHiHat(ctx, drumMachine.output, scheduledTime);
     }
   });
 
   kickSynths.forEach((synth) => {
     if (synth.pattern[step]) {
-      triggerKickVoice(ctx, synth.output, synth.tone, synth.decay, synth.gain);
+      triggerKickVoice(ctx, synth.output, synth.tone, synth.decay, synth.gain, scheduledTime);
     }
   });
 
   snareSynths.forEach((synth) => {
     if (synth.pattern[step]) {
-      triggerSnareVoice(ctx, synth.output, synth.tone, synth.decay, synth.gain);
+      triggerSnareVoice(ctx, synth.output, synth.tone, synth.decay, synth.gain, scheduledTime);
     }
   });
 
   hiHatSynths.forEach((synth) => {
     if (synth.pattern[step]) {
-      triggerHiHatVoice(ctx, synth.output, synth.tone, synth.decay, synth.gain);
+      triggerHiHatVoice(ctx, synth.output, synth.tone, synth.decay, synth.gain, scheduledTime);
     }
   });
 
@@ -188,7 +215,7 @@ const tickTransport = (callbacks: TransportCallbacks) => {
     const root = noteToFrequency(bassline.note, bassline.octave);
     const offset = BASSLINE_OFFSETS[step] ?? 0;
     const frequency = root * Math.pow(2, offset / 12);
-    triggerBasslineVoice(ctx, bassline.output, frequency, bassline.tone, bassline.gain);
+    triggerBasslineVoice(ctx, bassline.output, frequency, bassline.tone, bassline.gain, scheduledTime);
   });
 
   chordSeqs.forEach((chordSeq) => {
@@ -210,12 +237,13 @@ const tickTransport = (callbacks: TransportCallbacks) => {
       chordSeq.spread,
       chordSeq.gain,
       durationSeconds,
+      scheduledTime,
     );
   });
 
   clockDividers.forEach((divider) => {
     const isPulse = shouldTriggerOnTransportStep(step, divider.syncDivision);
-    divider.source.offset.setTargetAtTime(isPulse ? 1 : 0, ctx.currentTime, 0.002);
+    divider.source.offset.setTargetAtTime(isPulse ? 1 : 0, scheduledTime, 0.002);
   });
 
   randomCvs.forEach((randomCv) => {
@@ -226,7 +254,7 @@ const tickTransport = (callbacks: TransportCallbacks) => {
     const minValue = Math.min(randomCv.minValue, randomCv.maxValue);
     const maxValue = Math.max(randomCv.minValue, randomCv.maxValue);
     const value = minValue + Math.random() * (maxValue - minValue);
-    randomCv.source.offset.setTargetAtTime(value, ctx.currentTime, 0.002);
+    randomCv.source.offset.setTargetAtTime(value, scheduledTime, 0.002);
   });
 
   gateSeqs.forEach((gateSeq) => {
@@ -235,7 +263,7 @@ const tickTransport = (callbacks: TransportCallbacks) => {
     }
 
     const isOpen = gateSeq.steps[step] ?? false;
-    gateSeq.gate.gain.setTargetAtTime(isOpen ? 1 : 0, ctx.currentTime, 0.003);
+    gateSeq.gate.gain.setTargetAtTime(isOpen ? 1 : 0, scheduledTime, 0.003);
   });
 
   weirdMachines.forEach((weirdMachine, id) => {
@@ -254,25 +282,25 @@ const tickTransport = (callbacks: TransportCallbacks) => {
 
     weirdMachine.filter.frequency.setTargetAtTime(
       isHot ? baseTone * (1.15 + texture * 0.35) : baseTone * (0.82 + chaos * 0.08),
-      ctx.currentTime,
+      scheduledTime,
       0.015,
     );
     weirdMachine.output.gain.setTargetAtTime(
       isHot ? Math.min(1, baseGain * 1.2) : baseGain * 0.78,
-      ctx.currentTime,
+      scheduledTime,
       0.02,
     );
     weirdMachine.modGain.gain.setTargetAtTime(
       isHot ? baseMod * (1.08 + chaos * 0.35) : baseMod * (0.8 + texture * 0.08),
-      ctx.currentTime,
+      scheduledTime,
       0.02,
     );
 
-    dispatchTransportEvent('weird-machine-step', {
+    queueTransportUiEvent('weird-machine-step', {
       id,
       stepIndex,
       active: isHot,
-    });
+    }, scheduledTime);
 
     weirdMachine.stepIndex = (weirdMachine.stepIndex + 1) % weirdMachine.steps.length;
   });
@@ -288,11 +316,11 @@ const tickTransport = (callbacks: TransportCallbacks) => {
     const isFrozen = config?.freeze ?? false;
 
     if (isFrozen) {
-      dispatchTransportEvent('chaos-shrine-step', {
+      queueTransportUiEvent('chaos-shrine-step', {
         id,
         stepIndex,
         active: isHot,
-      });
+      }, scheduledTime);
       return;
     }
 
@@ -305,52 +333,63 @@ const tickTransport = (callbacks: TransportCallbacks) => {
 
     chaosShrine.filter.frequency.setTargetAtTime(
       isHot ? baseTone * (1.3 + texture * 0.45) : baseTone * (0.78 + chaos * 0.12),
-      ctx.currentTime,
+      scheduledTime,
       0.016,
     );
     chaosShrine.colorFilter.frequency.setTargetAtTime(
       isHot ? baseTone * (2.2 + texture * 1.1) : baseTone * (1.35 + blend * 0.35),
-      ctx.currentTime,
+      scheduledTime,
       0.016,
     );
     chaosShrine.output.gain.setTargetAtTime(
       isHot ? Math.min(1, baseGain * 1.24) : baseGain * 0.72,
-      ctx.currentTime,
+      scheduledTime,
       0.02,
     );
     chaosShrine.fmGain.gain.setTargetAtTime(
       isHot ? baseMod * (1.18 + chaos * 0.45) : baseMod * (0.72 + texture * 0.18),
-      ctx.currentTime,
+      scheduledTime,
       0.02,
     );
     chaosShrine.shimmerGain.gain.setTargetAtTime(
       isHot ? 0.18 + blend * 0.52 + texture * 0.18 : 0.08 + blend * 0.28,
-      ctx.currentTime,
+      scheduledTime,
       0.02,
     );
 
-    dispatchTransportEvent('chaos-shrine-step', {
+    queueTransportUiEvent('chaos-shrine-step', {
       id,
       stepIndex,
       active: isHot,
-    });
+    }, scheduledTime);
 
     chaosShrine.stepIndex = (chaosShrine.stepIndex + 1) % chaosShrine.steps.length;
   });
 
-  dispatchTransportEvent('transport-step', {
+  queueTransportUiEvent('transport-step', {
     step,
     bpm: transportState.bpm,
-  });
-  emitTransportState();
+  }, scheduledTime);
+};
 
-  transportState.step = (step + 1) % 16;
-  if (transportState.isPlaying) {
-    transportState.timerId = window.setTimeout(
-      () => tickTransport(callbacks),
-      getNextTransportIntervalMs(),
-    );
+const schedulerTick = (callbacks: TransportCallbacks) => {
+  const ctx = audioContext;
+  if (!ctx || ctx.state !== 'running' || !transportState.isPlaying) {
+    return;
   }
+
+  while (transportState.nextStepTime < ctx.currentTime + SCHEDULE_AHEAD_SECONDS) {
+    const step = transportState.step % 16;
+    scheduleTransportStep(callbacks, step, transportState.nextStepTime);
+    transportState.nextStepTime += getStepDurationSeconds(step);
+    transportState.step = (step + 1) % 16;
+  }
+
+  emitTransportState();
+  transportState.timerId = window.setTimeout(
+    () => schedulerTick(callbacks),
+    SCHEDULER_LOOKAHEAD_MS,
+  );
 };
 
 const restartTransportTimer = (callbacks: TransportCallbacks) => {
@@ -360,9 +399,15 @@ const restartTransportTimer = (callbacks: TransportCallbacks) => {
     return;
   }
 
+  const ctx = audioContext;
+  if (!ctx || ctx.state !== 'running') {
+    return;
+  }
+
+  transportState.nextStepTime = ctx.currentTime + 0.05;
   transportState.timerId = window.setTimeout(
-    () => tickTransport(callbacks),
-    getNextTransportIntervalMs(),
+    () => schedulerTick(callbacks),
+    0,
   );
 };
 
@@ -376,6 +421,7 @@ export const getTransportStateSnapshot = () => ({
 export const startTransportEngine = (callbacks: TransportCallbacks) => {
   transportState.isPlaying = true;
   transportState.step = 0;
+  transportState.uiTimerIds = [];
   emitTransportState();
   restartTransportTimer(callbacks);
   dispatchTransportEvent('transport-start', {

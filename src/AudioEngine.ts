@@ -27,6 +27,7 @@ import { updateAudioNodeParam } from './audio-engine/update-node-param';
 import {
   nodes,
   analysers,
+  mixers,
   reverbs,
   stereoAnalysers,
   nodeConfigs,
@@ -162,18 +163,65 @@ export const createReverb = (id: string) => {
 
 export const createMixer = (id: string) => {
   const ctx = getAudioContext();
-  const mainGain = ctx.createGain();
-  mainGain.gain.setValueAtTime(1, ctx.currentTime);
-  nodes.set(id, mainGain);
+  const output = ctx.createGain();
+  output.gain.setValueAtTime(1, ctx.currentTime);
+  nodes.set(id, output);
 
-  for (let channel = 1; channel <= 4; channel += 1) {
-    const channelGain = ctx.createGain();
-    channelGain.gain.setValueAtTime(0.5, ctx.currentTime);
-    channelGain.connect(mainGain);
-    nodes.set(`${id}_ch${channel}`, channelGain);
-  }
+  const channels = Array.from({ length: 4 }, (_, index) => {
+    const channelNumber = index + 1;
+    const input = ctx.createGain();
+    const low = ctx.createBiquadFilter();
+    const mid = ctx.createBiquadFilter();
+    const high = ctx.createBiquadFilter();
+    const pan = ctx.createStereoPanner();
+    const gain = ctx.createGain();
 
-  return mainGain;
+    low.type = 'lowshelf';
+    low.frequency.setValueAtTime(120, ctx.currentTime);
+    low.gain.setValueAtTime(0, ctx.currentTime);
+
+    mid.type = 'peaking';
+    mid.frequency.setValueAtTime(1100, ctx.currentTime);
+    mid.Q.setValueAtTime(0.9, ctx.currentTime);
+    mid.gain.setValueAtTime(0, ctx.currentTime);
+
+    high.type = 'highshelf';
+    high.frequency.setValueAtTime(4200, ctx.currentTime);
+    high.gain.setValueAtTime(0, ctx.currentTime);
+
+    pan.pan.setValueAtTime(0, ctx.currentTime);
+    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+
+    input.connect(low);
+    low.connect(mid);
+    mid.connect(high);
+    high.connect(pan);
+    pan.connect(gain);
+    gain.connect(output);
+
+    nodes.set(`${id}_ch${channelNumber}`, input);
+    nodes.set(`${id}_ch${channelNumber}_low`, low);
+    nodes.set(`${id}_ch${channelNumber}_mid`, mid);
+    nodes.set(`${id}_ch${channelNumber}_high`, high);
+    nodes.set(`${id}_ch${channelNumber}_pan`, pan);
+    nodes.set(`${id}_ch${channelNumber}_gain`, gain);
+
+    return {
+      input,
+      low,
+      mid,
+      high,
+      pan,
+      gain,
+    };
+  });
+
+  mixers.set(id, {
+    output,
+    channels,
+  });
+
+  return output;
 };
 
 export const createAnalyser = (id: string) => {

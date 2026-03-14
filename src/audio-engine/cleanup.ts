@@ -22,6 +22,7 @@ import {
   dualOscs,
   envelopeFollowers,
   equalizers,
+  mixers,
   reverbs,
   flangers,
   fmSynths,
@@ -81,6 +82,32 @@ export const destroyNodeById = (id: string) => {
     }
     equalizers.delete(id);
     nodes.delete(`${id}_out`);
+  }
+
+  const mixer = mixers.get(id);
+  if (mixer) {
+    try {
+      mixer.channels.forEach((channel) => {
+        channel.input.disconnect();
+        channel.low.disconnect();
+        channel.mid.disconnect();
+        channel.high.disconnect();
+        channel.pan.disconnect();
+        channel.gain.disconnect();
+      });
+      mixer.output.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the mixer chain.
+    }
+    mixers.delete(id);
+    for (let channel = 1; channel <= 4; channel += 1) {
+      nodes.delete(`${id}_ch${channel}`);
+      nodes.delete(`${id}_ch${channel}_low`);
+      nodes.delete(`${id}_ch${channel}_mid`);
+      nodes.delete(`${id}_ch${channel}_high`);
+      nodes.delete(`${id}_ch${channel}_pan`);
+      nodes.delete(`${id}_ch${channel}_gain`);
+    }
   }
 
   const reverb = reverbs.get(id);
@@ -887,6 +914,7 @@ export const clearAudioEngineStores = () => {
   arpeggiators.clear();
   arpeggiatorTargets.clear();
   equalizers.clear();
+  mixers.clear();
   reverbs.clear();
   phasers.clear();
   compressors.clear();

@@ -99,10 +99,26 @@ export const applyBasicNodeData = (
       return true;
     }
     case 'mixer':
-      updateIfDefined(updateNodeParam, `${id}_ch1`, 'gain', data.ch1);
-      updateIfDefined(updateNodeParam, `${id}_ch2`, 'gain', data.ch2);
-      updateIfDefined(updateNodeParam, `${id}_ch3`, 'gain', data.ch3);
-      updateIfDefined(updateNodeParam, `${id}_ch4`, 'gain', data.ch4);
+      updateIfDefined(updateNodeParam, `${id}_ch1_low`, 'gain', data.ch1_low);
+      updateIfDefined(updateNodeParam, `${id}_ch1_mid`, 'gain', data.ch1_mid);
+      updateIfDefined(updateNodeParam, `${id}_ch1_high`, 'gain', data.ch1_high);
+      updateIfDefined(updateNodeParam, `${id}_ch1_pan`, 'pan', data.ch1_pan);
+      updateIfDefined(updateNodeParam, `${id}_ch1_gain`, 'gain', data.ch1_mute ? 0 : data.ch1);
+      updateIfDefined(updateNodeParam, `${id}_ch2_low`, 'gain', data.ch2_low);
+      updateIfDefined(updateNodeParam, `${id}_ch2_mid`, 'gain', data.ch2_mid);
+      updateIfDefined(updateNodeParam, `${id}_ch2_high`, 'gain', data.ch2_high);
+      updateIfDefined(updateNodeParam, `${id}_ch2_pan`, 'pan', data.ch2_pan);
+      updateIfDefined(updateNodeParam, `${id}_ch2_gain`, 'gain', data.ch2_mute ? 0 : data.ch2);
+      updateIfDefined(updateNodeParam, `${id}_ch3_low`, 'gain', data.ch3_low);
+      updateIfDefined(updateNodeParam, `${id}_ch3_mid`, 'gain', data.ch3_mid);
+      updateIfDefined(updateNodeParam, `${id}_ch3_high`, 'gain', data.ch3_high);
+      updateIfDefined(updateNodeParam, `${id}_ch3_pan`, 'pan', data.ch3_pan);
+      updateIfDefined(updateNodeParam, `${id}_ch3_gain`, 'gain', data.ch3_mute ? 0 : data.ch3);
+      updateIfDefined(updateNodeParam, `${id}_ch4_low`, 'gain', data.ch4_low);
+      updateIfDefined(updateNodeParam, `${id}_ch4_mid`, 'gain', data.ch4_mid);
+      updateIfDefined(updateNodeParam, `${id}_ch4_high`, 'gain', data.ch4_high);
+      updateIfDefined(updateNodeParam, `${id}_ch4_pan`, 'pan', data.ch4_pan);
+      updateIfDefined(updateNodeParam, `${id}_ch4_gain`, 'gain', data.ch4_mute ? 0 : data.ch4);
       return true;
     case 'noise':
     case 'scope':
