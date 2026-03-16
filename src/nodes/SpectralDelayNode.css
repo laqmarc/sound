@@ -24,11 +24,82 @@
   color: rgba(207, 250, 254, 0.82);
 }
 
+.spectral-delay-node__mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.spectral-delay-node__mode-button {
+  flex: 1;
+  border: 1px solid rgba(103, 232, 249, 0.16);
+  background: rgba(8, 47, 73, 0.55);
+  color: rgba(207, 250, 254, 0.78);
+  border-radius: 999px;
+  padding: 0.38rem 0.72rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.spectral-delay-node__mode-button--active {
+  border-color: rgba(103, 232, 249, 0.42);
+  background: rgba(6, 182, 212, 0.2);
+  color: #ecfeff;
+}
+
+.spectral-delay-node__division {
+  margin-top: 0.75rem;
+}
+
+.spectral-delay-node__label {
+  display: block;
+  margin-bottom: 0.32rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(165, 243, 252, 0.72);
+}
+
+.spectral-delay-node__select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(103, 232, 249, 0.16);
+  background: rgba(8, 47, 73, 0.7);
+  color: #ecfeff;
+  padding: 0.55rem 0.7rem;
+}
+
 .spectral-delay-node__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.55rem;
   margin-top: 0.8rem;
+}
+
+.spectral-delay-node__sync-summary {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid rgba(103, 232, 249, 0.16);
+  border-radius: 16px;
+  padding: 0.7rem;
+  min-height: 92px;
+  background: rgba(8, 47, 73, 0.45);
+}
+
+.spectral-delay-node__sync-summary-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(165, 243, 252, 0.62);
+}
+
+.spectral-delay-node__sync-summary-value {
+  margin-top: 0.25rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #ecfeff;
 }
 
 .spectral-delay-node__handles {

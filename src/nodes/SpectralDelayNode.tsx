@@ -1,11 +1,16 @@
 import type { CSSProperties } from 'react';
 import { Handle, Position } from 'reactflow';
 import Knob from '../components/Knob';
-import type { ControllableSoundNodeProps } from '../types';
+import type { ControllableSoundNodeProps, SyncDivision } from '../types';
 import './nodeChrome.css';
 import './SpectralDelayNode.css';
+
+const divisions: SyncDivision[] = ['1/1', '1/2', '1/2.', '1/4', '1/4.', '1/8', '1/8.', '1/16', '1/16.'];
+
 const SpectralDelayNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const delayTime = data.delayTime ?? 0.18;
+  const sync = data.sync ?? false;
+  const syncDivision = data.syncDivision ?? '1/8';
   const spread = data.spread ?? 0.45;
   const texture = data.texture ?? 0.55;
   const feedback = data.feedback ?? 0.42;
@@ -29,18 +34,57 @@ const SpectralDelayNode = ({ id, data, onDataChange }: ControllableSoundNodeProp
       <div className="spectral-delay-node__description">
         Prism echoes split in bands and bounce around the stereo field.
       </div>
+      <div className="spectral-delay-node__mode-toggle">
+        <button
+          type="button"
+          onClick={() => onDataChange(id, { sync: false })}
+          className={`spectral-delay-node__mode-button ${!sync ? 'spectral-delay-node__mode-button--active' : ''}`}
+        >
+          Free
+        </button>
+        <button
+          type="button"
+          onClick={() => onDataChange(id, { sync: true })}
+          className={`spectral-delay-node__mode-button ${sync ? 'spectral-delay-node__mode-button--active' : ''}`}
+        >
+          Sync
+        </button>
+      </div>
+      {sync ? (
+        <div className="spectral-delay-node__division">
+          <label className="spectral-delay-node__label">Division</label>
+          <select
+            value={syncDivision}
+            onChange={(event) => onDataChange(id, { syncDivision: event.target.value as SyncDivision })}
+            className="spectral-delay-node__select"
+          >
+            {divisions.map((division) => (
+              <option key={division} value={division}>
+                {division}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
       <div className="spectral-delay-node__grid">
-        <Knob
-          label="Time"
-          min={0.02}
-          max={0.8}
-          step={0.01}
-          value={delayTime}
-          onChange={(value) => onDataChange(id, { delayTime: value })}
-          color="#67e8f9"
-          unit="s"
-          size={52}
-        />
+        {!sync ? (
+          <Knob
+            label="Time"
+            min={0.02}
+            max={0.8}
+            step={0.01}
+            value={delayTime}
+            onChange={(value) => onDataChange(id, { delayTime: value })}
+            color="#67e8f9"
+            unit="s"
+            size={52}
+          />
+        ) : (
+          <div className="spectral-delay-node__sync-summary">
+            <span className="spectral-delay-node__sync-summary-label">Time</span>
+            <span className="spectral-delay-node__sync-summary-value">{syncDivision}</span>
+          </div>
+        )}
         <Knob
           label="Spread"
           min={0}

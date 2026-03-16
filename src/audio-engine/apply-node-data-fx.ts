@@ -610,7 +610,9 @@ export const applyFxNodeData = (
         return true;
       }
 
-      const baseDelay = Math.max(0.02, Math.min(0.8, data.delayTime ?? 0.18));
+      const baseDelay = data.sync
+        ? getSyncedDurationSeconds(data.syncDivision ?? '1/8', transportState.bpm)
+        : Math.max(0.02, Math.min(0.8, data.delayTime ?? 0.18));
       const spread = Math.max(0, Math.min(1, data.spread ?? 0.45));
       const texture = Math.max(0, Math.min(1, data.texture ?? 0.55));
       const feedback = Math.max(0, Math.min(0.92, data.feedback ?? 0.42));
