@@ -17,6 +17,7 @@ import 'reactflow/dist/style.css';
 import './App.css';
 import DestinationNode from './nodes/DestinationNode';
 import DelayNode from './nodes/DelayNode';
+import SpectralDelayNode from './nodes/SpectralDelayNode';
 import DistortionNode from './nodes/DistortionNode';
 import FilterNode from './nodes/FilterNode';
 import GainNode from './nodes/GainNode';
@@ -486,6 +487,9 @@ function App() {
       ),
       delay: (props: SoundNodeProps) => (
         <DelayNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      spectralDelay: (props: SoundNodeProps) => (
+        <SpectralDelayNode {...props} onDataChange={handleNodeDataChange} />
       ),
       noise: NoiseNode,
       distortion: (props: SoundNodeProps) => (

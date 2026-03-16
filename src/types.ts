@@ -9,6 +9,7 @@ export const editableNodeTypes = [
   'gain',
   'filter',
   'delay',
+  'spectralDelay',
   'noise',
   'distortion',
   'reverb',

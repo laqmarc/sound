@@ -219,6 +219,7 @@ export const addNodeButtons: AddNodeButton[] = [
   { type: 'filter', label: 'Filter', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20', tab: 'fx' },
   { type: 'distortion', label: 'Disto', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20', tab: 'fx' },
   { type: 'delay', label: 'Delay', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20', tab: 'fx' },
+  { type: 'spectralDelay', label: 'Spectral', color: 'bg-cyan-500/10 text-cyan-200 border-cyan-500/20', tab: 'fx' },
   { type: 'reverb', label: 'Reverb', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20', tab: 'fx' },
   { type: 'compressor', label: 'Comp', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'fx' },
   { type: 'chorus', label: 'Chorus', color: 'bg-sky-500/10 text-sky-300 border-sky-500/20', tab: 'fx' },

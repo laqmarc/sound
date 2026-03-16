@@ -1,0 +1,45 @@
+.spectral-delay-node {
+  min-width: 248px;
+  background:
+    radial-gradient(circle at top left, rgba(103, 232, 249, 0.18), transparent 42%),
+    linear-gradient(160deg, rgba(6, 24, 37, 0.96), rgba(10, 54, 82, 0.88));
+  border: 1px solid var(--spectral-delay-border);
+  box-shadow: 0 20px 40px rgba(2, 12, 18, 0.42);
+}
+
+.spectral-delay-node__title {
+  color: #cffafe;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.spectral-delay-node__dot {
+  background: var(--spectral-delay-accent);
+  box-shadow: 0 0 18px rgba(103, 232, 249, 0.55);
+}
+
+.spectral-delay-node__description {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: rgba(207, 250, 254, 0.82);
+}
+
+.spectral-delay-node__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+}
+
+.spectral-delay-node__handles {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.spectral-delay-node__footer-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(165, 243, 252, 0.78);
+}

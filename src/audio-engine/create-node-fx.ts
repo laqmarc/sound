@@ -25,6 +25,7 @@ import {
   cabSims,
   transientShapers,
   freezeFxs,
+  spectralDelays,
   granulars,
   stutters,
   EQ_BAND_CONFIGS,
@@ -125,6 +126,66 @@ const createChorus = (id: string) => {
   });
 };
 
+const createSpectralDelay = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const filterConfigs: Array<{ type: BiquadFilterType; frequency: number; q: number }> = [
+    { type: 'lowpass', frequency: 380, q: 0.8 },
+    { type: 'bandpass', frequency: 900, q: 1.8 },
+    { type: 'bandpass', frequency: 2400, q: 2.4 },
+    { type: 'highpass', frequency: 5200, q: 0.7 },
+  ];
+  const filters = filterConfigs.map((config) => {
+    const filter = ctx.createBiquadFilter();
+    filter.type = config.type;
+    filter.frequency.setValueAtTime(config.frequency, ctx.currentTime);
+    filter.Q.setValueAtTime(config.q, ctx.currentTime);
+    return filter;
+  });
+  const delays = filters.map((_, index) => {
+    const delay = ctx.createDelay(1.5);
+    delay.delayTime.setValueAtTime(0.12 + index * 0.05, ctx.currentTime);
+    return delay;
+  });
+  const feedbackGains = filters.map(() => {
+    const feedbackGain = ctx.createGain();
+    feedbackGain.gain.setValueAtTime(0.38, ctx.currentTime);
+    return feedbackGain;
+  });
+  const panners = filters.map((_, index) => {
+    const panner = ctx.createStereoPanner();
+    panner.pan.setValueAtTime(-0.7 + index * 0.45, ctx.currentTime);
+    return panner;
+  });
+  dry.gain.setValueAtTime(0.28, ctx.currentTime);
+  wet.gain.setValueAtTime(0.72, ctx.currentTime);
+  input.connect(dry);
+  dry.connect(output);
+  filters.forEach((filter, index) => {
+    input.connect(filter);
+    filter.connect(delays[index]);
+    delays[index].connect(panners[index]);
+    panners[index].connect(wet);
+    delays[index].connect(feedbackGains[index]);
+    feedbackGains[index].connect(delays[index]);
+  });
+  wet.connect(output);
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  spectralDelays.set(id, {
+    input,
+    output,
+    dry,
+    wet,
+    filters,
+    delays,
+    feedbackGains,
+    panners,
+  });
+};
 const createPhaser = (id: string) => {
   const ctx = getAudioContext();
   const input = ctx.createGain();
@@ -1131,6 +1192,9 @@ export const createFxAudioNode = (type: EditableAudioNodeType, id: string) => {
       return true;
     case 'freezeFx':
       createFreezeFx(id);
+      return true;
+    case 'spectralDelay':
+      createSpectralDelay(id);
       return true;
     case 'granular':
       createGranular(id);

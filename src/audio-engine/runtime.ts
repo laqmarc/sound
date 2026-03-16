@@ -27,6 +27,7 @@ export const arp2s = new Map<string, Arp2State>();
 export const arp2Targets = new Map<string, Set<string>>();
 export const equalizers = new Map<string, EqualizerState>();
 export const reverbs = new Map<string, ReverbState>();
+export const spectralDelays = new Map<string, SpectralDelayState>();
 export const mixers = new Map<string, MixerState>();
 export const phasers = new Map<string, PhaserState>();
 export const compressors = new Map<string, CompressorState>();
@@ -144,6 +145,16 @@ export interface MixerState {
   channels: MixerChannelState[];
 }
 
+export interface SpectralDelayState {
+  input: GainNode;
+  output: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  filters: BiquadFilterNode[];
+  delays: DelayNode[];
+  feedbackGains: GainNode[];
+  panners: StereoPannerNode[];
+}
 export interface PhaserState {
   input: GainNode;
   output: GainNode;

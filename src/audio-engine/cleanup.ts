@@ -27,6 +27,7 @@ import {
   equalizers,
   mixers,
   reverbs,
+  spectralDelays,
   flangers,
   fmSynths,
   foldbacks,
@@ -927,6 +928,7 @@ export const clearAudioEngineStores = () => {
   equalizers.clear();
   mixers.clear();
   reverbs.clear();
+  spectralDelays.clear();
   phasers.clear();
   compressors.clear();
   choruses.clear();

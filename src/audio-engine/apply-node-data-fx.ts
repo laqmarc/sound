@@ -28,6 +28,7 @@ import {
   ringMods,
   sampleHolds,
   saturators,
+  spectralDelays,
   stereoWideners,
   stutters,
   tiltEqs,
@@ -561,6 +562,61 @@ export const applyFxNodeData = (
       freezeFx.params.freeze = data.freeze ?? false;
       freezeFx.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
       freezeFx.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      return true;
+    }
+    case 'spectralDelay': {
+      const spectralDelay = spectralDelays.get(id);
+      if (!spectralDelay) {
+        return true;
+      }
+
+      const baseDelay = Math.max(0.02, Math.min(0.8, data.delayTime ?? 0.18));
+      const spread = Math.max(0, Math.min(1, data.spread ?? 0.45));
+      const texture = Math.max(0, Math.min(1, data.texture ?? 0.55));
+      const feedback = Math.max(0, Math.min(0.92, data.feedback ?? 0.42));
+      const mix = Math.max(0, Math.min(1, data.mix ?? 0.72));
+      const dryMix = 1 - mix;
+      const tone = Math.max(180, Math.min(5200, data.tone ?? 1600));
+      const currentTime = getAudioContext().currentTime;
+      const bandMultipliers = [
+        0.35 + spread * 0.25,
+        0.7 + spread * 0.45,
+        1.15 + spread * 0.75,
+        1.75 + spread * 1.1,
+      ];
+      const frequencies = [
+        Math.max(120, tone * (0.45 + texture * 0.12)),
+        Math.max(220, tone * (0.8 + texture * 0.1)),
+        Math.max(680, tone * (1.55 + spread * 0.35 + texture * 0.08)),
+        Math.max(1800, tone * (2.7 + spread * 0.85)),
+      ];
+      const q = 0.8 + texture * 9;
+
+      spectralDelay.filters[0]?.frequency.setTargetAtTime(frequencies[0], currentTime, 0.03);
+      spectralDelay.filters[0]?.Q.setTargetAtTime(0.7 + texture * 1.8, currentTime, 0.03);
+      spectralDelay.filters[1]?.frequency.setTargetAtTime(frequencies[1], currentTime, 0.03);
+      spectralDelay.filters[1]?.Q.setTargetAtTime(q * 0.75, currentTime, 0.03);
+      spectralDelay.filters[2]?.frequency.setTargetAtTime(frequencies[2], currentTime, 0.03);
+      spectralDelay.filters[2]?.Q.setTargetAtTime(q, currentTime, 0.03);
+      spectralDelay.filters[3]?.frequency.setTargetAtTime(frequencies[3], currentTime, 0.03);
+      spectralDelay.filters[3]?.Q.setTargetAtTime(0.7 + texture * 1.2, currentTime, 0.03);
+
+      spectralDelay.delays.forEach((delay, index) => {
+        delay.delayTime.setTargetAtTime(Math.min(1.2, baseDelay * bandMultipliers[index]), currentTime, 0.03);
+      });
+      spectralDelay.feedbackGains.forEach((feedbackGain, index) => {
+        feedbackGain.gain.setTargetAtTime(
+          Math.max(0, Math.min(0.94, feedback * (0.85 + index * 0.06 + texture * 0.08))),
+          currentTime,
+          0.03,
+        );
+      });
+      spectralDelay.panners.forEach((panner, index) => {
+        const panBase = [-0.85, -0.3, 0.3, 0.85][index] ?? 0;
+        panner.pan.setTargetAtTime(panBase * (0.35 + spread * 0.65), currentTime, 0.03);
+      });
+      spectralDelay.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+      spectralDelay.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
       return true;
     }
     case 'granular': {

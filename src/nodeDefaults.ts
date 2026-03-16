@@ -121,6 +121,15 @@ export const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     sync: false,
     syncDivision: '1/8',
   },
+  spectralDelay: {
+    label: 'Spectral Delay',
+    delayTime: 0.18,
+    spread: 0.45,
+    texture: 0.55,
+    feedback: 0.42,
+    mix: 0.72,
+    tone: 1600,
+  },
   noise: {
     label: 'Noise',
   },
