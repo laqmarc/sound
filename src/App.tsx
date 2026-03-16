@@ -29,6 +29,7 @@ import DualOscNode from './nodes/DualOscNode';
 import DronePadNode from './nodes/DronePadNode';
 import BasslineNode from './nodes/BasslineNode';
 import LeadVoiceNode from './nodes/LeadVoiceNode';
+import SamplerNode from './nodes/SamplerNode';
 import PannerNode from './nodes/PannerNode';
 import ReverbNode from './nodes/ReverbNode';
 import ScopeNode from './nodes/ScopeNode';
@@ -477,6 +478,9 @@ function App() {
       ),
       leadVoice: (props: SoundNodeProps) => (
         <LeadVoiceNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      sampler: (props: SoundNodeProps) => (
+        <SamplerNode {...props} onDataChange={handleNodeDataChange} />
       ),
       gain: (props: SoundNodeProps) => (
         <GainNode {...props} onDataChange={handleNodeDataChange} />

@@ -8,7 +8,7 @@
 - Gravara l'output master.
 - Quan l'usuari premi `Stop`, es guardara automaticament un arxiu `.wav`.
 
-### 2. Sampler amb pujada d'arxius
+### ~~2. Sampler amb pujada d'arxius~~
 - Afegir un sampler que permeti pujar arxius `.mp3` o `.wav`.
 - Un cop carregats, es podran llanÃ§ar des de la interfÃ­cie.
 

@@ -17,6 +17,7 @@ import {
   dronePads,
   basslines,
   leadVoices,
+  samplers,
   clockDividers,
   randomCvs,
   sampleHolds,
@@ -480,6 +481,22 @@ const createLeadVoice = (id: string) => {
     filter,
     output,
     glide: 0.04,
+  });
+};
+
+const createSampler = (id: string) => {
+  const ctx = getAudioContext();
+  const output = ctx.createGain();
+  output.gain.setValueAtTime(0.85, ctx.currentTime);
+
+  nodes.set(id, output);
+  samplers.set(id, {
+    output,
+    mediaElement: null,
+    sourceNode: null,
+    sampleDataUrl: null,
+    lastTriggerNonce: 0,
+    lastStopNonce: 0,
   });
 };
 
@@ -968,6 +985,9 @@ export const createMusicalAudioNode = (type: EditableAudioNodeType, id: string) 
       return true;
     case 'leadVoice':
       createLeadVoice(id);
+      return true;
+    case 'sampler':
+      createSampler(id);
       return true;
     case 'clockDivider':
       createClockDivider(id);

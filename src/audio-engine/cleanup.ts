@@ -39,6 +39,7 @@ import {
   kickSynths,
   lags,
   leadVoices,
+  samplers,
   limiters,
   loopers,
   monoSynths,
@@ -473,6 +474,23 @@ export const destroyNodeById = (id: string) => {
     }
     leadVoices.delete(id);
     nodes.delete(`${id}_out`);
+  }
+
+  const sampler = samplers.get(id);
+  if (sampler) {
+    try {
+      sampler.mediaElement?.pause();
+      if (sampler.mediaElement) {
+        sampler.mediaElement.currentTime = 0;
+        sampler.mediaElement.removeAttribute('src');
+        sampler.mediaElement.load();
+      }
+      sampler.sourceNode?.disconnect();
+      sampler.output.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the sampler.
+    }
+    samplers.delete(id);
   }
 
   const autoPan = autoPans.get(id);
@@ -949,6 +967,7 @@ export const clearAudioEngineStores = () => {
   dronePads.clear();
   basslines.clear();
   leadVoices.clear();
+  samplers.clear();
   autoPans.clear();
   autoFilters.clear();
   clockDividers.clear();

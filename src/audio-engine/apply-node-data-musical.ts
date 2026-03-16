@@ -1,3 +1,4 @@
+import type { SamplerState } from './runtime';
 import type { EditableAudioNodeType, SoundNodeData } from '../types';
 import type { AudioParamName, AudioParamValue } from './runtime';
 import {
@@ -30,6 +31,7 @@ import {
   hiHatSynths,
   kickSynths,
   leadVoices,
+  samplers,
   monoSynths,
   noiseLayers,
   weirdMachines,
@@ -47,6 +49,53 @@ interface ApplyMusicalNodeDataOptions {
   updateNodeParam: (id: string, param: AudioParamName, value: AudioParamValue) => void;
   changedData?: Partial<SoundNodeData>;
 }
+
+const clampSamplerValue = (value: number, min: number, max: number) => {
+  return Math.max(min, Math.min(max, value));
+};
+
+const stopSamplerPlayback = (sampler: SamplerState) => {
+  if (!sampler.mediaElement) {
+    return;
+  }
+
+  sampler.mediaElement.pause();
+  sampler.mediaElement.currentTime = 0;
+};
+
+const teardownSamplerMedia = (sampler: SamplerState) => {
+  stopSamplerPlayback(sampler);
+
+  if (sampler.sourceNode) {
+    try {
+      sampler.sourceNode.disconnect();
+    } catch {
+      // Ignore disconnect errors while swapping the sampler source.
+    }
+  }
+
+  sampler.mediaElement = null;
+  sampler.sourceNode = null;
+  sampler.sampleDataUrl = null;
+};
+
+const ensureSamplerMedia = (sampler: SamplerState, sampleDataUrl: string) => {
+  if (sampler.sampleDataUrl === sampleDataUrl && sampler.mediaElement && sampler.sourceNode) {
+    return;
+  }
+
+  teardownSamplerMedia(sampler);
+
+  const mediaElement = new Audio(sampleDataUrl);
+  mediaElement.preload = 'auto';
+
+  const sourceNode = getAudioContext().createMediaElementSource(mediaElement);
+  sourceNode.connect(sampler.output);
+
+  sampler.mediaElement = mediaElement;
+  sampler.sourceNode = sourceNode;
+  sampler.sampleDataUrl = sampleDataUrl;
+};
 
 export const applyMusicalNodeData = (
   type: EditableAudioNodeType,
@@ -140,6 +189,48 @@ export const applyMusicalNodeData = (
       leadVoice.filter.frequency.setTargetAtTime(data.tone ?? 2200, currentTime, 0.03);
       leadVoice.filter.Q.setTargetAtTime(data.Q ?? 0.8, currentTime, 0.03);
       leadVoice.output.gain.setTargetAtTime(data.gain ?? 0.3, currentTime, 0.03);
+      return true;
+    }
+    case 'sampler': {
+      const sampler = samplers.get(id);
+      if (!sampler) {
+        return true;
+      }
+
+      const currentTime = getAudioContext().currentTime;
+      const playbackRate = clampSamplerValue(data.playbackRate ?? 1, 0.25, 2);
+      const triggerNonce = Math.max(0, Math.round(data.triggerNonce ?? 0));
+      const stopNonce = Math.max(0, Math.round(data.stopNonce ?? 0));
+
+      sampler.output.gain.setTargetAtTime(Math.max(0, Math.min(1, data.gain ?? 0.85)), currentTime, 0.03);
+
+      if (data.sampleDataUrl) {
+        ensureSamplerMedia(sampler, data.sampleDataUrl);
+      } else if (sampler.mediaElement) {
+        teardownSamplerMedia(sampler);
+      }
+
+      if (sampler.mediaElement) {
+        sampler.mediaElement.loop = data.loop ?? false;
+        sampler.mediaElement.playbackRate = playbackRate;
+      }
+
+      if (options.changedData?.stopNonce !== undefined && stopNonce !== sampler.lastStopNonce) {
+        stopSamplerPlayback(sampler);
+        sampler.lastStopNonce = stopNonce;
+      }
+
+      if (options.changedData?.triggerNonce !== undefined && triggerNonce !== sampler.lastTriggerNonce) {
+        if (sampler.mediaElement) {
+          stopSamplerPlayback(sampler);
+          const playPromise = sampler.mediaElement.play();
+          if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(() => {});
+          }
+        }
+        sampler.lastTriggerNonce = triggerNonce;
+      }
+
       return true;
     }
     case 'drumMachine': {

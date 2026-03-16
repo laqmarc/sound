@@ -49,6 +49,7 @@ export const dualOscs = new Map<string, DualOscState>();
 export const dronePads = new Map<string, DronePadState>();
 export const basslines = new Map<string, BasslineState>();
 export const leadVoices = new Map<string, LeadVoiceState>();
+export const samplers = new Map<string, SamplerState>();
 export const autoPans = new Map<string, AutoPanState>();
 export const autoFilters = new Map<string, AutoFilterState>();
 export const clockDividers = new Map<string, ClockDividerState>();
@@ -355,6 +356,15 @@ export interface LeadVoiceState {
   filter: BiquadFilterNode;
   output: GainNode;
   glide: number;
+}
+
+export interface SamplerState {
+  output: GainNode;
+  mediaElement: HTMLAudioElement | null;
+  sourceNode: MediaElementAudioSourceNode | null;
+  sampleDataUrl: string | null;
+  lastTriggerNonce: number;
+  lastStopNonce: number;
 }
 
 export interface AutoPanState {

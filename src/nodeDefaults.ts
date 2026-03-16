@@ -105,6 +105,16 @@ export const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     glide: 0.04,
     type: 'sawtooth',
   },
+  sampler: {
+    label: 'Sampler',
+    gain: 0.85,
+    playbackRate: 1,
+    loop: false,
+    sampleDataUrl: '',
+    sampleName: '',
+    triggerNonce: 0,
+    stopNonce: 0,
+  },
   gain: {
     label: 'Gain',
     gain: 0.5,

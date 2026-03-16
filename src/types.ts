@@ -6,6 +6,7 @@ export const editableNodeTypes = [
   'dronePad',
   'bassline',
   'leadVoice',
+  'sampler',
   'gain',
   'filter',
   'delay',
@@ -82,6 +83,9 @@ export interface SoundNodeData {
   label?: string;
   frequency?: number;
   gain?: number;
+  sampleDataUrl?: string;
+  sampleName?: string;
+  playbackRate?: number;
   type?: OscillatorType | BiquadFilterType;
   Q?: number;
   delayTime?: number;
@@ -156,6 +160,7 @@ export interface SoundNodeData {
   chaos?: number;
   loopLength?: number;
   freeze?: boolean;
+  loop?: boolean;
   steps?: boolean[];
   note?: NoteName;
   octave?: number;
@@ -177,6 +182,8 @@ export interface SoundNodeData {
   spray?: number;
   offset?: number;
   glide?: number;
+  triggerNonce?: number;
+  stopNonce?: number;
 }
 
 export interface DrumPattern {
