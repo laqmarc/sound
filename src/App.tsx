@@ -89,6 +89,7 @@ import HumanizerNode from './nodes/HumanizerNode';
 import TriggerDelayNode from './nodes/TriggerDelayNode';
 import { SoundLabHeader } from './components/header/SoundLabHeader';
 import { TransportAside } from './components/layout/TransportAside';
+import { TutorialModal } from './components/layout/TutorialModal';
 import {
   applyAudioNodeData,
   connectNodes,
@@ -311,6 +312,7 @@ function App() {
   const [userPresetName, setUserPresetName] = useState('');
   const [exportedPresetCode, setExportedPresetCode] = useState('');
   const [exportPresetFeedback, setExportPresetFeedback] = useState('');
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const nodesRef = useRef<SoundFlowNode[]>(baseInitialNodes);
   const edgesRef = useRef<Edge[]>(baseInitialEdges);
   const audioStartedRef = useRef(false);
@@ -967,7 +969,7 @@ function App() {
   );
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-tutorial="app-shell">
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
         <defs>
           <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -1010,12 +1012,12 @@ function App() {
 
       <div className="app-shell__body">
         <aside className="app-shell__sidebar">
-          <section className="app-shell__sidebar-panel">
+          <section className="app-shell__sidebar-panel" data-tutorial="components-sidebar">
             <div className="app-shell__sidebar-header">
               <div className="app-shell__sidebar-title">Components</div>
               <div className="app-shell__sidebar-count">{visibleAddNodeButtons.length}</div>
             </div>
-            <nav className="app-shell__sidebar-nav">
+            <nav className="app-shell__sidebar-nav" data-tutorial="components-list">
               {visibleAddNodeButtons.map((button) => (
                 <button
                   key={button.type}
@@ -1032,7 +1034,7 @@ function App() {
           </section>
         </aside>
 
-        <main className="app-shell__main">
+        <main className="app-shell__main" data-tutorial="patch-canvas">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -1064,8 +1066,11 @@ function App() {
           onResetCanvas={() => {
             void resetCanvas();
           }}
+          onOpenTutorial={() => setIsTutorialOpen(true)}
         />
       </div>
+
+      <TutorialModal isOpen={isTutorialOpen} onClose={() => setIsTutorialOpen(false)} />
     </div>
   );
 }

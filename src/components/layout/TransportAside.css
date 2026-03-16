@@ -158,8 +158,7 @@
   background: var(--transport-start-hover);
 }
 
-.transport-aside__button--stop,
-.transport-aside__button--reset {
+.transport-aside__button--stop {
   background: var(--transport-button-idle);
 }
 
@@ -173,11 +172,22 @@
 }
 
 .transport-aside__button--reset {
+  background: var(--transport-button-idle);
   color: var(--transport-reset-text);
 }
 
 .transport-aside__button--reset:hover {
   background: var(--transport-reset-hover);
+}
+
+.transport-aside__button--tutorial {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(20, 184, 166, 0.2));
+  color: var(--ui-text-main);
+}
+
+.transport-aside__button--tutorial:hover {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(20, 184, 166, 0.3));
+  color: var(--color-white);
 }
 
 .transport-aside__icon {

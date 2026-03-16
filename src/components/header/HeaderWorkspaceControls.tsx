@@ -15,7 +15,7 @@ export function HeaderWorkspaceControls({
   onAddMachineSet,
 }: HeaderWorkspaceControlsProps) {
   return (
-    <div className="header-workspace-controls">
+    <div className="header-workspace-controls" data-tutorial="header-workspace">
       <div className="header-workspace-controls__row">
         <div className="header-workspace-controls__label">Families</div>
         {componentTabs.map((tab) => {
@@ -39,7 +39,10 @@ export function HeaderWorkspaceControls({
       </div>
 
       {visibleMachineSets.length > 0 && (
-        <div className="header-workspace-controls__row header-workspace-controls__row--sets">
+        <div
+          className="header-workspace-controls__row header-workspace-controls__row--sets"
+          data-tutorial="machine-sets"
+        >
           <div className="header-workspace-controls__label">Sets</div>
           {visibleMachineSets.map((setTemplate) => (
             <button

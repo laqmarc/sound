@@ -36,7 +36,7 @@
 - Crear un vocoder on es pugui fer servir:
 - un sampler com a font
 - o be el microfon per fer vocoder en temps real
-
+- https://github.com/mdn/webaudio-examples/tree/main/voice-change-o-matic
 ## V2
 
 ### Sampler sincronitzat amb el master

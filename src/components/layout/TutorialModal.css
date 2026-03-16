@@ -1,0 +1,110 @@
+.tutorial-tour {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.tutorial-tour__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 10, 20, 0.56);
+  backdrop-filter: blur(4px);
+}
+
+.tutorial-tour__spotlight {
+  position: fixed;
+  border: 2px solid rgba(56, 189, 248, 0.9);
+  border-radius: 1rem;
+  box-shadow:
+    0 0 0 9999px rgba(5, 10, 20, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 0 24px rgba(56, 189, 248, 0.5);
+  transition: all 180ms ease;
+}
+
+.tutorial-tour__card {
+  position: fixed;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  border: 1px solid var(--ui-border-soft);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(180deg, rgba(56, 189, 248, 0.14), transparent 24%),
+    var(--ui-surface-panel);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  padding: 10px;
+  pointer-events: auto;
+}
+
+.tutorial-tour__eyebrow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--ui-text-faint);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.tutorial-tour__title {
+  margin: var(--space-3) 0 0;
+  color: var(--ui-text-main);
+  font-size: clamp(1.2rem, 1.1rem + 0.8vw, 1.7rem);
+  line-height: 1.1;
+}
+
+.tutorial-tour__body {
+  margin: var(--space-3) 0 0;
+  color: var(--ui-text-body);
+  line-height: 1.6;
+}
+
+.tutorial-tour__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.tutorial-tour__button {
+  border: 1px solid var(--ui-border-soft);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 1rem;
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  letter-spacing: var(--tracking-ui);
+  text-transform: uppercase;
+}
+
+.tutorial-tour__button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tutorial-tour__button--ghost {
+  background: var(--ui-surface-card);
+  color: var(--ui-text-body);
+}
+
+.tutorial-tour__button--primary {
+  border-color: transparent;
+  background: linear-gradient(135deg, #38bdf8, #14b8a6);
+  color: #06121b;
+}
+
+@media (max-width: 768px) {
+  .tutorial-tour__card {
+    max-height: calc(100vh - 40px);
+    padding: 10px;
+  }
+
+  .tutorial-tour__footer {
+    flex-wrap: wrap;
+  }
+
+  .tutorial-tour__button {
+    flex: 1 1 8rem;
+  }
+}

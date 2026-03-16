@@ -18,6 +18,7 @@ interface TransportAsideProps {
   onStartAudio: () => void;
   onStopAudio: () => void;
   onResetCanvas: () => void;
+  onOpenTutorial: () => void;
 }
 
 export function TransportAside({
@@ -28,10 +29,11 @@ export function TransportAside({
   onStartAudio,
   onStopAudio,
   onResetCanvas,
+  onOpenTutorial,
 }: TransportAsideProps) {
   return (
-    <aside className="transport-aside">
-      <section className="transport-aside__panel">
+    <aside className="transport-aside" data-tutorial="transport">
+      <section className="transport-aside__panel" data-tutorial="transport-panel">
         <div>
           <div className="transport-aside__title">Transport</div>
           <div className="transport-aside__steps">
@@ -67,7 +69,7 @@ export function TransportAside({
             size={54}
           />
 
-          <div className="transport-aside__swing">
+          <div className="transport-aside__swing" data-tutorial="transport-controls">
             <label className="transport-aside__swing-label">Swing</label>
             <input
               type="range"
@@ -86,10 +88,11 @@ export function TransportAside({
       </section>
 
       {!audioStarted ? (
-        <div className="transport-aside__actions">
+        <div className="transport-aside__actions" data-tutorial="transport-actions">
           <button
             onClick={onStartAudio}
             className="transport-aside__button transport-aside__button--start"
+            data-tutorial="start-engine"
           >
             <Volume2 className="transport-aside__icon" />
             START ENGINE
@@ -97,15 +100,24 @@ export function TransportAside({
           <button
             onClick={onResetCanvas}
             className="transport-aside__button transport-aside__button--reset"
+            data-tutorial="reset-canvas"
           >
             RESET
           </button>
+          <button
+            onClick={onOpenTutorial}
+            className="transport-aside__button transport-aside__button--tutorial"
+            data-tutorial="tutorial-button"
+          >
+            TUTORIAL
+          </button>
         </div>
       ) : (
-        <div className="transport-aside__actions">
+        <div className="transport-aside__actions" data-tutorial="transport-actions">
           <button
             onClick={onStopAudio}
             className="transport-aside__button transport-aside__button--stop"
+            data-tutorial="start-engine"
           >
             <VolumeX className="transport-aside__icon" />
             STOP
@@ -113,8 +125,16 @@ export function TransportAside({
           <button
             onClick={onResetCanvas}
             className="transport-aside__button transport-aside__button--reset"
+            data-tutorial="reset-canvas"
           >
             RESET
+          </button>
+          <button
+            onClick={onOpenTutorial}
+            className="transport-aside__button transport-aside__button--tutorial"
+            data-tutorial="tutorial-button"
+          >
+            TUTORIAL
           </button>
         </div>
       )}

@@ -36,12 +36,13 @@ export function SoundLabHeader(props: SoundLabHeaderProps) {
 
   return (
     <>
-      <header className="sound-lab-header">
+      <header className="sound-lab-header" data-tutorial="header">
         <div className="sound-lab-header__brand-column">
           <HeaderBrand onTestSound={props.onTestSound} />
           <button
             onClick={() => setIsPresetModalOpen(true)}
             className="sound-lab-header__presets-button"
+            data-tutorial="presets-button"
           >
             Presets
           </button>
