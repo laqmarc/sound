@@ -67,6 +67,7 @@ import {
   vibratos,
   wahs,
 } from './runtime';
+import { resetRecordingSession } from './recording';
 
 export const destroyNodeById = (id: string) => {
   drumMachines.delete(id);
@@ -985,6 +986,7 @@ export const resetAudioEngineRuntime = async () => {
   const ids = Array.from(nodes.keys());
   ids.forEach(destroyNodeById);
   clearAudioEngineStores();
+  resetRecordingSession();
 
   const ctx = audioContext;
   setAudioContext(null);

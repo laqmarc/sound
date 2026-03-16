@@ -25,6 +25,13 @@ import {
 } from './audio-engine/transport';
 import { updateAudioNodeParam } from './audio-engine/update-node-param';
 import {
+  type RecordingChannelMode,
+  type RecordingExportOptions,
+  getRecordingStateSnapshot,
+  startRecordingSession,
+  stopRecordingSession,
+} from './audio-engine/recording';
+import {
   nodes,
   analysers,
   mixers,
@@ -44,6 +51,8 @@ import {
 export { getAudioContext, getAudioContextState } from './audio-engine/runtime';
 
 export const getTransportState = getTransportStateSnapshot;
+export const getRecordingState = getRecordingStateSnapshot;
+export type { RecordingChannelMode, RecordingExportOptions };
 
 export const startTransport = () => {
   startTransportEngine({
@@ -401,6 +410,14 @@ export const stopAudio = async () => {
     step: 0,
   });
   await resetAudioEngineRuntime();
+};
+
+export const startRecording = (options: RecordingExportOptions = {}) => {
+  return startRecordingSession(options);
+};
+
+export const stopRecording = () => {
+  return stopRecordingSession();
 };
 
 export const removeNode = (id: string) => {

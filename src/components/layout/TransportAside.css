@@ -8,6 +8,9 @@
   --transport-stop-hover: rgba(244, 63, 94, 0.2);
   --transport-stop-text: rgba(255, 255, 255, 0.6);
   --transport-stop-text-hover: var(--color-rose-strong);
+  --transport-record: #ef4444;
+  --transport-record-hover: #f87171;
+  --transport-record-shadow: rgba(239, 68, 68, 0.28);
   --transport-reset-text: var(--ui-text-body);
   --transport-reset-hover: var(--ui-border-soft);
   --transport-button-idle: var(--ui-surface-panel);
@@ -121,6 +124,108 @@
   text-align: center;
 }
 
+.transport-aside__recording {
+  border: 1px solid var(--ui-border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--ui-surface-card);
+  padding: var(--space-3);
+}
+
+.transport-aside__recording--active {
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.18);
+}
+
+.transport-aside__recording-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.transport-aside__recording-label {
+  color: var(--ui-text-faint);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.transport-aside__recording-badge {
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.18);
+  color: #fecaca;
+  padding: 0.2rem 0.45rem;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  animation: transport-rec-pulse 0.95s ease-in-out infinite;
+}
+
+.transport-aside__recording-status {
+  margin-top: var(--space-2);
+  color: var(--ui-text-body);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.transport-aside__recording-time {
+  margin-top: var(--space-1);
+  color: var(--ui-text-main);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-lg);
+}
+
+.transport-aside__recording-settings {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.transport-aside__field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.transport-aside__field-label {
+  color: var(--ui-text-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.transport-aside__input,
+.transport-aside__select {
+  width: 100%;
+  border: 1px solid var(--ui-border-soft);
+  border-radius: var(--radius-md);
+  background: rgba(9, 15, 24, 0.9);
+  color: var(--ui-text-body);
+  padding: 0.55rem 0.7rem;
+  font-size: var(--font-size-sm);
+}
+
+.transport-aside__input:disabled,
+.transport-aside__select:disabled {
+  opacity: 0.6;
+}
+
+.transport-aside__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--ui-text-body);
+  font-size: var(--font-size-sm);
+}
+
+.transport-aside__recording-feedback {
+  margin-top: var(--space-2);
+  color: var(--ui-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
+}
+
 .transport-aside__actions {
   display: flex;
   flex-direction: column;
@@ -145,6 +250,12 @@
 
 .transport-aside__button:active {
   transform: scale(0.95);
+}
+
+.transport-aside__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
 }
 
 .transport-aside__button--start {
@@ -190,6 +301,31 @@
   color: var(--color-white);
 }
 
+.transport-aside__button--record,
+.transport-aside__button--recording {
+  border-color: transparent;
+  color: #fff5f5;
+}
+
+.transport-aside__button--record {
+  background: var(--transport-record);
+  box-shadow: 0 10px 24px var(--transport-record-shadow);
+}
+
+.transport-aside__button--record:hover {
+  background: var(--transport-record-hover);
+}
+
+.transport-aside__button--recording {
+  background: linear-gradient(135deg, #be123c, #ef4444);
+  box-shadow: 0 10px 24px rgba(190, 24, 93, 0.28);
+  animation: transport-rec-pulse 0.95s ease-in-out infinite;
+}
+
+.transport-aside__button--recording:hover {
+  background: linear-gradient(135deg, #e11d48, #fb7185);
+}
+
 .transport-aside__icon {
   width: 1rem;
   height: 1rem;
@@ -206,5 +342,18 @@
 @media (min-width: 1280px) {
   .transport-aside {
     width: 14rem;
+  }
+}
+
+@keyframes transport-rec-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0.1);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.08);
+    transform: scale(1.01);
   }
 }

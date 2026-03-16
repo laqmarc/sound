@@ -97,11 +97,14 @@ import {
   disconnectNodes,
   getAudioContext,
   getDestinationInput,
+  getRecordingState,
   getTransportState,
   removeNode,
   setTransportBpm,
   setTransportSwing,
+  startRecording,
   startTransport,
+  stopRecording,
   stopAudio,
 } from './AudioEngine';
 import { addNodeButtons, machineSetTemplates, type ComponentTabId } from './editorConfig';
@@ -118,6 +121,7 @@ import {
   type PatchPreset,
 } from './presetLibrary';
 import type { EditableAudioNodeType, SoundFlowNode, SoundNodeData, SoundNodeProps } from './types';
+import type { RecordingChannelMode } from './AudioEngine';
 
 const baseInitialNodes: SoundFlowNode[] = [
   {
@@ -305,6 +309,11 @@ function App() {
   const [edges, setEdges] = useState<Edge[]>(baseInitialEdges);
   const [audioStarted, setAudioStarted] = useState(false);
   const [transport, setTransport] = useState(() => getTransportState());
+  const [recording, setRecording] = useState(() => getRecordingState());
+  const [recordingFeedback, setRecordingFeedback] = useState('');
+  const [recordingFileName, setRecordingFileName] = useState('');
+  const [recordingNormalize, setRecordingNormalize] = useState(false);
+  const [recordingChannelMode, setRecordingChannelMode] = useState<RecordingChannelMode>('stereo');
   const [activeComponentTab, setActiveComponentTab] = useState<ComponentTabId>('all');
   const [activePresetId, setActivePresetId] = useState(patchPresets[0]?.id ?? '');
   const [userPatchPresets, setUserPatchPresets] = useState<PatchPreset[]>(() => readUserPatchPresets());
@@ -316,6 +325,7 @@ function App() {
   const nodesRef = useRef<SoundFlowNode[]>(baseInitialNodes);
   const edgesRef = useRef<Edge[]>(baseInitialEdges);
   const audioStartedRef = useRef(false);
+  const recordingRef = useRef(getRecordingState());
 
   useEffect(() => {
     nodesRef.current = nodes;
@@ -330,6 +340,10 @@ function App() {
   }, [audioStarted]);
 
   useEffect(() => {
+    recordingRef.current = recording;
+  }, [recording]);
+
+  useEffect(() => {
     if (!exportPresetFeedback) {
       return;
     }
@@ -340,6 +354,18 @@ function App() {
 
     return () => window.clearTimeout(timeoutId);
   }, [exportPresetFeedback]);
+
+  useEffect(() => {
+    if (!recordingFeedback) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setRecordingFeedback('');
+    }, 3200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [recordingFeedback]);
 
   useEffect(() => {
     const syncTransport = () => {
@@ -362,6 +388,50 @@ function App() {
       window.removeEventListener('transport-swing', syncTransport);
     };
   }, []);
+
+  useEffect(() => {
+    const syncRecording = () => {
+      setRecording(getRecordingState());
+    };
+
+    syncRecording();
+    window.addEventListener('recording-state', syncRecording);
+
+    return () => {
+      window.removeEventListener('recording-state', syncRecording);
+    };
+  }, []);
+
+  const downloadRecordingExport = useCallback(
+    (
+      exportedRecording: ReturnType<typeof stopRecording>,
+      feedbackMessage: string,
+    ) => {
+      if (!exportedRecording) {
+        return;
+      }
+
+      const downloadUrl = URL.createObjectURL(exportedRecording.blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = exportedRecording.fileName;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 0);
+      setRecordingFeedback(feedbackMessage);
+    },
+    [],
+  );
+
+  const flushRecordingIfNeeded = useCallback(
+    (feedbackMessage: string) => {
+      if (!recordingRef.current.isRecording) {
+        return;
+      }
+
+      downloadRecordingExport(stopRecording(), feedbackMessage);
+    },
+    [downloadRecordingExport],
+  );
 
   const handleNodeDataChange = useCallback(
     (id: string, patch: Partial<SoundNodeData>) => {
@@ -663,9 +733,15 @@ function App() {
   };
 
   const handleStopAudio = () => {
-    void stopAudio();
-    setAudioStarted(false);
-    audioStartedRef.current = false;
+    const finish = async () => {
+      flushRecordingIfNeeded('WAV exportat en aturar el motor');
+
+      await stopAudio();
+      setAudioStarted(false);
+      audioStartedRef.current = false;
+    };
+
+    void finish();
   };
 
   const applyPresetGraph = useCallback(
@@ -673,6 +749,7 @@ function App() {
       const shouldRestartAudio = audioStartedRef.current;
 
       if (shouldRestartAudio) {
+        flushRecordingIfNeeded('WAV exportat en canviar de patch');
         await stopAudio();
         setAudioStarted(false);
         audioStartedRef.current = false;
@@ -968,6 +1045,28 @@ function App() {
     [audioStarted, updateMixerLabel],
   );
 
+  const handleStartRecording = () => {
+    if (!audioStartedRef.current) {
+      setRecordingFeedback('Engega el motor abans de gravar');
+      return;
+    }
+
+    const didStartRecording = startRecording({
+      fileNameBase: recordingFileName,
+      normalize: recordingNormalize,
+      channelMode: recordingChannelMode,
+    });
+    if (didStartRecording) {
+      setRecordingFeedback(
+        `Gravacio en marxa (${recordingChannelMode}${recordingNormalize ? ', normalize' : ''})`,
+      );
+    }
+  };
+
+  const handleStopRecording = () => {
+    downloadRecordingExport(stopRecording(), 'WAV descarregat');
+  };
+
   return (
     <div className="app-shell" data-tutorial="app-shell">
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
@@ -1059,10 +1158,20 @@ function App() {
         <TransportAside
           transport={transport}
           audioStarted={audioStarted}
+          recording={recording}
+          recordingFeedback={recordingFeedback}
+          recordingFileName={recordingFileName}
+          recordingNormalize={recordingNormalize}
+          recordingChannelMode={recordingChannelMode}
           onSetTransportBpm={setTransportBpm}
           onSetTransportSwing={setTransportSwing}
           onStartAudio={startAudio}
           onStopAudio={handleStopAudio}
+          onStartRecording={handleStartRecording}
+          onStopRecording={handleStopRecording}
+          onRecordingFileNameChange={setRecordingFileName}
+          onRecordingNormalizeChange={setRecordingNormalize}
+          onRecordingChannelModeChange={setRecordingChannelMode}
           onResetCanvas={() => {
             void resetCanvas();
           }}

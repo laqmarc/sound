@@ -50,6 +50,22 @@ const tutorialSteps: TutorialStep[] = [
     placement: 'left',
   },
   {
+    id: 'recording-panel',
+    title: 'Configura la gravacio',
+    body:
+      'El bloc Recorder serveix per preparar lexport. Pots escriure el nom del fitxer, triar Stereo o Mono i activar Normalize export per pujar el nivell del WAV final.',
+    target: 'recording-panel',
+    placement: 'left',
+  },
+  {
+    id: 'record-button',
+    title: 'Grava la sessio i exporta a WAV',
+    body:
+      'Quan el motor esta en marxa, prem REC per començar a gravar tota la sortida final del patch. El boto passa a STOP REC i, en aturar-lo, lapp descarrega automaticament un fitxer .wav.',
+    target: 'record-button',
+    placement: 'left',
+  },
+  {
     id: 'sidebar',
     title: 'Afegeix maquines noves',
     body:
@@ -87,7 +103,7 @@ const tutorialSteps: TutorialStep[] = [
     id: 'done',
     title: 'Flux recomanat',
     body:
-      'Per començar: prem START ENGINE, escolta el patch base, afegeix un set des del header, connecta la cadena fins a destination i desa el resultat a Presets. Ja ho tens.',
+      'Per començar: prem START ENGINE, prepara el Recorder si vols exportar, escolta el patch base, afegeix un set des del header, connecta la cadena fins a destination i grava la sessio amb REC per baixar-la en WAV.',
     target: 'tutorial-button',
     placement: 'left',
   },
@@ -154,7 +170,9 @@ export function TutorialModal({ isOpen, onClose }: TutorialModalProps) {
 
     const updateLayout = () => {
       const targetRect = findTutorialTarget(activeStep);
-      const nextSpotlight = targetRect ? new DOMRect(targetRect.x, targetRect.y, targetRect.width, targetRect.height) : null;
+      const nextSpotlight = targetRect
+        ? new DOMRect(targetRect.x, targetRect.y, targetRect.width, targetRect.height)
+        : null;
       setSpotlightRect(nextSpotlight);
 
       const cardWidth = Math.min(360, window.innerWidth - 32);
@@ -230,7 +248,13 @@ export function TutorialModal({ isOpen, onClose }: TutorialModalProps) {
       <div className="tutorial-tour__backdrop" />
       {highlightStyle ? <div className="tutorial-tour__spotlight" style={highlightStyle} /> : null}
 
-      <div ref={cardRef} className="tutorial-tour__card" style={cardStyle} role="dialog" aria-modal="false">
+      <div
+        ref={cardRef}
+        className="tutorial-tour__card"
+        style={cardStyle}
+        role="dialog"
+        aria-modal="false"
+      >
         <div className="tutorial-tour__eyebrow">
           <span>Tutorial interactiu</span>
           <span>{progressLabel}</span>
