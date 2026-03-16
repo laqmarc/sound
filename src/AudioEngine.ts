@@ -54,6 +54,37 @@ export const getTransportState = getTransportStateSnapshot;
 export const getRecordingState = getRecordingStateSnapshot;
 export type { RecordingChannelMode, RecordingExportOptions };
 
+let mixerGateWorkletContext: AudioContext | null = null;
+let mixerGateWorkletPromise: Promise<void> | null = null;
+
+const ensureMixerGateWorklet = async () => {
+  const ctx = getAudioContext();
+  if (typeof AudioWorkletNode === 'undefined' || !ctx.audioWorklet) {
+    return;
+  }
+
+  if (mixerGateWorkletContext === ctx) {
+    return;
+  }
+
+  if (!mixerGateWorkletPromise) {
+    mixerGateWorkletPromise = ctx.audioWorklet
+      .addModule(new URL('./audio-engine/worklets/mixerGateProcessor.js', import.meta.url))
+      .then(() => {
+        mixerGateWorkletContext = ctx;
+      })
+      .finally(() => {
+        mixerGateWorkletPromise = null;
+      });
+  }
+
+  await mixerGateWorkletPromise;
+};
+
+export const prepareAudioEngine = async () => {
+  await ensureMixerGateWorklet();
+};
+
 export const startTransport = () => {
   startTransportEngine({
     applyAudioNodeData,
@@ -173,17 +204,69 @@ export const createReverb = (id: string) => {
 export const createMixer = (id: string) => {
   const ctx = getAudioContext();
   const output = ctx.createGain();
+  const roomSendBus = ctx.createGain();
+  const roomPreDelay = ctx.createDelay(0.25);
+  const roomTone = ctx.createBiquadFilter();
+  const roomConvolver = ctx.createConvolver();
+  const roomReturn = ctx.createGain();
+  const delaySendBus = ctx.createGain();
+  const delayNode = ctx.createDelay(1.2);
+  const delayTone = ctx.createBiquadFilter();
+  const delayFeedback = ctx.createGain();
+  const delayReturn = ctx.createGain();
+
   output.gain.setValueAtTime(1, ctx.currentTime);
+  roomPreDelay.delayTime.setValueAtTime(0.02, ctx.currentTime);
+  roomTone.type = 'lowpass';
+  roomTone.frequency.setValueAtTime(4800, ctx.currentTime);
+  roomConvolver.buffer = buildImpulseResponse(ctx, 3.8, 2.8);
+  roomReturn.gain.setValueAtTime(0.24, ctx.currentTime);
+  delayNode.delayTime.setValueAtTime(0.28, ctx.currentTime);
+  delayTone.type = 'lowpass';
+  delayTone.frequency.setValueAtTime(4200, ctx.currentTime);
+  delayFeedback.gain.setValueAtTime(0.36, ctx.currentTime);
+  delayReturn.gain.setValueAtTime(0.22, ctx.currentTime);
+
+  roomSendBus.connect(roomPreDelay);
+  roomPreDelay.connect(roomTone);
+  roomTone.connect(roomConvolver);
+  roomConvolver.connect(roomReturn);
+  roomReturn.connect(output);
+
+  delaySendBus.connect(delayNode);
+  delayNode.connect(delayTone);
+  delayTone.connect(delayReturn);
+  delayReturn.connect(output);
+  delayTone.connect(delayFeedback);
+  delayFeedback.connect(delayNode);
+
   nodes.set(id, output);
 
-  const channels = Array.from({ length: 4 }, (_, index) => {
+  const channels = Array.from({ length: 8 }, (_, index) => {
     const channelNumber = index + 1;
     const input = ctx.createGain();
     const low = ctx.createBiquadFilter();
     const mid = ctx.createBiquadFilter();
     const high = ctx.createBiquadFilter();
+    const gateWorklet = mixerGateWorkletContext === ctx && typeof AudioWorkletNode !== 'undefined'
+      ? new AudioWorkletNode(ctx, 'mixer-gate-processor', {
+          numberOfInputs: 1,
+          numberOfOutputs: 1,
+          outputChannelCount: [2],
+          channelCount: 2,
+          channelCountMode: 'explicit',
+        })
+      : null;
+    const gateNode = gateWorklet ?? ctx.createGain();
+    const gateThreshold = gateWorklet?.parameters.get('threshold') ?? null;
+    const compressor = ctx.createDynamicsCompressor();
     const pan = ctx.createStereoPanner();
     const gain = ctx.createGain();
+    const roomSend = ctx.createGain();
+    const delaySend = ctx.createGain();
+    const gateParams = {
+      threshold: 0,
+    };
 
     low.type = 'lowshelf';
     low.frequency.setValueAtTime(120, ctx.currentTime);
@@ -198,41 +281,66 @@ export const createMixer = (id: string) => {
     high.frequency.setValueAtTime(4200, ctx.currentTime);
     high.gain.setValueAtTime(0, ctx.currentTime);
 
+    compressor.threshold.setValueAtTime(-10, ctx.currentTime);
+    compressor.knee.setValueAtTime(18, ctx.currentTime);
+    compressor.ratio.setValueAtTime(3, ctx.currentTime);
+    compressor.attack.setValueAtTime(0.008, ctx.currentTime);
+    compressor.release.setValueAtTime(0.18, ctx.currentTime);
+
     pan.pan.setValueAtTime(0, ctx.currentTime);
     gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    roomSend.gain.setValueAtTime(0, ctx.currentTime);
+    delaySend.gain.setValueAtTime(0, ctx.currentTime);
+    gateThreshold?.setValueAtTime(0, ctx.currentTime);
 
     input.connect(low);
     low.connect(mid);
     mid.connect(high);
-    high.connect(pan);
+    high.connect(gateNode);
+    gateNode.connect(compressor);
+    compressor.connect(pan);
     pan.connect(gain);
     gain.connect(output);
+    gain.connect(roomSend);
+    gain.connect(delaySend);
+    roomSend.connect(roomSendBus);
+    delaySend.connect(delaySendBus);
 
     nodes.set(`${id}_ch${channelNumber}`, input);
-    nodes.set(`${id}_ch${channelNumber}_low`, low);
-    nodes.set(`${id}_ch${channelNumber}_mid`, mid);
-    nodes.set(`${id}_ch${channelNumber}_high`, high);
-    nodes.set(`${id}_ch${channelNumber}_pan`, pan);
-    nodes.set(`${id}_ch${channelNumber}_gain`, gain);
 
     return {
       input,
       low,
       mid,
       high,
+      gateNode,
+      gateThreshold,
+      gateParams,
+      compressor,
       pan,
       gain,
+      roomSend,
+      delaySend,
     };
   });
 
   mixers.set(id, {
     output,
     channels,
+    roomSendBus,
+    roomPreDelay,
+    roomTone,
+    roomConvolver,
+    roomReturn,
+    delaySendBus,
+    delayNode,
+    delayTone,
+    delayFeedback,
+    delayReturn,
   });
 
   return output;
 };
-
 export const createAnalyser = (id: string) => {
   const ctx = getAudioContext();
   const analyser = ctx.createAnalyser();
@@ -377,7 +485,7 @@ export const applyAudioNodeData = (
     return;
   }
 
-  applyBasicNodeData(type, id, data, updateNodeParam);
+  applyBasicNodeData(type, id, data, changedData, updateNodeParam);
 };
 
 export const getAnalyser = (id: string) => {
@@ -410,6 +518,8 @@ export const stopAudio = async () => {
     step: 0,
   });
   await resetAudioEngineRuntime();
+  mixerGateWorkletContext = null;
+  mixerGateWorkletPromise = null;
 };
 
 export const startRecording = (options: RecordingExportOptions = {}) => {

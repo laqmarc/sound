@@ -10,16 +10,16 @@
 
 ### ~~2. Sampler amb pujada d'arxius~~
 - Afegir un sampler que permeti pujar arxius `.mp3` o `.wav`.
-- Un cop carregats, es podran llanÃ§ar des de la interfÃ­cie.
+- Un cop carregats, es podran llanÃƒÂ§ar des de la interfÃƒÂ­cie.
 
-### 3. Mixer de 8 canals
+### ~~3. Mixer de 8 canals~~
 - Crear un mixer de 8 canals.
 - Cada canal tindra una EQ de 3 parametres.
 - Cada canal tambe tindra gate i compressor.
 - Cada canal incloura 2 auxiliars:
   - un enviament a una reverb `room`
   - un enviament a un delay
-  - els retorn de la reverb i el delay estÃ¡n integrats al mixer.
+  - els retorn de la reverb i el delay estÃƒÂ¡n integrats al mixer.
 
 ### ~~4. Spectral delay experimental~~
 - Crear un spectral delay una mica boig / experimental.
@@ -43,5 +43,5 @@
 - Sincronitzar l'audio del sampler amb els BPM del master.
 
 
-### Crear versiÃ³ns V2 de totes els components.
-- Versions de tots els components amb mÃ©s parÃ¡metres
+### Crear versiÃƒÂ³ns V2 de totes els components.
+- Versions de tots els components amb mÃƒÂ©s parÃƒÂ¡metres

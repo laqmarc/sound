@@ -137,13 +137,31 @@ export interface MixerChannelState {
   low: BiquadFilterNode;
   mid: BiquadFilterNode;
   high: BiquadFilterNode;
+  gateNode: AudioNode;
+  gateThreshold: AudioParam | null;
+  gateParams: {
+    threshold: number;
+  };
+  compressor: DynamicsCompressorNode;
   pan: StereoPannerNode;
   gain: GainNode;
+  roomSend: GainNode;
+  delaySend: GainNode;
 }
 
 export interface MixerState {
   output: GainNode;
   channels: MixerChannelState[];
+  roomSendBus: GainNode;
+  roomPreDelay: DelayNode;
+  roomTone: BiquadFilterNode;
+  roomConvolver: ConvolverNode;
+  roomReturn: GainNode;
+  delaySendBus: GainNode;
+  delayNode: DelayNode;
+  delayTone: BiquadFilterNode;
+  delayFeedback: GainNode;
+  delayReturn: GainNode;
 }
 
 export interface SpectralDelayState {

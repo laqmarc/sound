@@ -102,21 +102,30 @@ export const destroyNodeById = (id: string) => {
         channel.low.disconnect();
         channel.mid.disconnect();
         channel.high.disconnect();
+        channel.gateNode.disconnect();
+        channel.compressor.disconnect();
         channel.pan.disconnect();
         channel.gain.disconnect();
+        channel.roomSend.disconnect();
+        channel.delaySend.disconnect();
       });
+      mixer.roomSendBus.disconnect();
+      mixer.roomPreDelay.disconnect();
+      mixer.roomTone.disconnect();
+      mixer.roomConvolver.disconnect();
+      mixer.roomReturn.disconnect();
+      mixer.delaySendBus.disconnect();
+      mixer.delayNode.disconnect();
+      mixer.delayTone.disconnect();
+      mixer.delayFeedback.disconnect();
+      mixer.delayReturn.disconnect();
       mixer.output.disconnect();
     } catch {
       // Ignore cleanup errors while tearing down the mixer chain.
     }
     mixers.delete(id);
-    for (let channel = 1; channel <= 4; channel += 1) {
+    for (let channel = 1; channel <= 8; channel += 1) {
       nodes.delete(`${id}_ch${channel}`);
-      nodes.delete(`${id}_ch${channel}_low`);
-      nodes.delete(`${id}_ch${channel}_mid`);
-      nodes.delete(`${id}_ch${channel}_high`);
-      nodes.delete(`${id}_ch${channel}_pan`);
-      nodes.delete(`${id}_ch${channel}_gain`);
     }
   }
 
@@ -1021,7 +1030,7 @@ export const removeNodeArtifacts = (id: string) => {
   destroyNodeById(id);
   destroyNodeById(`${id}_gain`);
 
-  for (let channel = 1; channel <= 4; channel += 1) {
+  for (let channel = 1; channel <= 8; channel += 1) {
     destroyNodeById(`${id}_ch${channel}`);
   }
 };

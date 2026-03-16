@@ -100,6 +100,7 @@ import {
   getAudioContext,
   getDestinationInput,
   getRecordingState,
+  prepareAudioEngine,
   getTransportState,
   removeNode,
   setTransportBpm,
@@ -220,7 +221,7 @@ const baseInitialNodes: SoundFlowNode[] = [
   {
     id: 'mixer_1',
     type: 'mixer',
-    position: { x: 650, y: 260 },
+    position: { x: 250, y: 260 },
     data: {
       ...defaultNodeData.mixer,
       label: 'Mixer',
@@ -287,6 +288,14 @@ const getMixerLabelKey = (handleId?: string | null) => {
       return 'label_ch3' as const;
     case 'ch4':
       return 'label_ch4' as const;
+    case 'ch5':
+      return 'label_ch5' as const;
+    case 'ch6':
+      return 'label_ch6' as const;
+    case 'ch7':
+      return 'label_ch7' as const;
+    case 'ch8':
+      return 'label_ch8' as const;
     default:
       return null;
   }
@@ -717,7 +726,8 @@ function App() {
     );
   }, []);
 
-  const buildAudioGraph = useCallback((graphNodes: SoundFlowNode[], graphEdges: Edge[]) => {
+  const buildAudioGraph = useCallback(async (graphNodes: SoundFlowNode[], graphEdges: Edge[]) => {
+    await prepareAudioEngine();
     getAudioContext();
     graphNodes.forEach((node) => {
       if (isEditableNode(node)) {
@@ -737,7 +747,7 @@ function App() {
   }, []);
 
   const startAudio = () => {
-    buildAudioGraph(nodesRef.current, edgesRef.current);
+    void buildAudioGraph(nodesRef.current, edgesRef.current);
   };
 
   const handleStopAudio = () => {
@@ -772,7 +782,7 @@ function App() {
       setEdges(nextEdges);
 
       if (shouldRestartAudio) {
-        buildAudioGraph(nextNodes, nextEdges);
+        await buildAudioGraph(nextNodes, nextEdges);
       }
     },
     [buildAudioGraph],
