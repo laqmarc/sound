@@ -6,6 +6,7 @@ import {
   buildFoldbackCurve,
   buildSaturatorCurve,
   cabSims,
+  channelStrips,
   choruses,
   combFilters,
   comparators,
@@ -46,6 +47,45 @@ export const applyFxNodeData = (
   data: SoundNodeData,
 ) => {
   switch (type) {
+    case 'channelStrip': {
+      const channelStrip = channelStrips.get(id);
+      if (!channelStrip) {
+        return true;
+      }
+
+      const currentTime = getAudioContext().currentTime;
+      const gateThreshold = data.gateThreshold ?? -72;
+      const thresholdLinear = gateThreshold <= -72 ? 0 : Math.pow(10, gateThreshold / 20);
+      const bandGains = [
+        data.band1Gain ?? 0,
+        data.band2Gain ?? 0,
+        data.band3Gain ?? 0,
+        data.band4Gain ?? 0,
+      ];
+      const bandQs = [
+        data.band1Q ?? 0.7,
+        data.band2Q ?? 0.9,
+        data.band3Q ?? 1.1,
+        data.band4Q ?? 0.7,
+      ];
+
+      channelStrip.highpass.frequency.setTargetAtTime(data.highpassFrequency ?? 30, currentTime, 0.03);
+      channelStrip.lowpass.frequency.setTargetAtTime(data.lowpassFrequency ?? 18000, currentTime, 0.03);
+      channelStrip.gateParams.threshold = thresholdLinear;
+      channelStrip.gateThreshold?.setTargetAtTime(thresholdLinear, currentTime, 0.02);
+      channelStrip.compressor.threshold.setTargetAtTime(data.threshold ?? -24, currentTime, 0.03);
+      channelStrip.compressor.knee.setTargetAtTime(data.knee ?? 18, currentTime, 0.03);
+      channelStrip.compressor.ratio.setTargetAtTime(data.ratio ?? 4, currentTime, 0.03);
+      channelStrip.compressor.attack.setTargetAtTime(data.attack ?? 0.01, currentTime, 0.03);
+      channelStrip.compressor.release.setTargetAtTime(data.release ?? 0.2, currentTime, 0.03);
+      channelStrip.makeup.gain.setTargetAtTime(data.makeup ?? 1, currentTime, 0.03);
+
+      channelStrip.bands.forEach((band, index) => {
+        band.gain.setTargetAtTime(bandGains[index] ?? 0, currentTime, 0.03);
+        band.Q.setTargetAtTime(bandQs[index] ?? 0.8, currentTime, 0.03);
+      });
+      return true;
+    }
     case 'compressor': {
       const compressor = compressors.get(id);
       if (!compressor) {

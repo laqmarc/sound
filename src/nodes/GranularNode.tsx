@@ -5,7 +5,7 @@ import type { ControllableSoundNodeProps, SyncDivision } from '../types';
 import './nodeChrome.css';
 import './RateFxNode.css';
 
-const divisions: SyncDivision[] = ['1/1', '1/2', '1/4', '1/8', '1/16'];
+const divisions: SyncDivision[] = ['1/1', '1/2', '1/2.', '1/4', '1/4.', '1/8', '1/8.', '1/16', '1/16.'];
 
 const GranularNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const grainSize = data.grainSize ?? 0.12;

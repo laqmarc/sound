@@ -4,7 +4,7 @@ import type { ControllableSoundNodeProps, SyncDivision } from '../types';
 import './nodeChrome.css';
 import './LooperNode.css';
 
-const divisions: SyncDivision[] = ['1/1', '1/2', '1/4', '1/8', '1/16'];
+const divisions: SyncDivision[] = ['1/1', '1/2', '1/2.', '1/4', '1/4.', '1/8', '1/8.', '1/16', '1/16.'];
 
 const LooperNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const loopLength = data.loopLength ?? 0.5;

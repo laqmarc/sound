@@ -1,0 +1,60 @@
+.channel-strip-node {
+  --channel-strip-accent: #86efac;
+  --channel-strip-accent-strong: #67e8f9;
+  --channel-strip-border: rgba(74, 222, 128, 0.24);
+  --channel-strip-surface: rgba(3, 33, 19, 0.92);
+  min-width: 430px;
+  border-color: var(--channel-strip-border);
+  background:
+    linear-gradient(180deg, rgba(16, 185, 129, 0.08), rgba(6, 95, 70, 0.02)),
+    var(--channel-strip-surface);
+}
+
+.channel-strip-node__title {
+  color: var(--channel-strip-accent);
+  letter-spacing: 0.12em;
+}
+
+.channel-strip-node__dot {
+  background: var(--channel-strip-accent);
+}
+
+.channel-strip-node__top {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 0.9rem;
+}
+
+.channel-strip-node__bands {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.channel-strip-node__band {
+  padding: 0.7rem;
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  border-radius: 14px;
+  background: rgba(8, 47, 73, 0.35);
+}
+
+.channel-strip-node__band-label {
+  margin-bottom: 0.55rem;
+  color: rgba(186, 230, 253, 0.9);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.channel-strip-node__band-controls {
+  display: flex;
+  gap: 0.7rem;
+  justify-content: space-between;
+}
+
+.channel-strip-node__handles {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

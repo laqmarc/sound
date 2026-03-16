@@ -9,6 +9,7 @@ import {
   autoPans,
   basslines,
   bitcrushers,
+  channelStrips,
   cabSims,
   chordGenerators,
   chordSeqs,
@@ -91,6 +92,24 @@ export const destroyNodeById = (id: string) => {
       // Ignore cleanup errors while tearing down the EQ chain.
     }
     equalizers.delete(id);
+    nodes.delete(`${id}_out`);
+  }
+
+  const channelStrip = channelStrips.get(id);
+  if (channelStrip) {
+    try {
+      channelStrip.input.disconnect();
+      channelStrip.highpass.disconnect();
+      channelStrip.bands.forEach((band) => band.disconnect());
+      channelStrip.lowpass.disconnect();
+      channelStrip.gateNode.disconnect();
+      channelStrip.compressor.disconnect();
+      channelStrip.makeup.disconnect();
+      channelStrip.output.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the channel strip.
+    }
+    channelStrips.delete(id);
     nodes.delete(`${id}_out`);
   }
 
@@ -953,6 +972,7 @@ export const clearAudioEngineStores = () => {
   arp2s.clear();
   arp2Targets.clear();
   equalizers.clear();
+  channelStrips.clear();
   mixers.clear();
   reverbs.clear();
   spectralDelays.clear();

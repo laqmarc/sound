@@ -32,6 +32,7 @@ import LeadVoiceNode from './nodes/LeadVoiceNode';
 import SamplerNode from './nodes/SamplerNode';
 import PannerNode from './nodes/PannerNode';
 import ReverbNode from './nodes/ReverbNode';
+import ChannelStripNode from './nodes/ChannelStripNode';
 import ScopeNode from './nodes/ScopeNode';
 import SpectrogramNode from './nodes/SpectrogramNode';
 import DrumMachineNode from './nodes/DrumMachineNode';
@@ -510,6 +511,9 @@ function App() {
       ),
       reverb: (props: SoundNodeProps) => (
         <ReverbNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      channelStrip: (props: SoundNodeProps) => (
+        <ChannelStripNode {...props} onDataChange={handleNodeDataChange} />
       ),
       compressor: (props: SoundNodeProps) => (
         <CompressorNode {...props} onDataChange={handleNodeDataChange} />

@@ -24,7 +24,7 @@
 ### ~~4. Spectral delay experimental~~
 - Crear un spectral delay una mica boig / experimental.
 
-### 5. Canal complet de processament
+### ~~5. Canal complet de processament~~
 - Crear un canal complet amb:
 - gate
 - compressor

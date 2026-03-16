@@ -14,6 +14,7 @@ export const editableNodeTypes = [
   'noise',
   'distortion',
   'reverb',
+  'channelStrip',
   'compressor',
   'chorus',
   'bitcrusher',
@@ -210,6 +211,17 @@ export interface SoundNodeData {
   attack?: number;
   release?: number;
   makeup?: number;
+  gateThreshold?: number;
+  highpassFrequency?: number;
+  lowpassFrequency?: number;
+  band1Gain?: number;
+  band1Q?: number;
+  band2Gain?: number;
+  band2Q?: number;
+  band3Gain?: number;
+  band3Q?: number;
+  band4Gain?: number;
+  band4Q?: number;
   delay?: number;
   bits?: number;
   normFreq?: number;
@@ -274,7 +286,7 @@ export interface Drum2VoiceParams {
 
 export type Drum2Voices = Record<Drum2VoiceId, Drum2VoiceParams>;
 
-export type SyncDivision = '1/1' | '1/2' | '1/4' | '1/8' | '1/16';
+export type SyncDivision = '1/1' | '1/2' | '1/2.' | '1/4' | '1/4.' | '1/8' | '1/8.' | '1/16' | '1/16.';
 export type NoteName = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B';
 export type ArpMode = 'up' | 'down' | 'random';
 export type ArpScale = 'chromatic' | 'major' | 'minor' | 'pentatonic';

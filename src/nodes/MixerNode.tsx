@@ -17,7 +17,7 @@ const mixerChannels = [
 ] as const;
 
 type MixerChannelMeta = (typeof mixerChannels)[number];
-const syncDivisions: SyncDivision[] = ['1/1', '1/2', '1/4', '1/8', '1/16'];
+const syncDivisions: SyncDivision[] = ['1/1', '1/2', '1/2.', '1/4', '1/4.', '1/8', '1/8.', '1/16', '1/16.'];
 
 const readNumber = (data: SoundNodeData, key: keyof SoundNodeData, fallback: number) => {
   const value = data[key];
@@ -53,6 +53,7 @@ const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   return (
     <div
       className="node-chrome mixer-node"
+      data-tutorial="mixer-node"
       style={
         {
           '--mixer-detail-accent': selectedChannel.color,

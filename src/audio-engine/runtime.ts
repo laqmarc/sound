@@ -29,6 +29,7 @@ export const equalizers = new Map<string, EqualizerState>();
 export const reverbs = new Map<string, ReverbState>();
 export const spectralDelays = new Map<string, SpectralDelayState>();
 export const mixers = new Map<string, MixerState>();
+export const channelStrips = new Map<string, ChannelStripState>();
 export const phasers = new Map<string, PhaserState>();
 export const compressors = new Map<string, CompressorState>();
 export const choruses = new Map<string, ChorusState>();
@@ -162,6 +163,21 @@ export interface MixerState {
   delayTone: BiquadFilterNode;
   delayFeedback: GainNode;
   delayReturn: GainNode;
+}
+
+export interface ChannelStripState {
+  input: GainNode;
+  output: GainNode;
+  highpass: BiquadFilterNode;
+  bands: BiquadFilterNode[];
+  lowpass: BiquadFilterNode;
+  gateNode: AudioNode;
+  gateThreshold: AudioParam | null;
+  gateParams: {
+    threshold: number;
+  };
+  compressor: DynamicsCompressorNode;
+  makeup: GainNode;
 }
 
 export interface SpectralDelayState {
@@ -894,9 +910,13 @@ export const quantizeNoteToScale = (note: NoteName, scale: ArpScale): NoteName =
 export const divisionToBeats: Record<SyncDivision, number> = {
   '1/1': 4,
   '1/2': 2,
+  '1/2.': 3,
   '1/4': 1,
+  '1/4.': 1.5,
   '1/8': 0.5,
+  '1/8.': 0.75,
   '1/16': 0.25,
+  '1/16.': 0.375,
 };
 
 export const dispatchTransportEvent = (name: string, detail: Record<string, unknown>) => {
@@ -940,18 +960,7 @@ export const getSyncedLfoFrequency = (division: SyncDivision, bpm: number) => {
 };
 
 export const getTransportStepInterval = (division: SyncDivision) => {
-  switch (division) {
-    case '1/16':
-      return 1;
-    case '1/8':
-      return 2;
-    case '1/4':
-      return 4;
-    case '1/2':
-      return 8;
-    case '1/1':
-      return 16;
-  }
+  return Math.max(1, Math.round(divisionToBeats[division] / 0.25));
 };
 
 export const shouldTriggerOnTransportStep = (step: number, division: SyncDivision) => {
@@ -1366,11 +1375,57 @@ export const setAudioContext = (nextAudioContext: AudioContext | null) => {
   if (nextAudioContext === null) {
     destinationInput = null;
     destinationAnalyser = null;
+    gateWorkletReadyContext = null;
+    gateWorkletPromise = null;
   }
 };
 
 export const clearNoiseBufferCache = () => {
   noiseBufferCache = null;
+};
+
+let gateWorkletReadyContext: AudioContext | null = null;
+let gateWorkletPromise: Promise<void> | null = null;
+
+export const ensureMixerGateWorklet = async () => {
+  const ctx = getAudioContext();
+  if (typeof AudioWorkletNode === 'undefined' || !ctx.audioWorklet) {
+    return;
+  }
+
+  if (gateWorkletReadyContext === ctx) {
+    return;
+  }
+
+  if (!gateWorkletPromise) {
+    gateWorkletPromise = ctx.audioWorklet
+      .addModule(new URL('./worklets/mixerGateProcessor.js', import.meta.url))
+      .then(() => {
+        gateWorkletReadyContext = ctx;
+      })
+      .finally(() => {
+        gateWorkletPromise = null;
+      });
+  }
+
+  await gateWorkletPromise;
+};
+
+export const createGateStage = (ctx: AudioContext) => {
+  const gateWorklet = gateWorkletReadyContext === ctx && typeof AudioWorkletNode !== 'undefined'
+    ? new AudioWorkletNode(ctx, 'mixer-gate-processor', {
+        numberOfInputs: 1,
+        numberOfOutputs: 1,
+        outputChannelCount: [2],
+        channelCount: 2,
+        channelCountMode: 'explicit',
+      })
+    : null;
+
+  return {
+    gateNode: (gateWorklet ?? ctx.createGain()) as AudioNode,
+    gateThreshold: gateWorklet?.parameters.get('threshold') ?? null,
+  };
 };
 
 export const getAudioContext = () => {

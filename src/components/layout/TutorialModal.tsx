@@ -91,6 +91,32 @@ const tutorialSteps: TutorialStep[] = [
     offsetY: 132,
   },
   {
+    id: 'mixer-overview',
+    title: 'El mixer ara es el centre del patch',
+    body:
+      'El node Mixer te 8 entrades, una per canal. Cada target `CH 1` fins `CH 8` rep una font diferent, i el mixer envia una sola sortida master cap a destination o cap a una cadena d efectes.',
+    target: 'mixer-node',
+    placement: 'bottom',
+    offsetY: 28,
+  },
+  {
+    id: 'mixer-detail',
+    title: 'Selecciona el canal i ajusta el strip',
+    body:
+      'Prem qualsevol targeta del mixer per editar aquell canal. A dins tens volum, pan, gate, compressor, EQ de 3 bandes i els enviaments `Room` i `Delay` per portar senyal als efectes interns.',
+    target: 'mixer-node',
+    placement: 'right',
+  },
+  {
+    id: 'mixer-returns',
+    title: 'El mixer ja porta els retorns integrats',
+    body:
+      'A la part baixa del mixer controles la reverb `Room` i el delay master. `Room Size`, `Decay` i `Room Ret` defineixen la reverb; `Delay Sync`, la divisio, `Feed` i `Delay Ret` controlen el delay sincronitzat amb els BPM.',
+    target: 'mixer-node',
+    placement: 'left',
+    offsetY: 74,
+  },
+  {
     id: 'presets',
     title: 'Guarda i recupera presets',
     body:

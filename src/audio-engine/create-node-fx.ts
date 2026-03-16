@@ -2,6 +2,7 @@ import type { EditableAudioNodeType } from '../types';
 
 import {
   nodes,
+  channelStrips,
   equalizers,
   phasers,
   compressors,
@@ -32,6 +33,7 @@ import {
   PHASER_CENTER_FREQUENCIES,
   buildFoldbackCurve,
   buildSaturatorCurve,
+  createGateStage,
   getAudioContext,
 } from './runtime';
 
@@ -51,6 +53,78 @@ const createCompressor = (id: string) => {
   nodes.set(id, compressor);
   nodes.set(`${id}_out`, makeup);
   compressors.set(id, {
+    compressor,
+    makeup,
+  });
+};
+
+const CHANNEL_STRIP_BAND_CONFIGS: Array<{ type: BiquadFilterType; frequency: number; q: number }> = [
+  { type: 'lowshelf', frequency: 90, q: 0.7 },
+  { type: 'peaking', frequency: 420, q: 0.9 },
+  { type: 'peaking', frequency: 2200, q: 1.1 },
+  { type: 'highshelf', frequency: 7600, q: 0.7 },
+];
+
+const createChannelStrip = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const highpass = ctx.createBiquadFilter();
+  const lowpass = ctx.createBiquadFilter();
+  const bands = CHANNEL_STRIP_BAND_CONFIGS.map((band) => {
+    const filter = ctx.createBiquadFilter();
+    filter.type = band.type;
+    filter.frequency.setValueAtTime(band.frequency, ctx.currentTime);
+    filter.Q.setValueAtTime(band.q, ctx.currentTime);
+    filter.gain.setValueAtTime(0, ctx.currentTime);
+    return filter;
+  });
+  const { gateNode, gateThreshold } = createGateStage(ctx);
+  const compressor = ctx.createDynamicsCompressor();
+  const makeup = ctx.createGain();
+
+  highpass.type = 'highpass';
+  highpass.frequency.setValueAtTime(30, ctx.currentTime);
+  highpass.Q.setValueAtTime(0.7, ctx.currentTime);
+
+  lowpass.type = 'lowpass';
+  lowpass.frequency.setValueAtTime(18000, ctx.currentTime);
+  lowpass.Q.setValueAtTime(0.7, ctx.currentTime);
+
+  gateThreshold?.setValueAtTime(0, ctx.currentTime);
+
+  compressor.threshold.setValueAtTime(-24, ctx.currentTime);
+  compressor.knee.setValueAtTime(18, ctx.currentTime);
+  compressor.ratio.setValueAtTime(4, ctx.currentTime);
+  compressor.attack.setValueAtTime(0.01, ctx.currentTime);
+  compressor.release.setValueAtTime(0.2, ctx.currentTime);
+  makeup.gain.setValueAtTime(1, ctx.currentTime);
+  output.gain.setValueAtTime(1, ctx.currentTime);
+
+  input.connect(highpass);
+  highpass.connect(bands[0]);
+  for (let index = 0; index < bands.length - 1; index += 1) {
+    bands[index].connect(bands[index + 1]);
+  }
+  bands[bands.length - 1].connect(lowpass);
+  lowpass.connect(gateNode);
+  gateNode.connect(compressor);
+  compressor.connect(makeup);
+  makeup.connect(output);
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  channelStrips.set(id, {
+    input,
+    output,
+    highpass,
+    bands,
+    lowpass,
+    gateNode,
+    gateThreshold,
+    gateParams: {
+      threshold: 0,
+    },
     compressor,
     makeup,
   });
@@ -1124,6 +1198,9 @@ const createStutter = (id: string) => {
 
 export const createFxAudioNode = (type: EditableAudioNodeType, id: string) => {
   switch (type) {
+    case 'channelStrip':
+      createChannelStrip(id);
+      return true;
     case 'compressor':
       createCompressor(id);
       return true;

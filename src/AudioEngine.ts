@@ -46,6 +46,8 @@ import {
   getNoiseBuffer,
   buildDistortionCurve,
   buildImpulseResponse,
+  createGateStage,
+  ensureMixerGateWorklet,
   getAudioContext,
 } from './audio-engine/runtime';
 export { getAudioContext, getAudioContextState } from './audio-engine/runtime';
@@ -53,33 +55,6 @@ export { getAudioContext, getAudioContextState } from './audio-engine/runtime';
 export const getTransportState = getTransportStateSnapshot;
 export const getRecordingState = getRecordingStateSnapshot;
 export type { RecordingChannelMode, RecordingExportOptions };
-
-let mixerGateWorkletContext: AudioContext | null = null;
-let mixerGateWorkletPromise: Promise<void> | null = null;
-
-const ensureMixerGateWorklet = async () => {
-  const ctx = getAudioContext();
-  if (typeof AudioWorkletNode === 'undefined' || !ctx.audioWorklet) {
-    return;
-  }
-
-  if (mixerGateWorkletContext === ctx) {
-    return;
-  }
-
-  if (!mixerGateWorkletPromise) {
-    mixerGateWorkletPromise = ctx.audioWorklet
-      .addModule(new URL('./audio-engine/worklets/mixerGateProcessor.js', import.meta.url))
-      .then(() => {
-        mixerGateWorkletContext = ctx;
-      })
-      .finally(() => {
-        mixerGateWorkletPromise = null;
-      });
-  }
-
-  await mixerGateWorkletPromise;
-};
 
 export const prepareAudioEngine = async () => {
   await ensureMixerGateWorklet();
@@ -248,17 +223,7 @@ export const createMixer = (id: string) => {
     const low = ctx.createBiquadFilter();
     const mid = ctx.createBiquadFilter();
     const high = ctx.createBiquadFilter();
-    const gateWorklet = mixerGateWorkletContext === ctx && typeof AudioWorkletNode !== 'undefined'
-      ? new AudioWorkletNode(ctx, 'mixer-gate-processor', {
-          numberOfInputs: 1,
-          numberOfOutputs: 1,
-          outputChannelCount: [2],
-          channelCount: 2,
-          channelCountMode: 'explicit',
-        })
-      : null;
-    const gateNode = gateWorklet ?? ctx.createGain();
-    const gateThreshold = gateWorklet?.parameters.get('threshold') ?? null;
+    const { gateNode, gateThreshold } = createGateStage(ctx);
     const compressor = ctx.createDynamicsCompressor();
     const pan = ctx.createStereoPanner();
     const gain = ctx.createGain();
@@ -518,8 +483,6 @@ export const stopAudio = async () => {
     step: 0,
   });
   await resetAudioEngineRuntime();
-  mixerGateWorkletContext = null;
-  mixerGateWorkletPromise = null;
 };
 
 export const startRecording = (options: RecordingExportOptions = {}) => {
