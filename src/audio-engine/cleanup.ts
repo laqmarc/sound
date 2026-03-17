@@ -125,8 +125,10 @@ export const destroyNodeById = (id: string) => {
         channel.compressor.disconnect();
         channel.pan.disconnect();
         channel.gain.disconnect();
+        channel.soloGain.disconnect();
         channel.roomSend.disconnect();
         channel.delaySend.disconnect();
+        channel.meterAnalyser.disconnect();
       });
       mixer.roomSendBus.disconnect();
       mixer.roomPreDelay.disconnect();

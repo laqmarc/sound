@@ -14,6 +14,7 @@ class MixerGateProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.currentGain = 1;
+    this.reportCounter = 0;
   }
 
   process(inputs, outputs, parameters) {
@@ -61,6 +62,11 @@ class MixerGateProcessor extends AudioWorkletProcessor {
     }
 
     this.currentGain = currentGain;
+    this.reportCounter += 1;
+    if (this.reportCounter >= 6) {
+      this.port.postMessage({ currentGain });
+      this.reportCounter = 0;
+    }
     return true;
   }
 }

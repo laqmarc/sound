@@ -34,19 +34,19 @@
 - Limiter final i indicador de `clip`.
 - Gravacio post-master.
 
+### ~~7. Solo, meters i gain reduction al mixer~~
+- VU per canal al mixer.
+- `Solo` per canal.
+- Indicador de gate i compressor actuant.
+
 ## Seguent
 
-### 7. Vocoder
+### 8. Vocoder
 - Fer un vocoder amb:
   - un sampler com a font
   - o be el microfon per a vocoder en temps real
 - Referencia:
   - https://github.com/mdn/webaudio-examples/tree/main/voice-change-o-matic
-
-### 8. Solo, meters i gain reduction al mixer
-- Afegir VU per canal al mixer.
-- Afegir `solo` per canal.
-- Mostrar quan gate o compressor estan actuant.
 
 ### 9. Undo / redo i duplicar nodes
 - Afegir `undo` i `redo` al patcher.

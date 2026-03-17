@@ -1,5 +1,6 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Handle, Position } from 'reactflow';
+import { getAudioContextState, getMixerChannelMeterState } from '../AudioEngine';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps, SoundNodeData, SyncDivision } from '../types';
 import './nodeChrome.css';
@@ -18,6 +19,8 @@ const mixerChannels = [
 
 type MixerChannelMeta = (typeof mixerChannels)[number];
 const syncDivisions: SyncDivision[] = ['1/1', '1/2', '1/2.', '1/4', '1/4.', '1/8', '1/8.', '1/16', '1/16.'];
+const METER_MIN_DB = -72;
+const METER_MAX_DB = 3;
 
 const readNumber = (data: SoundNodeData, key: keyof SoundNodeData, fallback: number) => {
   const value = data[key];
@@ -29,8 +32,26 @@ const readBoolean = (data: SoundNodeData, key: keyof SoundNodeData, fallback: bo
   return typeof value === 'boolean' ? value : fallback;
 };
 
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const levelToMeter = (level: number) => {
+  const db = level > 0.00001 ? 20 * Math.log10(level) : METER_MIN_DB;
+  return clamp(Math.pow((db - METER_MIN_DB) / (METER_MAX_DB - METER_MIN_DB), 0.88), 0, 1);
+};
+
 const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const [selectedChannelKey, setSelectedChannelKey] = useState<MixerChannelMeta['key']>('ch1');
+  const [meterState, setMeterState] = useState(() =>
+    mixerChannels.map(() => ({
+      level: 0,
+      peak: 0,
+      compressorReduction: 0,
+      gateReduction: 0,
+      isGateActive: false,
+      isCompressorActive: false,
+    })),
+  );
+  const frameRef = useRef<number | null>(null);
   const selectedChannel = useMemo(
     () => mixerChannels.find((channel) => channel.key === selectedChannelKey) ?? mixerChannels[0],
     [selectedChannelKey],
@@ -42,6 +63,7 @@ const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const selectedHighKey = `${selectedChannel.key}_high` as keyof SoundNodeData;
   const selectedPanKey = `${selectedChannel.key}_pan` as keyof SoundNodeData;
   const selectedMuteKey = `${selectedChannel.key}_mute` as keyof SoundNodeData;
+  const selectedSoloKey = `${selectedChannel.key}_solo` as keyof SoundNodeData;
   const selectedGateKey = `${selectedChannel.key}_gate` as keyof SoundNodeData;
   const selectedCompKey = `${selectedChannel.key}_comp` as keyof SoundNodeData;
   const selectedRoomKey = `${selectedChannel.key}_room` as keyof SoundNodeData;
@@ -49,6 +71,54 @@ const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
   const selectedLabelValue = data[selectedChannel.labelKey as keyof SoundNodeData];
   const delaySync = data.sync ?? true;
   const delayDivision = data.syncDivision ?? '1/8';
+  const anySoloActive = mixerChannels.some((channel) =>
+    readBoolean(data, `${channel.key}_solo` as keyof SoundNodeData, false),
+  );
+  const selectedChannelIndex = mixerChannels.findIndex((channel) => channel.key === selectedChannel.key);
+  const selectedMeter = meterState[selectedChannelIndex] ?? meterState[0];
+
+  useEffect(() => {
+    const tick = () => {
+      if (getAudioContextState() !== 'running') {
+        setMeterState((current) =>
+          current.map((channel) => ({
+            ...channel,
+            level: 0,
+            peak: channel.peak * 0.92,
+            compressorReduction: channel.compressorReduction * 0.82,
+            gateReduction: channel.gateReduction * 0.82,
+            isGateActive: false,
+            isCompressorActive: false,
+          })),
+        );
+        frameRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      const nextMeters = getMixerChannelMeterState(id);
+      if (nextMeters.length > 0) {
+        setMeterState((current) =>
+          nextMeters.map((channel, index) => {
+            const previous = current[index];
+            return {
+              ...channel,
+              peak: Math.max(channel.peak, (previous?.peak ?? 0) * 0.94),
+            };
+          }),
+        );
+      }
+
+      frameRef.current = requestAnimationFrame(tick);
+    };
+
+    tick();
+
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, [id]);
 
   return (
     <div
@@ -67,24 +137,31 @@ const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
             8 Channel Mixer
           </div>
           <p className="node-chrome__description mixer-node__description">
-            3-band EQ, gate, compressor and aux sends on every strip.
+            3-band EQ, gate, compressor, solo and live metering on every strip.
           </p>
         </div>
-        <div className="mixer-node__badge">8 CH / FX BUS</div>
+        <div className="mixer-node__badge">{anySoloActive ? '8 CH / SOLO BUS' : '8 CH / FX BUS'}</div>
       </div>
 
       <div className="mixer-node__channel-grid nodrag">
-        {mixerChannels.map((channel) => {
+        {mixerChannels.map((channel, index) => {
           const gainKey = channel.key as keyof SoundNodeData;
           const muteKey = `${channel.key}_mute` as keyof SoundNodeData;
+          const soloKey = `${channel.key}_solo` as keyof SoundNodeData;
           const roomKey = `${channel.key}_room` as keyof SoundNodeData;
           const delayKey = `${channel.key}_delay` as keyof SoundNodeData;
           const labelValue = data[channel.labelKey as keyof SoundNodeData];
           const volume = readNumber(data, gainKey, 0.5);
           const mute = readBoolean(data, muteKey, false);
+          const solo = readBoolean(data, soloKey, false);
           const roomSend = readNumber(data, roomKey, 0);
           const delaySend = readNumber(data, delayKey, 0);
           const isSelected = selectedChannel.key === channel.key;
+          const meter = meterState[index] ?? meterState[0];
+          const levelMeter = levelToMeter(meter?.level ?? 0);
+          const peakMeter = levelToMeter(meter?.peak ?? 0);
+          const compMeter = clamp((meter?.compressorReduction ?? 0) / 18, 0, 1);
+          const gateMeter = clamp(meter?.gateReduction ?? 0, 0, 1);
 
           return (
             <button
@@ -102,15 +179,30 @@ const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
               />
               <div className="mixer-node__card-top">
                 <span className="mixer-node__card-label" style={{ color: channel.color }}>{channel.label}</span>
-                <span className={`mixer-node__card-state ${mute ? 'mixer-node__card-state--muted' : ''}`}>
-                  {mute ? 'M' : 'ON'}
-                </span>
+                <div className="mixer-node__card-state-row">
+                  <span className={`mixer-node__card-state ${solo ? 'mixer-node__card-state--solo' : ''}`}>
+                    {solo ? 'S' : 'ON'}
+                  </span>
+                  {mute ? <span className="mixer-node__card-state mixer-node__card-state--muted">M</span> : null}
+                </div>
               </div>
               <div className="mixer-node__card-name">{typeof labelValue === 'string' && labelValue ? labelValue : 'Empty'}</div>
               <div className="mixer-node__card-meter">
-                <div className="mixer-node__card-fill" style={{ width: `${Math.max(8, volume * 100)}%`, background: channel.color }} />
+                <div className="mixer-node__card-fill" style={{ width: `${Math.max(6, levelMeter * 100)}%`, background: channel.color }} />
+                <div className="mixer-node__card-peak" style={{ left: `calc(${peakMeter * 100}% - 2px)` }} />
+              </div>
+              <div className="mixer-node__card-process">
+                <span className={`mixer-node__card-chip ${meter?.isGateActive ? 'mixer-node__card-chip--gate' : ''}`}>G</span>
+                <div className="mixer-node__mini-meter">
+                  <div className="mixer-node__mini-fill mixer-node__mini-fill--gate" style={{ width: `${gateMeter * 100}%` }} />
+                </div>
+                <span className={`mixer-node__card-chip ${meter?.isCompressorActive ? 'mixer-node__card-chip--comp' : ''}`}>C</span>
+                <div className="mixer-node__mini-meter">
+                  <div className="mixer-node__mini-fill mixer-node__mini-fill--comp" style={{ width: `${compMeter * 100}%` }} />
+                </div>
               </div>
               <div className="mixer-node__card-sends">
+                <span>VOL {Math.round(volume * 100)}</span>
                 <span>R {Math.round(roomSend * 100)}</span>
                 <span>D {Math.round(delaySend * 100)}</span>
               </div>
@@ -125,13 +217,41 @@ const MixerNode = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
             <div className="mixer-node__detail-kicker" style={{ color: selectedChannel.color }}>{selectedChannel.label}</div>
             <div className="mixer-node__detail-name">{typeof selectedLabelValue === 'string' && selectedLabelValue ? selectedLabelValue : 'No source name'}</div>
           </div>
-          <button
-            type="button"
-            className={`mixer-node__mute-button ${readBoolean(data, selectedMuteKey, false) ? 'mixer-node__mute-button--active' : ''}`}
-            onClick={() => onDataChange(id, { [selectedMuteKey]: !readBoolean(data, selectedMuteKey, false) })}
-          >
-            {readBoolean(data, selectedMuteKey, false) ? 'Muted' : 'Mute'}
-          </button>
+          <div className="mixer-node__detail-actions">
+            <button
+              type="button"
+              className={`mixer-node__mute-button ${readBoolean(data, selectedSoloKey, false) ? 'mixer-node__mute-button--solo' : ''}`}
+              onClick={() => onDataChange(id, { [selectedSoloKey]: !readBoolean(data, selectedSoloKey, false) })}
+            >
+              {readBoolean(data, selectedSoloKey, false) ? 'Solo On' : 'Solo'}
+            </button>
+            <button
+              type="button"
+              className={`mixer-node__mute-button ${readBoolean(data, selectedMuteKey, false) ? 'mixer-node__mute-button--active' : ''}`}
+              onClick={() => onDataChange(id, { [selectedMuteKey]: !readBoolean(data, selectedMuteKey, false) })}
+            >
+              {readBoolean(data, selectedMuteKey, false) ? 'Muted' : 'Mute'}
+            </button>
+          </div>
+        </div>
+
+        <div className="mixer-node__detail-status">
+          <div className="mixer-node__detail-meter">
+            <span className="mixer-node__detail-meter-label">Channel VU</span>
+            <div className="mixer-node__detail-meter-track">
+              <div className="mixer-node__detail-meter-fill" style={{ width: `${levelToMeter(selectedMeter?.level ?? 0) * 100}%` }} />
+              <div className="mixer-node__detail-meter-peak" style={{ left: `calc(${levelToMeter(selectedMeter?.peak ?? 0) * 100}% - 2px)` }} />
+            </div>
+          </div>
+          <div className="mixer-node__detail-readouts">
+            <div className={`mixer-node__detail-chip ${selectedMeter?.isGateActive ? 'mixer-node__detail-chip--gate' : ''}`}>
+              Gate {selectedMeter?.isGateActive ? `${Math.round((selectedMeter?.gateReduction ?? 0) * 100)}%` : 'Open'}
+            </div>
+            <div className={`mixer-node__detail-chip ${selectedMeter?.isCompressorActive ? 'mixer-node__detail-chip--comp' : ''}`}>
+              Comp {selectedMeter?.isCompressorActive ? `${(selectedMeter?.compressorReduction ?? 0).toFixed(1)} dB` : 'Idle'}
+            </div>
+            {anySoloActive ? <div className="mixer-node__detail-chip mixer-node__detail-chip--solo">Solo Bus Active</div> : null}
+          </div>
         </div>
 
         <div className="mixer-node__detail-grid">

@@ -44,6 +44,7 @@ import {
   applyDestinationNodeData,
   getDestinationAnalyser,
   getDestinationInput,
+  getMixerChannelMeterState,
   getDestinationLimiterReduction,
   getDestinationOutput,
   getNoiseBuffer,
@@ -230,10 +231,13 @@ export const createMixer = (id: string) => {
     const compressor = ctx.createDynamicsCompressor();
     const pan = ctx.createStereoPanner();
     const gain = ctx.createGain();
+    const soloGain = ctx.createGain();
     const roomSend = ctx.createGain();
     const delaySend = ctx.createGain();
+    const meterAnalyser = ctx.createAnalyser();
     const gateParams = {
       threshold: 0,
+      currentGain: 1,
     };
 
     low.type = 'lowshelf';
@@ -257,9 +261,19 @@ export const createMixer = (id: string) => {
 
     pan.pan.setValueAtTime(0, ctx.currentTime);
     gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    soloGain.gain.setValueAtTime(1, ctx.currentTime);
     roomSend.gain.setValueAtTime(0, ctx.currentTime);
     delaySend.gain.setValueAtTime(0, ctx.currentTime);
     gateThreshold?.setValueAtTime(0, ctx.currentTime);
+    meterAnalyser.fftSize = 512;
+    meterAnalyser.smoothingTimeConstant = 0.78;
+
+    if (gateNode instanceof AudioWorkletNode) {
+      gateNode.port.onmessage = (event) => {
+        const nextGain = Number(event.data?.currentGain);
+        gateParams.currentGain = Number.isFinite(nextGain) ? nextGain : gateParams.currentGain;
+      };
+    }
 
     input.connect(low);
     low.connect(mid);
@@ -268,9 +282,11 @@ export const createMixer = (id: string) => {
     gateNode.connect(compressor);
     compressor.connect(pan);
     pan.connect(gain);
-    gain.connect(output);
-    gain.connect(roomSend);
-    gain.connect(delaySend);
+    gain.connect(meterAnalyser);
+    gain.connect(soloGain);
+    soloGain.connect(output);
+    soloGain.connect(roomSend);
+    soloGain.connect(delaySend);
     roomSend.connect(roomSendBus);
     delaySend.connect(delaySendBus);
 
@@ -287,8 +303,10 @@ export const createMixer = (id: string) => {
       compressor,
       pan,
       gain,
+      soloGain,
       roomSend,
       delaySend,
+      meterAnalyser,
     };
   });
 
@@ -469,6 +487,7 @@ export const getDestination = () => {
 };
 
 export { applyDestinationNodeData, getDestinationAnalyser, getDestinationInput, getDestinationLimiterReduction, getDestinationOutput };
+export { getMixerChannelMeterState };
 
 export const connectNodes = connectAudioGraphNodes;
 

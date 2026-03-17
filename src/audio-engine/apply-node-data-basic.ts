@@ -128,6 +128,9 @@ export const applyBasicNodeData = (
       const tone = Math.max(900, Math.min(12000, data.tone ?? 4800));
       const roomReturn = Math.max(0, Math.min(1, data.roomReturn ?? 0.24));
       const delayReturn = Math.max(0, Math.min(1, data.delayReturn ?? 0.22));
+      const soloKeys = Array.from({ length: 8 }, (_, index) => `ch${index + 1}_solo` as keyof SoundNodeData);
+      const hasSoloActive = soloKeys.some((key) => Boolean(data[key] ?? false));
+      const soloStateChanged = hasChanged(...soloKeys);
 
       mixer.channels.forEach((channel, index) => {
         const channelNumber = index + 1;
@@ -138,12 +141,14 @@ export const applyBasicNodeData = (
         const highKey = `${prefix}_high` as keyof SoundNodeData;
         const panKey = `${prefix}_pan` as keyof SoundNodeData;
         const muteKey = `${prefix}_mute` as keyof SoundNodeData;
+        const soloKey = `${prefix}_solo` as keyof SoundNodeData;
         const gateKey = `${prefix}_gate` as keyof SoundNodeData;
         const compKey = `${prefix}_comp` as keyof SoundNodeData;
         const roomKey = `${prefix}_room` as keyof SoundNodeData;
         const delayKey = `${prefix}_delay` as keyof SoundNodeData;
         const level = Math.max(0, Math.min(1, Number(data[prefix as keyof SoundNodeData] ?? 0.5)));
         const mute = Boolean(data[muteKey] ?? false);
+        const solo = Boolean(data[soloKey] ?? false);
         const gateAmount = Math.max(0, Math.min(1, Number(data[gateKey] ?? 0)));
         const compAmount = Math.max(0, Math.min(1, Number(data[compKey] ?? 0.18)));
 
@@ -165,6 +170,9 @@ export const applyBasicNodeData = (
         }
         if (hasChanged(levelKey, muteKey)) {
           channel.gain.gain.setTargetAtTime(mute ? 0 : level, ctx.currentTime, 0.03);
+        }
+        if (soloStateChanged) {
+          channel.soloGain.gain.setTargetAtTime(hasSoloActive ? (solo ? 1 : 0) : 1, ctx.currentTime, 0.02);
         }
         if (hasChanged(roomKey)) {
           channel.roomSend.gain.setTargetAtTime(

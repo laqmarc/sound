@@ -150,12 +150,15 @@ export interface MixerChannelState {
   gateThreshold: AudioParam | null;
   gateParams: {
     threshold: number;
+    currentGain: number;
   };
   compressor: DynamicsCompressorNode;
   pan: StereoPannerNode;
   gain: GainNode;
+  soloGain: GainNode;
   roomSend: GainNode;
   delaySend: GainNode;
+  meterAnalyser: AnalyserNode;
 }
 
 export interface MixerState {
@@ -171,6 +174,15 @@ export interface MixerState {
   delayTone: BiquadFilterNode;
   delayFeedback: GainNode;
   delayReturn: GainNode;
+}
+
+export interface MixerChannelMeterState {
+  level: number;
+  peak: number;
+  compressorReduction: number;
+  gateReduction: number;
+  isGateActive: boolean;
+  isCompressorActive: boolean;
 }
 
 export interface ChannelStripState {
@@ -1555,6 +1567,40 @@ export const applyDestinationNodeData = (data: SoundNodeData) => {
 
 export const getDestinationLimiterReduction = () => {
   return Math.max(0, -(destinationLimiter?.reduction ?? 0));
+};
+
+export const getMixerChannelMeterState = (id: string): MixerChannelMeterState[] => {
+  const mixer = mixers.get(id);
+  if (!mixer) {
+    return [];
+  }
+
+  return mixer.channels.map((channel) => {
+    const analyser = channel.meterAnalyser;
+    const buffer = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(buffer);
+
+    let sumSquares = 0;
+    let peakSample = 0;
+    for (let index = 0; index < buffer.length; index += 1) {
+      const sample = buffer[index] ?? 0;
+      sumSquares += sample * sample;
+      peakSample = Math.max(peakSample, Math.abs(sample));
+    }
+
+    const rms = Math.sqrt(sumSquares / buffer.length);
+    const compressorReduction = Math.max(0, -(channel.compressor.reduction ?? 0));
+    const gateReduction = Math.max(0, 1 - channel.gateParams.currentGain);
+
+    return {
+      level: rms,
+      peak: peakSample,
+      compressorReduction,
+      gateReduction,
+      isGateActive: channel.gateParams.threshold > 0.000001 && gateReduction > 0.08,
+      isCompressorActive: compressorReduction > 0.35,
+    };
+  });
 };
 
 export const getAudioContextState = () => {

@@ -106,6 +106,7 @@ export interface SoundNodeData {
   ch1_high?: number;
   ch1_pan?: number;
   ch1_mute?: boolean;
+  ch1_solo?: boolean;
   ch1_gate?: number;
   ch1_comp?: number;
   ch1_room?: number;
@@ -115,6 +116,7 @@ export interface SoundNodeData {
   ch2_high?: number;
   ch2_pan?: number;
   ch2_mute?: boolean;
+  ch2_solo?: boolean;
   ch2_gate?: number;
   ch2_comp?: number;
   ch2_room?: number;
@@ -124,6 +126,7 @@ export interface SoundNodeData {
   ch3_high?: number;
   ch3_pan?: number;
   ch3_mute?: boolean;
+  ch3_solo?: boolean;
   ch3_gate?: number;
   ch3_comp?: number;
   ch3_room?: number;
@@ -133,6 +136,7 @@ export interface SoundNodeData {
   ch4_high?: number;
   ch4_pan?: number;
   ch4_mute?: boolean;
+  ch4_solo?: boolean;
   ch4_gate?: number;
   ch4_comp?: number;
   ch4_room?: number;
@@ -142,6 +146,7 @@ export interface SoundNodeData {
   ch5_high?: number;
   ch5_pan?: number;
   ch5_mute?: boolean;
+  ch5_solo?: boolean;
   ch5_gate?: number;
   ch5_comp?: number;
   ch5_room?: number;
@@ -151,6 +156,7 @@ export interface SoundNodeData {
   ch6_high?: number;
   ch6_pan?: number;
   ch6_mute?: boolean;
+  ch6_solo?: boolean;
   ch6_gate?: number;
   ch6_comp?: number;
   ch6_room?: number;
@@ -160,6 +166,7 @@ export interface SoundNodeData {
   ch7_high?: number;
   ch7_pan?: number;
   ch7_mute?: boolean;
+  ch7_solo?: boolean;
   ch7_gate?: number;
   ch7_comp?: number;
   ch7_room?: number;
@@ -169,6 +176,7 @@ export interface SoundNodeData {
   ch8_high?: number;
   ch8_pan?: number;
   ch8_mute?: boolean;
+  ch8_solo?: boolean;
   ch8_gate?: number;
   ch8_comp?: number;
   ch8_room?: number;
