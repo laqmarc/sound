@@ -15,7 +15,15 @@ import type {
 
 export let audioContext: AudioContext | null = null;
 let destinationInput: GainNode | null = null;
+let destinationOutput: GainNode | null = null;
 let destinationAnalyser: AnalyserNode | null = null;
+let destinationStereoGain: GainNode | null = null;
+let destinationMonoSum: GainNode | null = null;
+let destinationMonoGain: GainNode | null = null;
+let destinationMasterGain: GainNode | null = null;
+let destinationLimiter: DynamicsCompressorNode | null = null;
+let destinationLimiterGain: GainNode | null = null;
+let destinationBypassGain: GainNode | null = null;
 
 export const nodes = new Map<string, AudioNode>();
 export const analysers = new Map<string, AnalyserNode>();
@@ -1374,7 +1382,15 @@ export const setAudioContext = (nextAudioContext: AudioContext | null) => {
   audioContext = nextAudioContext;
   if (nextAudioContext === null) {
     destinationInput = null;
+    destinationOutput = null;
     destinationAnalyser = null;
+    destinationStereoGain = null;
+    destinationMonoSum = null;
+    destinationMonoGain = null;
+    destinationMasterGain = null;
+    destinationLimiter = null;
+    destinationLimiterGain = null;
+    destinationBypassGain = null;
     gateWorkletReadyContext = null;
     gateWorkletPromise = null;
   }
@@ -1443,21 +1459,102 @@ export const getAudioContext = () => {
 export const getDestinationInput = () => {
   const ctx = getAudioContext();
 
-  if (!destinationInput || !destinationAnalyser) {
+  if (
+    !destinationInput ||
+    !destinationOutput ||
+    !destinationAnalyser ||
+    !destinationStereoGain ||
+    !destinationMonoSum ||
+    !destinationMonoGain ||
+    !destinationMasterGain ||
+    !destinationLimiter ||
+    !destinationLimiterGain ||
+    !destinationBypassGain
+  ) {
     destinationInput = ctx.createGain();
+    destinationOutput = ctx.createGain();
     destinationAnalyser = ctx.createAnalyser();
+    destinationStereoGain = ctx.createGain();
+    const monoSplitter = ctx.createChannelSplitter(2);
+    destinationMonoSum = ctx.createGain();
+    const monoMerger = ctx.createChannelMerger(2);
+    destinationMonoGain = ctx.createGain();
+    destinationMasterGain = ctx.createGain();
+    destinationLimiter = ctx.createDynamicsCompressor();
+    destinationLimiterGain = ctx.createGain();
+    destinationBypassGain = ctx.createGain();
+
     destinationAnalyser.fftSize = 512;
     destinationAnalyser.smoothingTimeConstant = 0.82;
-    destinationInput.connect(ctx.destination);
-    destinationInput.connect(destinationAnalyser);
+
+    destinationStereoGain.gain.setValueAtTime(1, ctx.currentTime);
+    destinationMonoSum.gain.setValueAtTime(0.5, ctx.currentTime);
+    destinationMonoGain.gain.setValueAtTime(0, ctx.currentTime);
+    destinationMasterGain.gain.setValueAtTime(1, ctx.currentTime);
+    destinationLimiter.threshold.setValueAtTime(-6, ctx.currentTime);
+    destinationLimiter.knee.setValueAtTime(0, ctx.currentTime);
+    destinationLimiter.ratio.setValueAtTime(20, ctx.currentTime);
+    destinationLimiter.attack.setValueAtTime(0.003, ctx.currentTime);
+    destinationLimiter.release.setValueAtTime(0.08, ctx.currentTime);
+    destinationLimiterGain.gain.setValueAtTime(1, ctx.currentTime);
+    destinationBypassGain.gain.setValueAtTime(0, ctx.currentTime);
+    destinationOutput.gain.setValueAtTime(1, ctx.currentTime);
+
+    destinationInput.connect(destinationStereoGain);
+    destinationStereoGain.connect(destinationMasterGain);
+
+    destinationInput.connect(monoSplitter);
+    monoSplitter.connect(destinationMonoSum, 0);
+    monoSplitter.connect(destinationMonoSum, 1);
+    destinationMonoSum.connect(monoMerger, 0, 0);
+    destinationMonoSum.connect(monoMerger, 0, 1);
+    monoMerger.connect(destinationMonoGain);
+    destinationMonoGain.connect(destinationMasterGain);
+
+    destinationMasterGain.connect(destinationLimiter);
+    destinationLimiter.connect(destinationLimiterGain);
+    destinationLimiterGain.connect(destinationOutput);
+    destinationMasterGain.connect(destinationBypassGain);
+    destinationBypassGain.connect(destinationOutput);
+
+    destinationOutput.connect(ctx.destination);
+    destinationOutput.connect(destinationAnalyser);
   }
 
   return destinationInput;
 };
 
+export const getDestinationOutput = () => {
+  void getDestinationInput();
+  return destinationOutput;
+};
+
 export const getDestinationAnalyser = () => {
   void getDestinationInput();
   return destinationAnalyser;
+};
+
+export const applyDestinationNodeData = (data: SoundNodeData) => {
+  const ctx = getAudioContext();
+  void getDestinationInput();
+
+  const masterGain = Math.max(0, Math.min(2, data.gain ?? 1));
+  const isMono = data.mono ?? false;
+  const limiterEnabled = data.limiterEnabled ?? false;
+  const threshold = Math.max(-24, Math.min(0, data.threshold ?? -6));
+  const release = Math.max(0.02, Math.min(1, data.release ?? 0.08));
+
+  destinationStereoGain?.gain.setTargetAtTime(isMono ? 0 : 1, ctx.currentTime, 0.03);
+  destinationMonoGain?.gain.setTargetAtTime(isMono ? 1 : 0, ctx.currentTime, 0.03);
+  destinationMasterGain?.gain.setTargetAtTime(masterGain, ctx.currentTime, 0.03);
+  destinationLimiter?.threshold.setTargetAtTime(threshold, ctx.currentTime, 0.03);
+  destinationLimiter?.release.setTargetAtTime(release, ctx.currentTime, 0.03);
+  destinationLimiterGain?.gain.setTargetAtTime(limiterEnabled ? 1 : 0, ctx.currentTime, 0.03);
+  destinationBypassGain?.gain.setTargetAtTime(limiterEnabled ? 0 : 1, ctx.currentTime, 0.03);
+};
+
+export const getDestinationLimiterReduction = () => {
+  return Math.max(0, -(destinationLimiter?.reduction ?? 0));
 };
 
 export const getAudioContextState = () => {

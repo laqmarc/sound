@@ -94,6 +94,7 @@ import { SoundLabHeader } from './components/header/SoundLabHeader';
 import { TransportAside } from './components/layout/TransportAside';
 import { TutorialModal } from './components/layout/TutorialModal';
 import {
+  applyDestinationNodeData,
   applyAudioNodeData,
   connectNodes,
   createAudioNode,
@@ -448,7 +449,7 @@ function App() {
   const handleNodeDataChange = useCallback(
     (id: string, patch: Partial<SoundNodeData>) => {
       const currentNode = nodesRef.current.find((node) => node.id === id);
-      if (!isEditableNode(currentNode)) {
+      if (!currentNode) {
         return;
       }
 
@@ -466,7 +467,14 @@ function App() {
       setNodes(nextNodes);
 
       if (audioStartedRef.current) {
-        applyAudioNodeData(currentNode.type, id, nextData, patch);
+        if (currentNode.type === 'destination') {
+          applyDestinationNodeData(nextData);
+          return;
+        }
+
+        if (isEditableNode(currentNode)) {
+          applyAudioNodeData(currentNode.type, id, nextData, patch);
+        }
       }
     },
     [],
@@ -495,7 +503,9 @@ function App() {
       gain: (props: SoundNodeProps) => (
         <GainNode {...props} onDataChange={handleNodeDataChange} />
       ),
-      destination: DestinationNode,
+      destination: (props: SoundNodeProps) => (
+        <DestinationNode {...props} onDataChange={handleNodeDataChange} />
+      ),
       filter: (props: SoundNodeProps) => (
         <FilterNode {...props} onDataChange={handleNodeDataChange} />
       ),
@@ -744,6 +754,11 @@ function App() {
         connectNodes(edge.source, edge.target, edge.targetHandle);
       }
     });
+
+    const destinationNode = graphNodes.find((node) => node.type === 'destination');
+    if (destinationNode) {
+      applyDestinationNodeData(destinationNode.data);
+    }
 
     startTransport();
     setAudioStarted(true);

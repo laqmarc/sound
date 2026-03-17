@@ -41,8 +41,11 @@ import {
   transportState,
   dispatchTransportEvent,
   emitTransportState,
+  applyDestinationNodeData,
   getDestinationAnalyser,
   getDestinationInput,
+  getDestinationLimiterReduction,
+  getDestinationOutput,
   getNoiseBuffer,
   buildDistortionCurve,
   buildImpulseResponse,
@@ -465,7 +468,7 @@ export const getDestination = () => {
   return getDestinationInput();
 };
 
-export { getDestinationAnalyser, getDestinationInput };
+export { applyDestinationNodeData, getDestinationAnalyser, getDestinationInput, getDestinationLimiterReduction, getDestinationOutput };
 
 export const connectNodes = connectAudioGraphNodes;
 

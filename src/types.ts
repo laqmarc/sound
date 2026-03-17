@@ -235,6 +235,8 @@ export interface SoundNodeData {
   loopLength?: number;
   freeze?: boolean;
   loop?: boolean;
+  mono?: boolean;
+  limiterEnabled?: boolean;
   steps?: boolean[];
   note?: NoteName;
   octave?: number;

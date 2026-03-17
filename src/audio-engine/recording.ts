@@ -1,4 +1,4 @@
-import { getAudioContext, getDestinationInput } from './runtime';
+import { getAudioContext, getDestinationOutput } from './runtime';
 
 interface RecordingState {
   isRecording: boolean;
@@ -213,7 +213,7 @@ export const startRecordingSession = (options: RecordingExportOptions = {}) => {
   }
 
   const ctx = getAudioContext();
-  const destinationInput = getDestinationInput();
+  const destinationOutput = getDestinationOutput();
   const processor = ctx.createScriptProcessor(4096, 2, 2);
   const sink = ctx.createGain();
   sink.gain.setValueAtTime(0, ctx.currentTime);
@@ -259,7 +259,7 @@ export const startRecordingSession = (options: RecordingExportOptions = {}) => {
     dispatchRecordingState();
   };
 
-  destinationInput.connect(processor);
+  destinationOutput?.connect(processor);
   processor.connect(sink);
   sink.connect(ctx.destination);
 

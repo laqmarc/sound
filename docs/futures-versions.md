@@ -1,47 +1,83 @@
-# Idees per a futures versions
+# Roadmap
 
-## V1
+## Fet
 
 ### ~~1. Gravacio d'audio de la sessio~~
-- Afegir un boto a la part dreta, sota `Start engine` i `Reset`.
-- Aquest boto permetra gravar l'audio de la sessio.
-- Gravara l'output master.
-- Quan l'usuari premi `Stop`, es guardara automaticament un arxiu `.wav`.
+- Boto de gravacio a la UI.
+- Captura de l'output master.
+- Export automatic a `.wav`.
 
 ### ~~2. Sampler amb pujada d'arxius~~
-- Afegir un sampler que permeti pujar arxius `.mp3` o `.wav`.
-- Un cop carregats, es podran llanÃƒÂ§ar des de la interfÃƒÂ­cie.
+- Pujada d'arxius `.mp3` o `.wav`.
+- Reproduccio des de la interficie.
 
 ### ~~3. Mixer de 8 canals~~
-- Crear un mixer de 8 canals.
-- Cada canal tindra una EQ de 3 parametres.
-- Cada canal tambe tindra gate i compressor.
-- Cada canal incloura 2 auxiliars:
-  - un enviament a una reverb `room`
-  - un enviament a un delay
-  - els retorn de la reverb i el delay estÃƒÂ¡n integrats al mixer.
+- 8 canals amb EQ de 3 bandes.
+- Gate i compressor per canal.
+- Enviaments a `room` i `delay`.
+- Retorns integrats dins del mixer.
 
 ### ~~4. Spectral delay experimental~~
-- Crear un spectral delay una mica boig / experimental.
+- Efecte spectral delay experimental.
 
 ### ~~5. Canal complet de processament~~
-- Crear un canal complet amb:
-- gate
-- compressor
-- EQ de 4 bandes
-- control de `Q`
-- filtres passa alts i baixos
+- Gate.
+- Compressor.
+- EQ de 4 bandes.
+- Control de `Q`.
+- Filtres passa-alts i passa-baixos.
 
-### 6. Vocoder
-- Crear un vocoder on es pugui fer servir:
-- un sampler com a font
-- o be el microfon per fer vocoder en temps real
-- https://github.com/mdn/webaudio-examples/tree/main/voice-change-o-matic
-## V2
+### ~~6. Master Bus~~
+- `Master Bus` real a la sortida final.
+- `Gain` master.
+- Mode `mono/stereo`.
+- Limiter final i indicador de `clip`.
+- Gravacio post-master.
 
-### Sampler sincronitzat amb el master
+## Seguent
+
+### 7. Vocoder
+- Fer un vocoder amb:
+  - un sampler com a font
+  - o be el microfon per a vocoder en temps real
+- Referencia:
+  - https://github.com/mdn/webaudio-examples/tree/main/voice-change-o-matic
+
+### 8. Solo, meters i gain reduction al mixer
+- Afegir VU per canal al mixer.
+- Afegir `solo` per canal.
+- Mostrar quan gate o compressor estan actuant.
+
+### 9. Undo / redo i duplicar nodes
+- Afegir `undo` i `redo` al patcher.
+- Permetre duplicar nodes rapidament.
+
+### 10. Import / export de projectes reals
+- Exportar un patch complet a JSON.
+- Importar un patch complet des de fitxer.
+
+### 11. Sampler sincronitzat amb el master
 - Sincronitzar l'audio del sampler amb els BPM del master.
 
+## Mes endavant
 
-### Crear versiÃƒÂ³ns V2 de totes els components.
-- Versions de tots els components amb mÃƒÂ©s parÃƒÂ¡metres
+### 12. Sampler V2
+- Afegir sync amb BPM.
+- Afegir slice.
+- Afegir control de `start` i `end`.
+- Afegir `reverse`.
+- Afegir ADSR.
+- Afegir `pitch per nota`.
+- Afegir `choke groups`.
+
+### 13. Automation / modulacio
+- Afegir una capa mes clara per automatitzar parametres.
+- Permetre gravar moviments de knobs.
+
+### 14. MIDI input
+- Tocar synths amb teclat MIDI.
+- Mapar knobs externs.
+- Disparar sampler i arp des de MIDI.
+
+### 15. Versions V2 de tots els components
+- Fer versions de tots els components amb mes parametres.
