@@ -7,6 +7,7 @@ export const editableNodeTypes = [
   'bassline',
   'leadVoice',
   'sampler',
+  'vocoder',
   'gain',
   'filter',
   'delay',
@@ -87,6 +88,9 @@ export interface SoundNodeData {
   sampleDataUrl?: string;
   sampleName?: string;
   playbackRate?: number;
+  vocoderSource?: VocoderSource;
+  micEnabled?: boolean;
+  bands?: number;
   type?: OscillatorType | BiquadFilterType;
   Q?: number;
   delayTime?: number;
@@ -302,6 +306,7 @@ export type ArpMode = 'up' | 'down' | 'random';
 export type ArpScale = 'chromatic' | 'major' | 'minor' | 'pentatonic';
 export type ChordType = 'major' | 'minor' | 'sus2' | 'sus4' | 'dim';
 export type ShrineScene = 'nebula' | 'razor' | 'swarm' | 'ritual';
+export type VocoderSource = 'sample' | 'microphone';
 
 export interface ArpStep {
   note: NoteName;

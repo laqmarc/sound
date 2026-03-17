@@ -25,6 +25,7 @@ export interface MachineSetTemplate {
   tab: ComponentTabId;
   nodes: MachineSetTemplateNode[];
   edges: MachineSetTemplateEdge[];
+  outputKey?: string;
 }
 
 export interface AddNodeButton {
@@ -48,6 +49,66 @@ export const componentTabs: Array<{
 ];
 
 export const machineSetTemplates: MachineSetTemplate[] = [
+  {
+    id: 'initial-vocoder',
+    name: 'initial vocoder',
+    hint: 'ARP + dual osc + vocoder classic molt robot',
+    tab: 'voices',
+    nodes: [
+      {
+        key: 'arp',
+        type: 'arpeggiator',
+        offset: { x: 0, y: 0 },
+        data: {
+          syncDivision: '1/8',
+          arpMode: 'up',
+          arpScale: 'minor',
+          arpSteps: [
+            { note: 'A', octave: 3, enabled: true },
+            { note: 'C', octave: 4, enabled: true },
+            { note: 'E', octave: 4, enabled: true },
+            { note: 'G', octave: 4, enabled: true },
+            { note: 'A', octave: 4, enabled: true },
+            { note: 'G', octave: 4, enabled: true },
+            { note: 'E', octave: 4, enabled: true },
+            { note: 'C', octave: 4, enabled: true },
+          ],
+        },
+      },
+      {
+        key: 'carrier',
+        type: 'dualOsc',
+        offset: { x: 340, y: -30 },
+        data: {
+          type: 'sawtooth',
+          modType: 'square',
+          detune: 17,
+          blend: 0.58,
+          gain: 0.46,
+        },
+      },
+      {
+        key: 'vocoder',
+        type: 'vocoder',
+        offset: { x: 680, y: -20 },
+        data: {
+          tone: 5200,
+          Q: 14,
+          bands: 16,
+          attack: 0.004,
+          release: 0.06,
+          gain: 0.95,
+          mix: 1,
+          micEnabled: true,
+        },
+      },
+    ],
+    edges: [
+      { source: 'arp', target: 'carrier', targetHandle: 'pitch' },
+      { source: 'carrier', target: 'vocoder', targetHandle: 'carrier' },
+    ],
+    outputKey: 'vocoder',
+  },
   {
     id: 'drum-bus',
     name: 'Drum Bus',
@@ -283,6 +344,7 @@ export const addNodeButtons: AddNodeButton[] = [
   { type: 'bassline', label: 'Bass', color: 'bg-green-500/10 text-green-300 border-green-500/20', tab: 'voices' },
   { type: 'leadVoice', label: 'Lead', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'voices' },
   { type: 'sampler', label: 'Sample', color: 'bg-amber-500/10 text-amber-200 border-amber-500/20', tab: 'voices' },
+  { type: 'vocoder', label: 'Vocoder', color: 'bg-lime-500/10 text-lime-200 border-lime-500/20', tab: 'voices' },
   { type: 'noise', label: 'Noise', color: 'bg-slate-500/10 text-slate-400 border-slate-500/20', tab: 'voices' },
   { type: 'monoSynth', label: 'Mono', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'voices' },
   { type: 'fmSynth', label: 'FM', color: 'bg-teal-500/10 text-teal-300 border-teal-500/20', tab: 'voices' },

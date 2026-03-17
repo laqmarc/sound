@@ -91,6 +91,68 @@ export const writeUserPatchPresets = (presets: PatchPreset[]) => {
 
 export const createPatchPresets = (defaultNodeData: Record<EditableAudioNodeType, SoundNodeData>): PatchPreset[] => [
   {
+    id: 'initial-vocoder',
+    name: 'initial vocoder',
+    hint: 'Arp + dual osc + vocoder classic molt robot',
+    nodes: [
+      {
+        id: 'destination',
+        type: 'destination',
+        position: { x: 920, y: 260 },
+        data: { label: 'Sortida' },
+      },
+      {
+        id: 'preset_arp',
+        type: 'arpeggiator',
+        position: { x: 90, y: 210 },
+        data: {
+          ...defaultNodeData.arpeggiator,
+          syncDivision: '1/8',
+          arpMode: 'up',
+          arpScale: 'minor',
+          arpSteps: [
+            { note: 'A', octave: 3, enabled: true },
+            { note: 'C', octave: 4, enabled: true },
+            { note: 'E', octave: 4, enabled: true },
+            { note: 'G', octave: 4, enabled: true },
+            { note: 'A', octave: 4, enabled: true },
+            { note: 'G', octave: 4, enabled: true },
+            { note: 'E', octave: 4, enabled: true },
+            { note: 'C', octave: 4, enabled: true },
+          ],
+        },
+      },
+      {
+        id: 'preset_carrier',
+        type: 'dualOsc',
+        position: { x: 360, y: 180 },
+        data: {
+          ...defaultNodeData.dualOsc,
+          type: 'sawtooth',
+          modType: 'square',
+          detune: 17,
+          blend: 0.58,
+          gain: 0.46,
+        },
+      },
+      {
+        id: 'preset_vocoder',
+        type: 'vocoder',
+        position: { x: 670, y: 170 },
+        data: {
+          ...defaultNodeData.vocoder,
+          label: 'Vocoder',
+          micEnabled: true,
+        },
+      },
+    ],
+    edges: [
+      { id: 'initial-vocoder-1', source: 'preset_arp', target: 'preset_carrier', targetHandle: 'pitch' },
+      { id: 'initial-vocoder-2', source: 'preset_carrier', target: 'preset_vocoder', targetHandle: 'carrier' },
+      { id: 'initial-vocoder-3', source: 'preset_vocoder', target: 'destination' },
+    ],
+  },
+  {
     id: 'acid-rat',
     name: 'Acid Rat',
     hint: 'Bassline + auto filter + foldback + delay',

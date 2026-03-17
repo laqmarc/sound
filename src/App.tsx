@@ -30,6 +30,7 @@ import DronePadNode from './nodes/DronePadNode';
 import BasslineNode from './nodes/BasslineNode';
 import LeadVoiceNode from './nodes/LeadVoiceNode';
 import SamplerNode from './nodes/SamplerNode';
+import VocoderNode from './nodes/VocoderNode';
 import PannerNode from './nodes/PannerNode';
 import ReverbNode from './nodes/ReverbNode';
 import ChannelStripNode from './nodes/ChannelStripNode';
@@ -499,6 +500,9 @@ function App() {
       ),
       sampler: (props: SoundNodeProps) => (
         <SamplerNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      vocoder: (props: SoundNodeProps) => (
+        <VocoderNode {...props} onDataChange={handleNodeDataChange} />
       ),
       gain: (props: SoundNodeProps) => (
         <GainNode {...props} onDataChange={handleNodeDataChange} />
@@ -1026,6 +1030,17 @@ function App() {
 
         return accumulator;
       }, []);
+
+      const destinationNode = nodesRef.current.find((node) => node.type === 'destination');
+      const outputNodeId = template.outputKey ? idsByKey.get(template.outputKey) : null;
+      if (destinationNode && outputNodeId) {
+        nextEdges.push({
+          id: `${template.id}-destination-${outputNodeId}`,
+          source: outputNodeId,
+          target: destinationNode.id,
+          targetHandle: null,
+        });
+      }
 
       setNodes((currentNodes) => [...currentNodes, ...nextNodes]);
       setEdges((currentEdges) => [...currentEdges, ...nextEdges]);

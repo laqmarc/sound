@@ -115,6 +115,18 @@ export const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     triggerNonce: 0,
     stopNonce: 0,
   },
+  vocoder: {
+    label: 'Vocoder',
+    vocoderSource: 'microphone',
+    micEnabled: false,
+    gain: 0.95,
+    mix: 1,
+    tone: 5200,
+    Q: 14,
+    attack: 0.004,
+    release: 0.06,
+    bands: 16,
+  },
   gain: {
     label: 'Gain',
     gain: 0.5,

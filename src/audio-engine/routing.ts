@@ -27,6 +27,10 @@ const resolveTarget = (
     return nodes.get(`${targetId}_${targetHandleId}`);
   }
 
+  if (targetHandleId === 'carrier') {
+    return nodes.get(`${targetId}_carrier`) ?? nodes.get(targetId);
+  }
+
   if (targetHandleId === 'mod') {
     const targetNode = nodes.get(targetId);
 

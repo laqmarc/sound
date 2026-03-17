@@ -59,6 +59,7 @@ export const dronePads = new Map<string, DronePadState>();
 export const basslines = new Map<string, BasslineState>();
 export const leadVoices = new Map<string, LeadVoiceState>();
 export const samplers = new Map<string, SamplerState>();
+export const vocoders = new Map<string, VocoderState>();
 export const autoPans = new Map<string, AutoPanState>();
 export const autoFilters = new Map<string, AutoFilterState>();
 export const clockDividers = new Map<string, ClockDividerState>();
@@ -419,6 +420,48 @@ export interface SamplerState {
   sampleDataUrl: string | null;
   lastTriggerNonce: number;
   lastStopNonce: number;
+}
+
+export interface VocoderBandState {
+  modFilter: BiquadFilterNode;
+  carrierFilter: BiquadFilterNode;
+  bandGain: GainNode;
+  envelopeSource: ConstantSourceNode;
+  envelopeAmount: GainNode;
+  processor: ScriptProcessorNode;
+  monitor: GainNode;
+}
+
+export interface VocoderState {
+  carrierInput: GainNode;
+  modulatorInput: GainNode;
+  modulatorHighpass: BiquadFilterNode;
+  modulatorPresence: BiquadFilterNode;
+  modulatorCompressor: DynamicsCompressorNode;
+  carrierTone: BiquadFilterNode;
+  noiseSource: AudioBufferSourceNode;
+  noiseFilter: BiquadFilterNode;
+  noiseGain: GainNode;
+  noiseDetector: BiquadFilterNode;
+  noiseEnvelopeSource: ConstantSourceNode;
+  noiseEnvelopeAmount: GainNode;
+  noiseProcessor: ScriptProcessorNode;
+  noiseMonitor: GainNode;
+  speechAssistHighpass: BiquadFilterNode;
+  speechAssistLowpass: BiquadFilterNode;
+  speechAssistGain: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  output: GainNode;
+  bands: VocoderBandState[];
+  mediaStream: MediaStream | null;
+  mediaStreamNode: MediaStreamAudioSourceNode | null;
+  micRequestId: number;
+  params: {
+    attack: number;
+    release: number;
+    activeBands: number;
+  };
 }
 
 export interface AutoPanState {

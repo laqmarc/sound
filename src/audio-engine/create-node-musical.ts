@@ -18,6 +18,7 @@ import {
   basslines,
   leadVoices,
   samplers,
+  vocoders,
   clockDividers,
   randomCvs,
   sampleHolds,
@@ -497,6 +498,200 @@ const createSampler = (id: string) => {
     sampleDataUrl: null,
     lastTriggerNonce: 0,
     lastStopNonce: 0,
+  });
+};
+
+const VOCODER_MAX_BANDS = 18;
+
+const createVocoder = (id: string) => {
+  const ctx = getAudioContext();
+  const carrierInput = ctx.createGain();
+  const modulatorInput = ctx.createGain();
+  const modulatorHighpass = ctx.createBiquadFilter();
+  const modulatorPresence = ctx.createBiquadFilter();
+  const modulatorCompressor = ctx.createDynamicsCompressor();
+  const carrierTone = ctx.createBiquadFilter();
+  const noiseSource = ctx.createBufferSource();
+  const noiseFilter = ctx.createBiquadFilter();
+  const noiseGain = ctx.createGain();
+  const noiseDetector = ctx.createBiquadFilter();
+  const noiseEnvelopeSource = ctx.createConstantSource();
+  const noiseEnvelopeAmount = ctx.createGain();
+  const noiseProcessor = ctx.createScriptProcessor(1024, 1, 1);
+  const noiseMonitor = ctx.createGain();
+  const speechAssistHighpass = ctx.createBiquadFilter();
+  const speechAssistLowpass = ctx.createBiquadFilter();
+  const speechAssistGain = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const output = ctx.createGain();
+  const params = {
+    attack: 0.004,
+    release: 0.06,
+    activeBands: 16,
+  };
+  const bands = Array.from({ length: VOCODER_MAX_BANDS }, () => {
+    const modFilter = ctx.createBiquadFilter();
+    const carrierFilter = ctx.createBiquadFilter();
+    const bandGain = ctx.createGain();
+    const envelopeSource = ctx.createConstantSource();
+    const envelopeAmount = ctx.createGain();
+    const processor = ctx.createScriptProcessor(1024, 1, 1);
+    const monitor = ctx.createGain();
+    let envelope = 0;
+
+    modFilter.type = 'bandpass';
+    carrierFilter.type = 'bandpass';
+    modFilter.Q.setValueAtTime(14, ctx.currentTime);
+    carrierFilter.Q.setValueAtTime(12, ctx.currentTime);
+    bandGain.gain.setValueAtTime(0, ctx.currentTime);
+    envelopeSource.offset.setValueAtTime(0, ctx.currentTime);
+    envelopeAmount.gain.setValueAtTime(1, ctx.currentTime);
+    monitor.gain.setValueAtTime(0, ctx.currentTime);
+
+    processor.onaudioprocess = (event) => {
+      const inputBuffer = event.inputBuffer.getChannelData(0);
+      const outputBuffer = event.outputBuffer.getChannelData(0);
+      const attackCoeff = 1 - Math.exp(-1 / (ctx.sampleRate * Math.max(0.001, params.attack)));
+      const releaseCoeff = 1 - Math.exp(-1 / (ctx.sampleRate * Math.max(0.001, params.release)));
+
+      for (let sampleIndex = 0; sampleIndex < inputBuffer.length; sampleIndex += 1) {
+        const magnitude = Math.abs(inputBuffer[sampleIndex] ?? 0);
+        envelope += (magnitude - envelope) * (magnitude > envelope ? attackCoeff : releaseCoeff);
+        outputBuffer[sampleIndex] = 0;
+      }
+
+      envelopeSource.offset.setTargetAtTime(Math.max(0, Math.min(1, Math.pow(envelope, 0.86) * 4.2)), ctx.currentTime, 0.01);
+    };
+
+    modulatorCompressor.connect(modFilter);
+    modFilter.connect(processor);
+    processor.connect(monitor);
+    monitor.connect(output);
+    carrierTone.connect(carrierFilter);
+    carrierFilter.connect(bandGain);
+    envelopeSource.connect(envelopeAmount);
+    envelopeAmount.connect(bandGain.gain);
+    bandGain.connect(wet);
+    envelopeSource.start();
+
+    return {
+      modFilter,
+      carrierFilter,
+      bandGain,
+      envelopeSource,
+      envelopeAmount,
+      processor,
+      monitor,
+    };
+  });
+
+  modulatorHighpass.type = 'highpass';
+  modulatorHighpass.frequency.setValueAtTime(120, ctx.currentTime);
+  modulatorHighpass.Q.setValueAtTime(0.7, ctx.currentTime);
+  modulatorPresence.type = 'peaking';
+  modulatorPresence.frequency.setValueAtTime(2600, ctx.currentTime);
+  modulatorPresence.Q.setValueAtTime(0.9, ctx.currentTime);
+  modulatorPresence.gain.setValueAtTime(8, ctx.currentTime);
+  modulatorCompressor.threshold.setValueAtTime(-28, ctx.currentTime);
+  modulatorCompressor.knee.setValueAtTime(18, ctx.currentTime);
+  modulatorCompressor.ratio.setValueAtTime(7, ctx.currentTime);
+  modulatorCompressor.attack.setValueAtTime(0.002, ctx.currentTime);
+  modulatorCompressor.release.setValueAtTime(0.05, ctx.currentTime);
+  carrierTone.type = 'lowpass';
+  carrierTone.frequency.setValueAtTime(5200, ctx.currentTime);
+  carrierTone.Q.setValueAtTime(1.1, ctx.currentTime);
+  noiseSource.buffer = getNoiseBuffer(ctx);
+  noiseSource.loop = true;
+  noiseFilter.type = 'highpass';
+  noiseFilter.frequency.setValueAtTime(5600, ctx.currentTime);
+  noiseFilter.Q.setValueAtTime(0.8, ctx.currentTime);
+  noiseGain.gain.setValueAtTime(0, ctx.currentTime);
+  noiseDetector.type = 'highpass';
+  noiseDetector.frequency.setValueAtTime(4200, ctx.currentTime);
+  noiseDetector.Q.setValueAtTime(0.7, ctx.currentTime);
+  noiseEnvelopeSource.offset.setValueAtTime(0, ctx.currentTime);
+  noiseEnvelopeAmount.gain.setValueAtTime(0.12, ctx.currentTime);
+  noiseMonitor.gain.setValueAtTime(0, ctx.currentTime);
+  speechAssistHighpass.type = 'highpass';
+  speechAssistHighpass.frequency.setValueAtTime(1800, ctx.currentTime);
+  speechAssistHighpass.Q.setValueAtTime(0.8, ctx.currentTime);
+  speechAssistLowpass.type = 'lowpass';
+  speechAssistLowpass.frequency.setValueAtTime(4200, ctx.currentTime);
+  speechAssistLowpass.Q.setValueAtTime(0.7, ctx.currentTime);
+  speechAssistGain.gain.setValueAtTime(0.16, ctx.currentTime);
+  dry.gain.setValueAtTime(0, ctx.currentTime);
+  wet.gain.setValueAtTime(1, ctx.currentTime);
+  output.gain.setValueAtTime(0.95, ctx.currentTime);
+
+  let noiseEnvelope = 0;
+  noiseProcessor.onaudioprocess = (event) => {
+    const inputBuffer = event.inputBuffer.getChannelData(0);
+    const outputBuffer = event.outputBuffer.getChannelData(0);
+    const attackCoeff = 1 - Math.exp(-1 / (ctx.sampleRate * 0.002));
+    const releaseCoeff = 1 - Math.exp(-1 / (ctx.sampleRate * 0.028));
+
+    for (let sampleIndex = 0; sampleIndex < inputBuffer.length; sampleIndex += 1) {
+      const magnitude = Math.abs(inputBuffer[sampleIndex] ?? 0);
+      noiseEnvelope += (magnitude - noiseEnvelope) * (magnitude > noiseEnvelope ? attackCoeff : releaseCoeff);
+      outputBuffer[sampleIndex] = 0;
+    }
+
+    noiseEnvelopeSource.offset.setTargetAtTime(Math.max(0, Math.min(1, noiseEnvelope * 7.5)), ctx.currentTime, 0.008);
+  };
+
+  carrierInput.connect(dry);
+  carrierInput.connect(carrierTone);
+  modulatorInput.connect(modulatorHighpass);
+  modulatorHighpass.connect(modulatorPresence);
+  modulatorPresence.connect(modulatorCompressor);
+  modulatorCompressor.connect(noiseDetector);
+  modulatorCompressor.connect(speechAssistHighpass);
+  noiseDetector.connect(noiseProcessor);
+  noiseProcessor.connect(noiseMonitor);
+  noiseMonitor.connect(output);
+  speechAssistHighpass.connect(speechAssistLowpass);
+  speechAssistLowpass.connect(speechAssistGain);
+  noiseSource.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseEnvelopeSource.connect(noiseEnvelopeAmount);
+  noiseEnvelopeAmount.connect(noiseGain.gain);
+  noiseGain.connect(wet);
+  speechAssistGain.connect(wet);
+  dry.connect(output);
+  wet.connect(output);
+  noiseEnvelopeSource.start();
+  noiseSource.start();
+
+  nodes.set(id, carrierInput);
+  nodes.set(`${id}_carrier`, carrierInput);
+  nodes.set(`${id}_out`, output);
+  vocoders.set(id, {
+    carrierInput,
+    modulatorInput,
+    modulatorHighpass,
+    modulatorPresence,
+    modulatorCompressor,
+    carrierTone,
+    noiseSource,
+    noiseFilter,
+    noiseGain,
+    noiseDetector,
+    noiseEnvelopeSource,
+    noiseEnvelopeAmount,
+    noiseProcessor,
+    noiseMonitor,
+    speechAssistHighpass,
+    speechAssistLowpass,
+    speechAssistGain,
+    dry,
+    wet,
+    output,
+    bands,
+    mediaStream: null,
+    mediaStreamNode: null,
+    micRequestId: 0,
+    params,
   });
 };
 
@@ -988,6 +1183,9 @@ export const createMusicalAudioNode = (type: EditableAudioNodeType, id: string) 
       return true;
     case 'sampler':
       createSampler(id);
+      return true;
+    case 'vocoder':
+      createVocoder(id);
       return true;
     case 'clockDivider':
       createClockDivider(id);

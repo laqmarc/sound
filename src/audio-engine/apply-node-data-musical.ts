@@ -1,4 +1,4 @@
-import type { SamplerState } from './runtime';
+import type { SamplerState, VocoderState } from './runtime';
 import type { EditableAudioNodeType, SoundNodeData } from '../types';
 import type { AudioParamName, AudioParamValue } from './runtime';
 import {
@@ -32,6 +32,7 @@ import {
   kickSynths,
   leadVoices,
   samplers,
+  vocoders,
   monoSynths,
   noiseLayers,
   weirdMachines,
@@ -95,6 +96,56 @@ const ensureSamplerMedia = (sampler: SamplerState, sampleDataUrl: string) => {
   sampler.mediaElement = mediaElement;
   sampler.sourceNode = sourceNode;
   sampler.sampleDataUrl = sampleDataUrl;
+};
+
+const teardownVocoderMicrophone = (vocoder: VocoderState) => {
+  if (vocoder.mediaStreamNode) {
+    try {
+      vocoder.mediaStreamNode.disconnect();
+    } catch {
+      // Ignore disconnect errors while releasing the microphone input.
+    }
+  }
+
+  vocoder.mediaStream?.getTracks().forEach((track) => track.stop());
+  vocoder.mediaStream = null;
+  vocoder.mediaStreamNode = null;
+};
+
+const ensureVocoderMicrophone = async (vocoder: VocoderState) => {
+  if (vocoder.mediaStreamNode) {
+    return;
+  }
+
+  if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+    return;
+  }
+
+  const requestId = vocoder.micRequestId + 1;
+  vocoder.micRequestId = requestId;
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    });
+
+    if (vocoder.micRequestId !== requestId) {
+      stream.getTracks().forEach((track) => track.stop());
+      return;
+    }
+
+    teardownVocoderMicrophone(vocoder);
+    const mediaStreamNode = getAudioContext().createMediaStreamSource(stream);
+    mediaStreamNode.connect(vocoder.modulatorInput);
+    vocoder.mediaStream = stream;
+    vocoder.mediaStreamNode = mediaStreamNode;
+  } catch {
+    // Ignore user-denied or unavailable microphone input.
+  }
 };
 
 export const applyMusicalNodeData = (
@@ -229,6 +280,80 @@ export const applyMusicalNodeData = (
           }
         }
         sampler.lastTriggerNonce = triggerNonce;
+      }
+
+      return true;
+    }
+    case 'vocoder': {
+      const vocoder = vocoders.get(id);
+      if (!vocoder) {
+        return true;
+      }
+
+      const currentTime = getAudioContext().currentTime;
+      const micEnabled = data.micEnabled ?? false;
+      const mix = Math.max(0, Math.min(1, data.mix ?? 1));
+      const dryMix = Math.max(0, 1 - mix);
+      const wetMix = Math.min(1, mix);
+      const tone = Math.max(900, Math.min(7000, data.tone ?? 2600));
+      const resonance = Math.max(1, Math.min(24, data.Q ?? 8));
+      const activeBands = Math.max(8, Math.min(vocoder.bands.length, Math.round(data.bands ?? 16)));
+      const bandLow = 120;
+      const bandHigh = Math.max(bandLow * 2, Math.min(11000, tone * 1.55));
+      const bandFrequencies = Array.from({ length: activeBands }, (_, index) => {
+        if (activeBands === 1) {
+          return Math.sqrt(bandLow * bandHigh);
+        }
+
+        const position = index / (activeBands - 1);
+        return bandLow * Math.pow(bandHigh / bandLow, position);
+      });
+      const noiseDetectorFrequency = Math.max(3800, Math.min(6200, tone * 0.92));
+      const noiseToneFrequency = Math.max(5200, Math.min(11000, tone * 1.45));
+      const noiseAmount = Math.max(0.06, Math.min(0.14, 0.08 + (18 - activeBands) * 0.004));
+      const speechAssistHighpass = Math.max(1400, Math.min(2800, tone * 0.34));
+      const speechAssistLowpass = Math.max(3200, Math.min(5600, tone * 0.88));
+      const speechAssistAmount = Math.max(0.12, Math.min(0.24, 0.15 + (18 - activeBands) * 0.004));
+
+      vocoder.params.attack = Math.max(0.001, Math.min(0.05, data.attack ?? 0.004));
+      vocoder.params.release = Math.max(0.02, Math.min(0.24, data.release ?? 0.06));
+      vocoder.params.activeBands = activeBands;
+
+      vocoder.modulatorPresence.frequency.setTargetAtTime(Math.max(1800, Math.min(3200, tone * 0.54)), currentTime, 0.03);
+      vocoder.modulatorPresence.gain.setTargetAtTime(7 + activeBands * 0.2, currentTime, 0.03);
+      vocoder.carrierTone.frequency.setTargetAtTime(tone, currentTime, 0.03);
+      vocoder.carrierTone.Q.setTargetAtTime(0.8 + resonance * 0.045, currentTime, 0.03);
+      vocoder.noiseDetector.frequency.setTargetAtTime(noiseDetectorFrequency, currentTime, 0.03);
+      vocoder.noiseFilter.frequency.setTargetAtTime(noiseToneFrequency, currentTime, 0.03);
+      vocoder.noiseEnvelopeAmount.gain.setTargetAtTime(noiseAmount, currentTime, 0.03);
+      vocoder.speechAssistHighpass.frequency.setTargetAtTime(speechAssistHighpass, currentTime, 0.03);
+      vocoder.speechAssistLowpass.frequency.setTargetAtTime(speechAssistLowpass, currentTime, 0.03);
+      vocoder.speechAssistGain.gain.setTargetAtTime(speechAssistAmount, currentTime, 0.03);
+      vocoder.output.gain.setTargetAtTime(Math.max(0, Math.min(1.2, data.gain ?? 0.95)), currentTime, 0.03);
+      vocoder.wet.gain.setTargetAtTime(wetMix, currentTime, 0.03);
+      vocoder.dry.gain.setTargetAtTime(dryMix, currentTime, 0.03);
+
+      vocoder.micRequestId += 1;
+
+      vocoder.bands.forEach((band, index) => {
+        const frequency = bandFrequencies[Math.min(index, bandFrequencies.length - 1)] ?? tone;
+        const isActive = index < activeBands;
+
+        band.modFilter.frequency.setTargetAtTime(frequency, currentTime, 0.03);
+        band.carrierFilter.frequency.setTargetAtTime(frequency, currentTime, 0.03);
+        band.modFilter.Q.setTargetAtTime(Math.max(8, resonance * 1.05), currentTime, 0.03);
+        band.carrierFilter.Q.setTargetAtTime(Math.max(6, resonance * 0.9), currentTime, 0.03);
+        band.envelopeAmount.gain.setTargetAtTime(
+          isActive ? 1 / Math.pow(activeBands, 0.44) : 0,
+          currentTime,
+          0.03,
+        );
+      });
+
+      if (micEnabled) {
+        void ensureVocoderMicrophone(vocoder);
+      } else {
+        teardownVocoderMicrophone(vocoder);
       }
 
       return true;

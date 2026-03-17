@@ -41,6 +41,7 @@ import {
   lags,
   leadVoices,
   samplers,
+  vocoders,
   limiters,
   loopers,
   monoSynths,
@@ -523,6 +524,53 @@ export const destroyNodeById = (id: string) => {
     samplers.delete(id);
   }
 
+  const vocoder = vocoders.get(id);
+  if (vocoder) {
+    try {
+      vocoder.mediaStreamNode?.disconnect();
+      vocoder.mediaStream?.getTracks().forEach((track) => track.stop());
+      vocoder.carrierInput.disconnect();
+      vocoder.modulatorInput.disconnect();
+      vocoder.modulatorHighpass.disconnect();
+      vocoder.modulatorPresence.disconnect();
+      vocoder.modulatorCompressor.disconnect();
+      vocoder.carrierTone.disconnect();
+      vocoder.noiseSource.disconnect();
+      vocoder.noiseSource.stop();
+      vocoder.noiseFilter.disconnect();
+      vocoder.noiseGain.disconnect();
+      vocoder.noiseDetector.disconnect();
+      vocoder.noiseEnvelopeSource.disconnect();
+      vocoder.noiseEnvelopeSource.stop();
+      vocoder.noiseEnvelopeAmount.disconnect();
+      vocoder.noiseProcessor.disconnect();
+      vocoder.noiseProcessor.onaudioprocess = null;
+      vocoder.noiseMonitor.disconnect();
+      vocoder.speechAssistHighpass.disconnect();
+      vocoder.speechAssistLowpass.disconnect();
+      vocoder.speechAssistGain.disconnect();
+      vocoder.bands.forEach((band) => {
+        band.modFilter.disconnect();
+        band.carrierFilter.disconnect();
+        band.bandGain.disconnect();
+        band.envelopeSource.disconnect();
+        band.envelopeAmount.disconnect();
+        band.envelopeSource.stop();
+        band.processor.disconnect();
+        band.processor.onaudioprocess = null;
+        band.monitor.disconnect();
+      });
+      vocoder.dry.disconnect();
+      vocoder.wet.disconnect();
+      vocoder.output.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the vocoder.
+    }
+    vocoders.delete(id);
+    nodes.delete(`${id}_carrier`);
+    nodes.delete(`${id}_out`);
+  }
+
   const autoPan = autoPans.get(id);
   if (autoPan) {
     try {
@@ -999,6 +1047,7 @@ export const clearAudioEngineStores = () => {
   basslines.clear();
   leadVoices.clear();
   samplers.clear();
+  vocoders.clear();
   autoPans.clear();
   autoFilters.clear();
   clockDividers.clear();
