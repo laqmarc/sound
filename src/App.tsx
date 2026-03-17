@@ -31,6 +31,7 @@ import BasslineNode from './nodes/BasslineNode';
 import LeadVoiceNode from './nodes/LeadVoiceNode';
 import SamplerNode from './nodes/SamplerNode';
 import VocoderNode from './nodes/VocoderNode';
+import DaftVoiceNode from './nodes/DaftVoiceNode';
 import PannerNode from './nodes/PannerNode';
 import ReverbNode from './nodes/ReverbNode';
 import ChannelStripNode from './nodes/ChannelStripNode';
@@ -503,6 +504,9 @@ function App() {
       ),
       vocoder: (props: SoundNodeProps) => (
         <VocoderNode {...props} onDataChange={handleNodeDataChange} />
+      ),
+      daftVoice: (props: SoundNodeProps) => (
+        <DaftVoiceNode {...props} onDataChange={handleNodeDataChange} />
       ),
       gain: (props: SoundNodeProps) => (
         <GainNode {...props} onDataChange={handleNodeDataChange} />

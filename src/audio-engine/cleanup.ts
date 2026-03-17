@@ -42,6 +42,7 @@ import {
   leadVoices,
   samplers,
   vocoders,
+  daftVoices,
   limiters,
   loopers,
   monoSynths,
@@ -568,6 +569,42 @@ export const destroyNodeById = (id: string) => {
     }
     vocoders.delete(id);
     nodes.delete(`${id}_carrier`);
+    nodes.delete(`${id}_out`);
+  }
+
+  const daftVoice = daftVoices.get(id);
+  if (daftVoice) {
+    try {
+      daftVoice.mediaStreamNode?.disconnect();
+      daftVoice.mediaStream?.getTracks().forEach((track) => track.stop());
+      daftVoice.input.disconnect();
+      daftVoice.preHighpass.disconnect();
+      daftVoice.compressor.disconnect();
+      daftVoice.robotOscillator.disconnect();
+      daftVoice.robotOscillator.stop();
+      daftVoice.robotDepth.disconnect();
+      daftVoice.harmonicOscillator.disconnect();
+      daftVoice.harmonicOscillator.stop();
+      daftVoice.harmonicDepth.disconnect();
+      daftVoice.ringGain.disconnect();
+      daftVoice.formants.forEach((formant) => {
+        formant.filter.disconnect();
+        formant.gain.disconnect();
+      });
+      daftVoice.formantBus.disconnect();
+      daftVoice.shaper.disconnect();
+      daftVoice.nasalFilter.disconnect();
+      daftVoice.sparkleFilter.disconnect();
+      daftVoice.articulationHighpass.disconnect();
+      daftVoice.articulationLowpass.disconnect();
+      daftVoice.articulationGain.disconnect();
+      daftVoice.dry.disconnect();
+      daftVoice.wet.disconnect();
+      daftVoice.output.disconnect();
+    } catch {
+      // Ignore cleanup errors while tearing down the daft voice.
+    }
+    daftVoices.delete(id);
     nodes.delete(`${id}_out`);
   }
 

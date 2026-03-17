@@ -60,6 +60,7 @@ export const basslines = new Map<string, BasslineState>();
 export const leadVoices = new Map<string, LeadVoiceState>();
 export const samplers = new Map<string, SamplerState>();
 export const vocoders = new Map<string, VocoderState>();
+export const daftVoices = new Map<string, DaftVoiceState>();
 export const autoPans = new Map<string, AutoPanState>();
 export const autoFilters = new Map<string, AutoFilterState>();
 export const clockDividers = new Map<string, ClockDividerState>();
@@ -462,6 +463,36 @@ export interface VocoderState {
     release: number;
     activeBands: number;
   };
+}
+
+export interface DaftVoiceFormantState {
+  filter: BiquadFilterNode;
+  gain: GainNode;
+}
+
+export interface DaftVoiceState {
+  input: GainNode;
+  preHighpass: BiquadFilterNode;
+  compressor: DynamicsCompressorNode;
+  robotOscillator: OscillatorNode;
+  robotDepth: GainNode;
+  harmonicOscillator: OscillatorNode;
+  harmonicDepth: GainNode;
+  ringGain: GainNode;
+  formants: DaftVoiceFormantState[];
+  formantBus: GainNode;
+  shaper: WaveShaperNode;
+  nasalFilter: BiquadFilterNode;
+  sparkleFilter: BiquadFilterNode;
+  articulationHighpass: BiquadFilterNode;
+  articulationLowpass: BiquadFilterNode;
+  articulationGain: GainNode;
+  dry: GainNode;
+  wet: GainNode;
+  output: GainNode;
+  mediaStream: MediaStream | null;
+  mediaStreamNode: MediaStreamAudioSourceNode | null;
+  micRequestId: number;
 }
 
 export interface AutoPanState {

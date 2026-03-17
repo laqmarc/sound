@@ -110,6 +110,30 @@ export const machineSetTemplates: MachineSetTemplate[] = [
     outputKey: 'vocoder',
   },
   {
+    id: 'daft-voice',
+    name: 'Daft Voice',
+    hint: 'Veu robot híbrida per micro, directa a destination',
+    tab: 'voices',
+    nodes: [
+      {
+        key: 'daft',
+        type: 'daftVoice',
+        offset: { x: 0, y: 0 },
+        data: {
+          frequency: 88,
+          tone: 3200,
+          Q: 10,
+          drive: 3,
+          gain: 0.95,
+          mix: 1,
+          micEnabled: true,
+        },
+      },
+    ],
+    edges: [],
+    outputKey: 'daft',
+  },
+  {
     id: 'drum-bus',
     name: 'Drum Bus',
     hint: 'Kick, snare i hi-hat ja rutats a un mixer',
@@ -345,6 +369,7 @@ export const addNodeButtons: AddNodeButton[] = [
   { type: 'leadVoice', label: 'Lead', color: 'bg-rose-500/10 text-rose-300 border-rose-500/20', tab: 'voices' },
   { type: 'sampler', label: 'Sample', color: 'bg-amber-500/10 text-amber-200 border-amber-500/20', tab: 'voices' },
   { type: 'vocoder', label: 'Vocoder', color: 'bg-lime-500/10 text-lime-200 border-lime-500/20', tab: 'voices' },
+  { type: 'daftVoice', label: 'Daft', color: 'bg-orange-500/10 text-orange-200 border-orange-500/20', tab: 'voices' },
   { type: 'noise', label: 'Noise', color: 'bg-slate-500/10 text-slate-400 border-slate-500/20', tab: 'voices' },
   { type: 'monoSynth', label: 'Mono', color: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20', tab: 'voices' },
   { type: 'fmSynth', label: 'FM', color: 'bg-teal-500/10 text-teal-300 border-teal-500/20', tab: 'voices' },

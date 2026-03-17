@@ -19,6 +19,7 @@ import {
   leadVoices,
   samplers,
   vocoders,
+  daftVoices,
   clockDividers,
   randomCvs,
   sampleHolds,
@@ -695,6 +696,130 @@ const createVocoder = (id: string) => {
   });
 };
 
+const createDaftVoice = (id: string) => {
+  const ctx = getAudioContext();
+  const input = ctx.createGain();
+  const preHighpass = ctx.createBiquadFilter();
+  const compressor = ctx.createDynamicsCompressor();
+  const robotOscillator = ctx.createOscillator();
+  const robotDepth = ctx.createGain();
+  const harmonicOscillator = ctx.createOscillator();
+  const harmonicDepth = ctx.createGain();
+  const ringGain = ctx.createGain();
+  const formantBus = ctx.createGain();
+  const shaper = ctx.createWaveShaper();
+  const nasalFilter = ctx.createBiquadFilter();
+  const sparkleFilter = ctx.createBiquadFilter();
+  const articulationHighpass = ctx.createBiquadFilter();
+  const articulationLowpass = ctx.createBiquadFilter();
+  const articulationGain = ctx.createGain();
+  const dry = ctx.createGain();
+  const wet = ctx.createGain();
+  const output = ctx.createGain();
+  const formants = [700, 1400, 2600].map((frequency) => {
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(frequency, ctx.currentTime);
+    filter.Q.setValueAtTime(8, ctx.currentTime);
+    gain.gain.setValueAtTime(0.8, ctx.currentTime);
+
+    ringGain.connect(filter);
+    filter.connect(gain);
+    gain.connect(formantBus);
+
+    return {
+      filter,
+      gain,
+    };
+  });
+
+  preHighpass.type = 'highpass';
+  preHighpass.frequency.setValueAtTime(130, ctx.currentTime);
+  preHighpass.Q.setValueAtTime(0.7, ctx.currentTime);
+  compressor.threshold.setValueAtTime(-24, ctx.currentTime);
+  compressor.knee.setValueAtTime(18, ctx.currentTime);
+  compressor.ratio.setValueAtTime(8, ctx.currentTime);
+  compressor.attack.setValueAtTime(0.002, ctx.currentTime);
+  compressor.release.setValueAtTime(0.045, ctx.currentTime);
+  robotOscillator.type = 'square';
+  robotOscillator.frequency.setValueAtTime(96, ctx.currentTime);
+  robotDepth.gain.setValueAtTime(0.95, ctx.currentTime);
+  harmonicOscillator.type = 'triangle';
+  harmonicOscillator.frequency.setValueAtTime(194, ctx.currentTime);
+  harmonicDepth.gain.setValueAtTime(0.42, ctx.currentTime);
+  ringGain.gain.setValueAtTime(0, ctx.currentTime);
+  formantBus.gain.setValueAtTime(0.86, ctx.currentTime);
+  shaper.curve = buildSaturatorCurve(2.4);
+  shaper.oversample = '4x';
+  nasalFilter.type = 'peaking';
+  nasalFilter.frequency.setValueAtTime(1700, ctx.currentTime);
+  nasalFilter.Q.setValueAtTime(1.2, ctx.currentTime);
+  nasalFilter.gain.setValueAtTime(8, ctx.currentTime);
+  sparkleFilter.type = 'highshelf';
+  sparkleFilter.frequency.setValueAtTime(3600, ctx.currentTime);
+  sparkleFilter.gain.setValueAtTime(4, ctx.currentTime);
+  articulationHighpass.type = 'highpass';
+  articulationHighpass.frequency.setValueAtTime(2400, ctx.currentTime);
+  articulationHighpass.Q.setValueAtTime(0.7, ctx.currentTime);
+  articulationLowpass.type = 'lowpass';
+  articulationLowpass.frequency.setValueAtTime(7600, ctx.currentTime);
+  articulationLowpass.Q.setValueAtTime(0.7, ctx.currentTime);
+  articulationGain.gain.setValueAtTime(0.16, ctx.currentTime);
+  dry.gain.setValueAtTime(0, ctx.currentTime);
+  wet.gain.setValueAtTime(1, ctx.currentTime);
+  output.gain.setValueAtTime(0.95, ctx.currentTime);
+
+  input.connect(dry);
+  input.connect(preHighpass);
+  preHighpass.connect(compressor);
+  compressor.connect(ringGain);
+  compressor.connect(articulationHighpass);
+  robotOscillator.connect(robotDepth);
+  robotDepth.connect(ringGain.gain);
+  harmonicOscillator.connect(harmonicDepth);
+  harmonicDepth.connect(ringGain.gain);
+  formantBus.connect(shaper);
+  shaper.connect(nasalFilter);
+  nasalFilter.connect(sparkleFilter);
+  sparkleFilter.connect(wet);
+  articulationHighpass.connect(articulationLowpass);
+  articulationLowpass.connect(articulationGain);
+  articulationGain.connect(wet);
+  dry.connect(output);
+  wet.connect(output);
+  robotOscillator.start();
+  harmonicOscillator.start();
+
+  nodes.set(id, input);
+  nodes.set(`${id}_out`, output);
+  daftVoices.set(id, {
+    input,
+    preHighpass,
+    compressor,
+    robotOscillator,
+    robotDepth,
+    harmonicOscillator,
+    harmonicDepth,
+    ringGain,
+    formants,
+    formantBus,
+    shaper,
+    nasalFilter,
+    sparkleFilter,
+    articulationHighpass,
+    articulationLowpass,
+    articulationGain,
+    dry,
+    wet,
+    output,
+    mediaStream: null,
+    mediaStreamNode: null,
+    micRequestId: 0,
+  });
+};
+
 const createClockDivider = (id: string) => {
   const ctx = getAudioContext();
   const source = ctx.createConstantSource();
@@ -1186,6 +1311,9 @@ export const createMusicalAudioNode = (type: EditableAudioNodeType, id: string) 
       return true;
     case 'vocoder':
       createVocoder(id);
+      return true;
+    case 'daftVoice':
+      createDaftVoice(id);
       return true;
     case 'clockDivider':
       createClockDivider(id);

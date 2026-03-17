@@ -127,6 +127,16 @@ export const defaultNodeData: Record<EditableAudioNodeType, SoundNodeData> = {
     release: 0.06,
     bands: 16,
   },
+  daftVoice: {
+    label: 'Daft Voice',
+    micEnabled: false,
+    gain: 0.95,
+    mix: 1,
+    frequency: 88,
+    tone: 3200,
+    Q: 10,
+    drive: 3,
+  },
   gain: {
     label: 'Gain',
     gain: 0.5,

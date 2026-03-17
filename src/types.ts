@@ -8,6 +8,7 @@ export const editableNodeTypes = [
   'leadVoice',
   'sampler',
   'vocoder',
+  'daftVoice',
   'gain',
   'filter',
   'delay',

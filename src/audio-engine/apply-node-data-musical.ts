@@ -1,4 +1,4 @@
-import type { SamplerState, VocoderState } from './runtime';
+import type { DaftVoiceState, SamplerState, VocoderState } from './runtime';
 import type { EditableAudioNodeType, SoundNodeData } from '../types';
 import type { AudioParamName, AudioParamValue } from './runtime';
 import {
@@ -33,6 +33,7 @@ import {
   leadVoices,
   samplers,
   vocoders,
+  daftVoices,
   monoSynths,
   noiseLayers,
   weirdMachines,
@@ -143,6 +144,56 @@ const ensureVocoderMicrophone = async (vocoder: VocoderState) => {
     mediaStreamNode.connect(vocoder.modulatorInput);
     vocoder.mediaStream = stream;
     vocoder.mediaStreamNode = mediaStreamNode;
+  } catch {
+    // Ignore user-denied or unavailable microphone input.
+  }
+};
+
+const teardownDaftVoiceMicrophone = (daftVoice: DaftVoiceState) => {
+  if (daftVoice.mediaStreamNode) {
+    try {
+      daftVoice.mediaStreamNode.disconnect();
+    } catch {
+      // Ignore disconnect errors while releasing the microphone input.
+    }
+  }
+
+  daftVoice.mediaStream?.getTracks().forEach((track) => track.stop());
+  daftVoice.mediaStream = null;
+  daftVoice.mediaStreamNode = null;
+};
+
+const ensureDaftVoiceMicrophone = async (daftVoice: DaftVoiceState) => {
+  if (daftVoice.mediaStreamNode) {
+    return;
+  }
+
+  if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+    return;
+  }
+
+  const requestId = daftVoice.micRequestId + 1;
+  daftVoice.micRequestId = requestId;
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    });
+
+    if (daftVoice.micRequestId !== requestId) {
+      stream.getTracks().forEach((track) => track.stop());
+      return;
+    }
+
+    teardownDaftVoiceMicrophone(daftVoice);
+    const mediaStreamNode = getAudioContext().createMediaStreamSource(stream);
+    mediaStreamNode.connect(daftVoice.input);
+    daftVoice.mediaStream = stream;
+    daftVoice.mediaStreamNode = mediaStreamNode;
   } catch {
     // Ignore user-denied or unavailable microphone input.
   }
@@ -354,6 +405,63 @@ export const applyMusicalNodeData = (
         void ensureVocoderMicrophone(vocoder);
       } else {
         teardownVocoderMicrophone(vocoder);
+      }
+
+      return true;
+    }
+    case 'daftVoice': {
+      const daftVoice = daftVoices.get(id);
+      if (!daftVoice) {
+        return true;
+      }
+
+      const currentTime = getAudioContext().currentTime;
+      const micEnabled = data.micEnabled ?? false;
+      const mix = Math.max(0, Math.min(1, data.mix ?? 1));
+      const tone = Math.max(900, Math.min(7000, data.tone ?? 2600));
+      const resonance = Math.max(1, Math.min(18, data.Q ?? 8));
+      const robotFrequency = Math.max(40, Math.min(220, data.frequency ?? 96));
+      const drive = Math.max(1, Math.min(4.5, data.drive ?? 2.4));
+      const articulationAmount = Math.max(0.08, Math.min(0.3, 0.13 + (tone / 7000) * 0.08));
+      const formantScale = tone / 2600;
+      const formantFrequencies = [700, 1400, 2600].map((frequency) =>
+        Math.max(280, Math.min(6200, frequency * formantScale)),
+      );
+      const nasalFrequency = Math.max(1100, Math.min(2400, tone * 0.62));
+      const sparkleFrequency = Math.max(2800, Math.min(5200, tone * 1.12));
+
+      daftVoice.robotOscillator.frequency.setTargetAtTime(robotFrequency, currentTime, 0.03);
+      daftVoice.robotDepth.gain.setTargetAtTime(0.95, currentTime, 0.03);
+      daftVoice.harmonicOscillator.frequency.setTargetAtTime(robotFrequency * 2.01, currentTime, 0.03);
+      daftVoice.harmonicDepth.gain.setTargetAtTime(0.32 + resonance * 0.02, currentTime, 0.03);
+      daftVoice.preHighpass.frequency.setTargetAtTime(Math.max(110, Math.min(240, robotFrequency * 1.6)), currentTime, 0.03);
+      daftVoice.nasalFilter.frequency.setTargetAtTime(nasalFrequency, currentTime, 0.03);
+      daftVoice.nasalFilter.Q.setTargetAtTime(1 + resonance * 0.08, currentTime, 0.03);
+      daftVoice.nasalFilter.gain.setTargetAtTime(6 + resonance * 0.35, currentTime, 0.03);
+      daftVoice.sparkleFilter.frequency.setTargetAtTime(sparkleFrequency, currentTime, 0.03);
+      daftVoice.sparkleFilter.gain.setTargetAtTime(3 + resonance * 0.12, currentTime, 0.03);
+      daftVoice.articulationHighpass.frequency.setTargetAtTime(Math.max(1900, Math.min(4200, tone * 0.9)), currentTime, 0.03);
+      daftVoice.articulationLowpass.frequency.setTargetAtTime(Math.max(5200, Math.min(11000, tone * 2.4)), currentTime, 0.03);
+      daftVoice.articulationGain.gain.setTargetAtTime(articulationAmount, currentTime, 0.03);
+      daftVoice.formantBus.gain.setTargetAtTime(0.84 + (resonance / 18) * 0.18, currentTime, 0.03);
+      daftVoice.shaper.curve = buildSaturatorCurve(drive);
+      daftVoice.output.gain.setTargetAtTime(Math.max(0, Math.min(1.2, data.gain ?? 0.95)), currentTime, 0.03);
+      daftVoice.wet.gain.setTargetAtTime(mix, currentTime, 0.03);
+      daftVoice.dry.gain.setTargetAtTime(Math.max(0, 1 - mix), currentTime, 0.03);
+
+      daftVoice.micRequestId += 1;
+
+      daftVoice.formants.forEach((formant, index) => {
+        const frequency = formantFrequencies[index] ?? tone;
+        formant.filter.frequency.setTargetAtTime(frequency, currentTime, 0.03);
+        formant.filter.Q.setTargetAtTime(Math.max(3, resonance), currentTime, 0.03);
+        formant.gain.gain.setTargetAtTime(index === 1 ? 0.95 : 0.78, currentTime, 0.03);
+      });
+
+      if (micEnabled) {
+        void ensureDaftVoiceMicrophone(daftVoice);
+      } else {
+        teardownDaftVoiceMicrophone(daftVoice);
       }
 
       return true;
