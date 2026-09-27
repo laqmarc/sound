@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { useEffect, useState } from 'react';
-import { Handle, Position } from 'reactflow';
+import { Position } from 'reactflow';
+import { Handle } from '../components/NodeHandle';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps } from '../types';
 import './nodeChrome.css';

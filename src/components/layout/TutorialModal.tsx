@@ -169,12 +169,6 @@ export function TutorialModal({ isOpen, onClose }: TutorialModalProps) {
   );
 
   useEffect(() => {
-    if (isOpen) {
-      setStepIndex(0);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
     if (!isOpen) {
       return;
     }

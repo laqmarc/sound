@@ -4,6 +4,8 @@ Patching visual d'audio fet amb React, TypeScript, Vite i React Flow. La idea de
 
 No hi ha backend. Tot passa al navegador via Web Audio API.
 
+En pantalles de menys de 1024 px s'activa la interfície mòbil: **Tocar, Afegir, Cables i Sessió**, amb Play/Stop sempre accessible. Vegeu [la guia mòbil i les comprovacions](docs/mobile.md).
+
 ## Stack
 
 - `React 19`

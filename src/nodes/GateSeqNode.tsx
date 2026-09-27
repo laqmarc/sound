@@ -1,4 +1,5 @@
-import { Handle, Position } from 'reactflow';
+import { Position } from 'reactflow';
+import { Handle } from '../components/NodeHandle';
 import type { ControllableSoundNodeProps, SyncDivision } from '../types';
 import './nodeChrome.css';
 import './GateSeqNode.css';

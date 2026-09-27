@@ -81,6 +81,7 @@ const Knob = ({
   };
 
   const rotation = ((value - min) / (max - min)) * 270 - 135;
+  const constrain = (next: number) => Math.max(min, Math.min(max, Number((Math.round((next - min) / step) * step + min).toFixed(6))));
 
   return (
     <div className="knob nodrag">
@@ -88,6 +89,20 @@ const Knob = ({
 
       <div
         onPointerDown={handlePointerDown}
+        role="slider"
+        tabIndex={0}
+        aria-label={label ?? 'Control'}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value}
+        aria-valuetext={`${value} ${unit}`}
+        onKeyDown={(event) => {
+          const directions: Record<string, number> = { ArrowUp: step, ArrowRight: step, ArrowDown: -step, ArrowLeft: -step, PageUp: step * 10, PageDown: -step * 10 };
+          if (event.key in directions || event.key === 'Home' || event.key === 'End') {
+            event.preventDefault();
+            onChange(event.key === 'Home' ? min : event.key === 'End' ? max : constrain(value + directions[event.key]));
+          }
+        }}
         className={`knob__dial ${isDragging ? 'knob__dial--dragging' : ''}`}
         style={{ width: size, height: size }}
       >
@@ -128,6 +143,8 @@ const Knob = ({
           </div>
         </div>
       </div>
+
+      <input className="knob__touch-range" aria-label={label ?? 'Control'} type="range" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} />
 
       <div className="knob__value" style={{ color }}>
         {value.toFixed(value < 10 ? 2 : 0)}

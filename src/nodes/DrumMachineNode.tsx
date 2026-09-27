@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { Handle, Position } from 'reactflow';
+import { Position } from 'reactflow';
+import { Handle } from '../components/NodeHandle';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps, DrumPattern } from '../types';
 import './nodeChrome.css';
@@ -136,6 +137,8 @@ const DrumMachineNode = ({ id, data, onDataChange }: ControllableSoundNodeProps)
                 <button
                   type="button"
                   key={`${channel.key}-${step}`}
+                  aria-label={`${channel.label} pas ${step + 1}`}
+                  aria-pressed={isActive}
                   onClick={() => toggleStep(channel.key, step)}
                   className={[
                     'drum-machine-node__step',

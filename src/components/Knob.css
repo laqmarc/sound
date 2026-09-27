@@ -11,6 +11,8 @@
   gap: 0.25rem;
 }
 
+.knob__touch-range { display: none; }
+
 .knob__label {
   color: var(--knob-label);
   font-size: 9px;
