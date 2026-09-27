@@ -95,6 +95,9 @@ import TriggerDelayNode from './nodes/TriggerDelayNode';
 import { SoundLabHeader } from './components/header/SoundLabHeader';
 import { TransportAside } from './components/layout/TransportAside';
 import { TutorialModal } from './components/layout/TutorialModal';
+import { MobileWorkbench } from './components/mobile/MobileWorkbench';
+import { MobileSession } from './components/mobile/MobileSession';
+import { useMobileLayout } from './components/mobile/useMobileLayout';
 import {
   applyDestinationNodeData,
   applyAudioNodeData,
@@ -320,6 +323,10 @@ const nextNodePlacement = () => {
 };
 
 function App() {
+  const isMobile = useMobileLayout();
+  const [audioBusy, setAudioBusy] = useState(false);
+  const [audioError, setAudioError] = useState('');
+  const audioBusyRef = useRef(false);
   const [nodes, setNodes] = useState<SoundFlowNode[]>(baseInitialNodes);
   const [edges, setEdges] = useState<Edge[]>(baseInitialEdges);
   const [audioStarted, setAudioStarted] = useState(false);
@@ -749,8 +756,12 @@ function App() {
   }, []);
 
   const buildAudioGraph = useCallback(async (graphNodes: SoundFlowNode[], graphEdges: Edge[]) => {
+    // Resume during the Play gesture, before loading worklets. Mobile browsers
+    // may otherwise keep the context suspended while the UI reports playback.
+    const context = getAudioContext();
+    await context.resume();
+    if (context.state !== 'running') throw new Error('Audio context is not running');
     await prepareAudioEngine();
-    getAudioContext();
     graphNodes.forEach((node) => {
       if (isEditableNode(node)) {
         createAudioNode(node.type, node.id, node.data);
@@ -773,8 +784,27 @@ function App() {
     audioStartedRef.current = true;
   }, []);
 
+  const runAudioTransition = useCallback(async (action: () => Promise<void>) => {
+    if (audioBusyRef.current) return;
+    audioBusyRef.current = true;
+    setAudioBusy(true);
+    setAudioError('');
+    try {
+      await action();
+    } catch (error) {
+      console.error('Audio transition failed:', error);
+      setAudioError('No s’ha pogut activar el so. Torna a prémer Play.');
+      try { await stopAudio(); } catch { /* Preserve the actionable startup error. */ }
+      setAudioStarted(false);
+      audioStartedRef.current = false;
+    } finally {
+      audioBusyRef.current = false;
+      setAudioBusy(false);
+    }
+  }, []);
+
   const startAudio = () => {
-    void buildAudioGraph(nodesRef.current, edgesRef.current);
+    void runAudioTransition(() => buildAudioGraph(nodesRef.current, edgesRef.current));
   };
 
   const handleStopAudio = () => {
@@ -786,33 +816,35 @@ function App() {
       audioStartedRef.current = false;
     };
 
-    void finish();
+    void runAudioTransition(finish);
   };
 
   const applyPresetGraph = useCallback(
     async (preset: PatchPreset) => {
-      const shouldRestartAudio = audioStartedRef.current;
+      await runAudioTransition(async () => {
+        const shouldRestartAudio = audioStartedRef.current;
 
-      if (shouldRestartAudio) {
-        flushRecordingIfNeeded('WAV exportat en canviar de patch');
-        await stopAudio();
-        setAudioStarted(false);
-        audioStartedRef.current = false;
-      }
+        if (shouldRestartAudio) {
+          flushRecordingIfNeeded('WAV exportat en canviar de patch');
+          await stopAudio();
+          setAudioStarted(false);
+          audioStartedRef.current = false;
+        }
 
-      const nextNodes = clonePatchNodes(preset.nodes);
-      const nextEdges = clonePatchEdges(preset.edges);
+        const nextNodes = clonePatchNodes(preset.nodes);
+        const nextEdges = clonePatchEdges(preset.edges);
 
-      nodesRef.current = nextNodes;
-      edgesRef.current = nextEdges;
-      setNodes(nextNodes);
-      setEdges(nextEdges);
+        nodesRef.current = nextNodes;
+        edgesRef.current = nextEdges;
+        setNodes(nextNodes);
+        setEdges(nextEdges);
 
-      if (shouldRestartAudio) {
-        await buildAudioGraph(nextNodes, nextEdges);
-      }
+        if (shouldRestartAudio) {
+          await buildAudioGraph(nextNodes, nextEdges);
+        }
+      });
     },
-    [buildAudioGraph],
+    [buildAudioGraph, flushRecordingIfNeeded, runAudioTransition],
   );
 
   const loadPreset = useCallback(
@@ -986,6 +1018,7 @@ function App() {
     if (audioStarted) {
       createAudioNode(type, id, newNode.data);
     }
+    return id;
   };
 
   const addMachineSet = useCallback(
@@ -1050,7 +1083,7 @@ function App() {
       setEdges((currentEdges) => [...currentEdges, ...nextEdges]);
 
       if (!audioStarted) {
-        return;
+        return nextNodes[0]?.id;
       }
 
       nextNodes.forEach((node) => {
@@ -1062,6 +1095,7 @@ function App() {
           connectNodes(edge.source, edge.target, edge.targetHandle);
         }
       });
+      return nextNodes[0]?.id;
     },
     [audioStarted],
   );
@@ -1122,6 +1156,40 @@ function App() {
   const handleStopRecording = () => {
     downloadRecordingExport(stopRecording(), 'WAV descarregat');
   };
+
+  if (isMobile) {
+    return <MobileWorkbench
+      nodes={nodes} edges={edges} nodeTypes={nodeTypes}
+      audioStarted={audioStarted} audioBusy={audioBusy} audioError={audioError}
+      bpm={transport.bpm} swing={transport.swing}
+      onToggleAudio={audioStarted ? handleStopAudio : startAudio}
+      onBpm={setTransportBpm} onSwing={setTransportSwing}
+      onDataChange={handleNodeDataChange} onAdd={addNode} onAddSet={addMachineSet}
+      onConnect={(source, target, targetHandle) => onConnect({ source, target, sourceHandle: null, targetHandle })}
+      onDisconnect={(edge) => {
+        onEdgesDelete([edge]);
+        setEdges(current => current.filter(entry => entry.id !== edge.id));
+      }}
+      onDelete={(node) => {
+        const connected = edges.filter(edge => edge.source === node.id || edge.target === node.id);
+        onEdgesDelete(connected);
+        onNodesDelete([node]);
+        setEdges(current => current.filter(edge => edge.source !== node.id && edge.target !== node.id));
+        setNodes(current => current.filter(entry => entry.id !== node.id));
+      }}
+      session={<MobileSession
+        presets={patchPresets} saved={userPatchPresets}
+        onLoad={(id, saved) => saved ? loadUserPreset(id) : loadPreset(id)}
+        name={userPresetName} onName={setUserPresetName} onSave={saveCurrentPatchAsPreset}
+        onReset={resetCanvas} busy={audioBusy} started={audioStarted}
+        recording={recording} onRecord={recording.isRecording ? handleStopRecording : handleStartRecording}
+        recordingName={recordingFileName} onRecordingName={setRecordingFileName}
+        normalize={recordingNormalize} onNormalize={setRecordingNormalize}
+        channelMode={recordingChannelMode} onChannelMode={setRecordingChannelMode}
+        feedback={recordingFeedback}
+      />}
+    />;
+  }
 
   return (
     <div className="app-shell" data-tutorial="app-shell">
@@ -1235,7 +1303,7 @@ function App() {
         />
       </div>
 
-      <TutorialModal isOpen={isTutorialOpen} onClose={() => setIsTutorialOpen(false)} />
+      {isTutorialOpen && <TutorialModal isOpen onClose={() => setIsTutorialOpen(false)} />}
     </div>
   );
 }

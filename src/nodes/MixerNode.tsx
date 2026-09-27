@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { Handle, Position } from 'reactflow';
+import { Position } from 'reactflow';
+import { Handle } from '../components/NodeHandle';
 import { getAudioContextState, getMixerChannelMeterState } from '../AudioEngine';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps, SoundNodeData, SyncDivision } from '../types';

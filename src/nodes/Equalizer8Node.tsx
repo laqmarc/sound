@@ -1,4 +1,5 @@
-import { Handle, Position } from 'reactflow';
+import { Position } from 'reactflow';
+import { Handle } from '../components/NodeHandle';
 import type { ControllableSoundNodeProps } from '../types';
 import './nodeChrome.css';
 import './Equalizer8Node.css';

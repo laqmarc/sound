@@ -1,5 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { Handle, Position } from 'reactflow';
+import { useMobileLayout } from '../components/mobile/useMobileLayout';
+import { Position } from 'reactflow';
+import { Handle } from '../components/NodeHandle';
 import Knob from '../components/Knob';
 import type { ControllableSoundNodeProps, Drum2Pattern, Drum2VoiceId, Drum2Voices } from '../types';
 import './nodeChrome.css';
@@ -308,6 +310,8 @@ interface Drum2StepEventDetail {
 }
 
 const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
+  const isMobile = useMobileLayout();
+  const [mobileVoice, setMobileVoice] = useState<Drum2VoiceId>('kick');
   const [transportBpm, setTransportBpm] = useState(data.bpm ?? 120);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedPreset, setSelectedPreset] = useState(0);
@@ -451,8 +455,11 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
         </button>
       </div>
 
+      {isMobile && <div className="mobile-drum-voices" aria-label="Peça de bateria">
+        {channels.map(channel => <button key={channel.key} aria-pressed={mobileVoice === channel.key} onClick={() => setMobileVoice(channel.key)}>{channel.label}</button>)}
+      </div>}
       <div className="drum2-node__lanes">
-        {channels.map((channel) => {
+        {channels.filter(channel => !isMobile || channel.key === mobileVoice).map((channel) => {
           const voice = voices[channel.key];
           const laneStyle = {
             '--drum2-accent': channel.accent,
@@ -516,7 +523,7 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
               </div>
 
               <div className="drum2-node__steps">
-                {pattern[channel.key].map((isActive, stepIndex) => {
+                {pattern[channel.key].slice(0, isMobile ? length : 32).map((isActive, stepIndex) => {
                   const isCurrent = currentStep === stepIndex;
                   const isOutsideLength = stepIndex >= length;
 
@@ -524,6 +531,8 @@ const Drum2Node = ({ id, data, onDataChange }: ControllableSoundNodeProps) => {
                     <button
                       type="button"
                       key={`${channel.key}-${stepIndex}`}
+                      aria-label={`${channel.label} pas ${stepIndex + 1}`}
+                      aria-pressed={isActive}
                       onClick={() => toggleStep(channel.key, stepIndex)}
                       className={[
                         'drum2-node__step-button',

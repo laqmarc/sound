@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { useEffect, useRef } from 'react';
-import { Handle, Position } from 'reactflow';
+import { Position } from 'reactflow';
+import { Handle } from '../components/NodeHandle';
 import { getStereoAnalysers } from '../AudioEngine';
 import type { SoundNodeProps } from '../types';
 import './nodeChrome.css';

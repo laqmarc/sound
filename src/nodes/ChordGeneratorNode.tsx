@@ -1,4 +1,5 @@
-import { Handle, Position } from 'reactflow';
+import { Position } from 'reactflow';
+import { Handle } from '../components/NodeHandle';
 import Knob from '../components/Knob';
 import type { ChordType, ControllableSoundNodeProps, NoteName } from '../types';
 import './nodeChrome.css';

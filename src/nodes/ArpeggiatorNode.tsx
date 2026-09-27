@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Handle, Position } from 'reactflow';
+import { Position } from 'reactflow';
+import { Handle } from '../components/NodeHandle';
 import type { ArpMode, ArpScale, ArpStep, ControllableSoundNodeProps, NoteName, SyncDivision } from '../types';
 import './nodeChrome.css';
 import './ArpeggiatorNode.css';
